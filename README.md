@@ -1,5 +1,9 @@
 # Documentation for line-finding code
 
+Farhan Hasan. 12/11/24
+
+This is an adapted version of the line-finding code for the JWST pure-parallel survey POPPIES (PID#5398).
+
 This software is used to identify line-emitting objects and measure emission line properties in JWST NIRISS WFSS Grism spectra, based on the pure-parallel survey PASSAGE (PID#1571). Installation instructions, including required packages, are in **passage_analysis/README.md** 
 
 After installation, to run the software, simply go into the git cloned directory and run 
