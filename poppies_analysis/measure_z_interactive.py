@@ -902,7 +902,8 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
     # ax2.axvline(x=config_pars['transition_wave'], c='c', linestyle=':', lw=3)
     # ax2.set_xlabel(r'$\lambda$ ($\AA$)', size='xx-large')
     # ax2.set_ylabel(r'S/N', size='xx-large')
-    ax2.set_title(r"S/N", size="xx-large")
+    # ax2.set_title(r"S/N", size="xx-large")
+    ax2.set_ylabel("S/N", size="xx-large")
     ax2.set_xlim([xmin, xmax])
     ax2.set_ylim(ymin, ymax)
     # fig = plt.gcf() a

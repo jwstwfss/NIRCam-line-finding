@@ -109,6 +109,9 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
 
                 os.system(command)
 
+                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+                
         # else:
         #     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame clear"
         #     os.system(command)
@@ -201,6 +204,9 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
 
                 os.system(command)
 
+                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+
             # else:
             #     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame clear"
             #     os.system(command)
@@ -233,16 +239,22 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock colorbar")
     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scale")
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scalelimits")
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
 
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
 
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 7")
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
 
-    for fno in np.arange(6,0,-1):
+    # # for fno in np.arange(6,0,-1):
 
-    # for fno in np.arange(1,7,1):
+    for fno in np.arange(1,8,1):
 
         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " + str(fno))
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+
         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
 
     #     # For NIRCam F444W, image size is 1408 x 200
@@ -264,7 +276,6 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
         #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
 
 
-        # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
 
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 7")
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
