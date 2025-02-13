@@ -1,46 +1,84 @@
-# Documentation for line-finding code
+# Documentation for NIRCAM-line-finding code
+Farhan Hasan, 2/13/2025 (fhasan@stsci.edu)
 
-Farhan Hasan. 12/11/24
+This software is used to identify line-emitting objects and measure emission line properties in JWST NIRCam WFSS Grism spectra, based on the pure-parallel survey POPPIES (PID#5398). 
 
-This is an adapted version of the line-finding code for the JWST pure-parallel survey POPPIES (PID#5398).
+This code was adapted from the JWST WFSS line-finding code for the PASSAGE survey ([https://github.com/jwstwfss/line-finding](https://github.com/jwstwfss/line-finding)), which itself was adapted from A. Henry's WISP fitting code (see Henry et al., 2021).
 
-This software is used to identify line-emitting objects and measure emission line properties in JWST NIRISS WFSS Grism spectra, based on the pure-parallel survey PASSAGE (PID#1571). Installation instructions, including required packages, are in **passage_analysis/README.md** 
+A user interactively inspects emission line candidates using 1D and 2D spectra and images. 
 
-After installation, to run the software, simply go into the git cloned directory and run 
+The user makes a choice between 1) analyzing all objects identified from the photometry, or 2) analyzing the subset of objects that are identified as potential emission line objects using a peak finding algorithm that performs a continuous wavelet transform (CWT) on the spectral data (see SciPys's [find_peaks_cwt](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks_cwt.html)). The code iterates through the detected emission lines, allowing the reviewers to identify lines or reject spurious detections quickly and efficiently.
 
-*python mainPASSAGE.py*
+The user will be asked to enter the number of a parallel field and a username of choice.  The fitting is then performed on an object-by-object basis. 
 
-The user will be asked to enter the number of a parallel field and a username of choice. The fitting is then performed on an object-by-object basis. 
+Steps for installation are as follows (see below for alternative steps 1a, 1b, and 2a):
 
-The following is a list of commands for this software.
+
+1. Uncomment **install.sh** in the top-level directory, and edit as appropriate
+2. Run it from your shell:
+	`./install.sh`
+
+3. Install **XPA** from: [https://github.com/ericmandel/xpa](https://github.com/ericmandel/xpa)
+
+	a) Git clone from the repo
+
+	b) Then, cd into the xpa directory
+
+	c)  `./configure --prefix=<top_level_install_dir>` # site-specific configuration  
+        `make	`		# build the software  
+        `make install`		# install it  
+        `make clean`		# clean up unneeded temp files
+
+	d) Add the path to your bash:
+
+	e) `export PATH=<path/to/software>:$PATH`
+
+	 e.g., export PATH=/Users/fhasan/Desktop/Software/xpa/bin:$PATH
+
+	[See more instructions in *xpa/INSTALL]*
+
+4. Add NIRCAM-line-finding/poppies_analysis to your **$PYTHONPATH**. In your *~/.bash_profile* file, include the following line:
+
+	 `export PYTHONPATH="<path/to/code>"`
+
+	e.g.,  export PYTHONPATH= "/Users/fhasan/POPPIES/line-finding/poppies_analysis/"
+
+	(Alternatively, if you use csh, add to ~/.cshrc: `setenv PYTHONPATH <path/to/code>:${PYTHONPATH}`)
+
+5. Install the ***stenv*** Conda environment: [https://stenv.readthedocs.io/en/latest/](https://stenv.readthedocs.io/en/latest/)
+6. Install **DS9** if you haven't already: [https://sites.google.com/cfa.harvard.edu/saoimageds9](https://sites.google.com/cfa.harvard.edu/saoimageds9)
+
+
+Steps for running the line-finding tool after installing are as follows:
+
+1. Download the data.
+2. Rename the folder Par[Number] from [Number].
+3. Rename CODE_DIR, OUTPUT_DIR, and DATA_DIR to the appropriate names in the mainPOPPIES.py file.
+4. Run `python mainPOPPIES.py`
+5. Enter the number of the parallel field (e.g., "004")
+6. Hit ENTER or 'c' to go through the wavelength decomposition and find peaks, or 'all' to go through all objects identified photometrically
+7. Enter a username
+8. Inspect objects individually.
+
+The following is a list of commands for step 8.
 
 **OBJECT SPECIFIC OPTIONS:**  
-
 a = accept object fit  
-
 ac = accept object fit, noting contamination  
-
 r = reject object  
-
 c = add comment  
-
 user = toggle between previously saved fits  
-
 contam = specify contamination to line flux and/or continuum  
-
-reset = reset interactive options back to default for this object  
-
-s = print the (in progress) object summary
-
+s = print the (in progress) object summary  
+list = list all the objects in line list  
+left = list all the objects left to inspect  
+reset = reset interactive options back to default for this object
 
 **EMISSION LINE SPECIFIC OPTIONS:**  
-
 z = enter a different z guess  
-
 w = enter a different emission line wavelength guess
 
 dz = change the allowable redshift difference between lines  
-
 n = skip to next brightest line found in this object
 
 2gauss = double gaussian profile for the line being fitted
@@ -49,13 +87,14 @@ n = skip to next brightest line found in this object
 
 ha, hb, hg, o31, o32, o2, s2, s31, s32, lya, c4, pb, pa, pg = change strongest emission line
 
-The full list of commands and corresponding lines are as follows
+The full list of commands and corresponding lines for the strongest emission line is as follows:
 
 | **Command** | **Line**       | **Vacuum Wavelength (Å)** |
 | ----------- | -------------- | ------------------------- |
 | lya         | Ly-alpha 1215  | 1215.670                  |
 | c4          | CIV 1548       | 1548.203                  |
 | o2          | [OII] 3730     | 3729.875                  |
+| ne3         | [NeIII] 3870   | 3869.60                   |
 | hg          | H-gamma 4342   | 4341.684                  |
 | hb          | H-beta 4863    | 4862.683                  |
 | o31         | [OIII] 4959    | 4960.295                  |
@@ -69,64 +108,53 @@ The full list of commands and corresponding lines are as follows
 | pb          | Pa-beta 12822  | 12821.6                   |
 | pa          | Pa-alpha 18756 | 18756.1                   |
 
-
-**SPECTRUM SPECIFIC OPTIONS:**  
+**SPECTRUM SPECIFIC OPTIONS:**
 
 fw = change the fwhm guess in pixels  
-
-t1, t2 = change transition wavelength between F115W and F150W (t1) and F150W and F200W (t2)  
-
-m1, m2, or m3 = mask up to three discontinuous wavelength regions  
-
+m1, m2, m3, to m8 = mask up to eight discontinuous wavelength regions  
 nodes = change the wavelengths for the continuum spline nodes  
-
-addnodes = add wavelengths for the continuum spline nodes
-
-rmnodes = remove wavelengths from the continuum spline nodes
-
-shiftallnodes = SHIFT ALL nodes used for the continuum spline by some wavelength   
-
-bluecut = change the blue cutoff of the F115W grism  
-
-redcut  = change the red cutoff of the F200W grism
-
-lincont = fit continuum as a line
-
-polycont = fit continuum as a higher-order polynomial
-
-splinecont = fit continuum as a spline (piecewise) polynomial
-
-grismr = use only Grism-R spectrum for line-fitting
-
-grismrcontam = use only Grism-R spectrum (with contamination) for line-fitting
-
-grismc = use only Grism-C spectrum for line-fitting
-
+addnodes = add wavelengths for the continuum spline nodes  
+rmnodes = remove wavelengths from the continuum spline nodes  
+shiftallnodes = SHIFT ALL nodes used for the continuum spline by some wavelength  
+bluecut = change the blue cutoff of the spectrum  
+redcut  = change the red cutoff of the spectrum  
+lincont = fit continuum as a line  
+polycont = fit continuum as a higher-order polynomial  
+splinecont = fit continuum as a spline (piecewise) polynomial  
+grismr = use only Grism-R spectrum for line-fitting (default)  
+grismrcontam = use only Grism-R spectrum (with contamination) for line-fitting  
+grismc = use only Grism-C spectrum for line-fitting  
 grismccontam = use only Grism-C spectrum (with contamination) for line-fitting
 
-comb = Use combined spectrum (default)
-
-combcontam = Use combined spectrum with contamination
-
-
-
 **DS9 SPECIFIC OPTIONS:**  
-
 lin = linear z-scale  
-
-log = logarithmic z-scale
-
-zs102 = z1,z2 comma-separated range for G102 z-scale  
-
-zs141 = z1,z2 comma-separated range for G141 z-scale  
-
+log = logarithmic  
 dc = recenter direct images  
-
-reload = reload direct images  
-
-dr = reload direct image reg files
+reload = reload direct images and 2D spectra  
 
 **SOFTWARE SPECIFIC OPTIONS:**  
-
 h = print this message  
 q = quit
+----
+
+As alternatives to steps 1 and 2 in the installation, you may do the following:
+
+1a. Make sure you have python 3.9+ installed 
+
+1b. pip install these specific versions: numpy=1.26.4, scipy=1.14.1, astropy=6.0.1, pandas=2.2.3 
+
+2a. Git clone [https://github.com/jwstwfss/NIRCam-line-finding.git](https://github.com/jwstwfss/NIRCam-line-finding.git)
+
+You will need the following software and packages:
+
+- *Python >=3.9*
+- *numpy  (1.26.4 - 2)*
+- *astropy (6.0 - 7)*
+- *pandas (2.0 - 3)*
+- *scipy (1.14.1)*
+- *matplotlib (3.6 - 3.11)*
+- SAO Image DS9
+- XPA Messaging System
+- Anaconda
+- stenv
+
