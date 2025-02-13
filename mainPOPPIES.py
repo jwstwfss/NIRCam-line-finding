@@ -1,5 +1,7 @@
-##### This is the main python file #####
+##### This is the main python file for NIRCAM-line-finding #####
 ### This version started 1/30/25
+## Farhan Hasan (fhasan@stsci.edu)
+
 import poppies_analysis as poppies
 from poppies_analysis import utilities
 import os
@@ -13,9 +15,11 @@ import time
 os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_DIRECT &')
 os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_spec2D &')
 
+### Please update these directories to match yours:
 CODE_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/line-finding/poppies_analysis"
 OUTPUT_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/Output"
 DATA_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/Data/"
+
 
 #############################################################
 ####### You should not need to change anything below. #######
@@ -99,11 +103,7 @@ if __name__ == "__main__":
     objtypes = input("Please hit ENTER or 'c' to perform wavelength decomposition, or 'all' to go through all objects identified by SE \n> ")
 
     if objtypes.strip().lower() == "all":
-        # print(filterlist)
-        # for filt in filterlist['filter']:        
-        #     linelist = glob.glob(OUTPUT_DIR + '/linelist/Par'+str(parno) + 'objects_{}.dat'.format(str(filt)))
-        #     print(linelist)
-        
+
         linelist = objectlist
     
         #run the measure_z_interactive code to go through objects individually:
@@ -111,8 +111,6 @@ if __name__ == "__main__":
 
 
     elif (objtypes == "") or (objtypes.strip().lower() == "c"):
-        # print("Wavelength decomposition not implemented yet. Quitting...")
-        # pass
 
         # check if line list exists. If not, run code to create the linelist
         print(OUTPUT_DIR + "/linelist/Par"+str(parno)+"lines.dat")

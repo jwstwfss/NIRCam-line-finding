@@ -400,9 +400,8 @@ def print_help_message():
         "\tn = skip to next brightest line found in this object\n"
         "\t2gauss = double gaussian profile for the line being fitted\n"
         "\t1gauss = option to go back to 1 gaussian fit after selecting 2 gaussian fit\n"
-        "\tha, hb, hg, o31, o32, o2, s2, s31, s32, lya, c4, he, pb, pa, pg = change strongest emission line\n"
+        "\tha, hb, hg, o31, o32, o2, s2, s31, s32, lya, c4, pa, pb, pg, lya, c4 = change strongest emission line\n"
         "\tPlease see the README file in the top-level directory for the full list of lines and their corresponding commands\n\n"
-
     )
     msg += setcolors["heading"] + "\tSPECTRUM SPECIFIC OPTIONS:\n"
     msg += (

@@ -241,9 +241,7 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scalelimits")
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
 
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
-
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
 
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 7")
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
