@@ -110,8 +110,6 @@ def trim_spec_1filter(tbdata_blue, config_pars, filter, mask_zeros=False, return
     # lam_spec_green, flux_spec_green, error_spec_green, contam_spec_green, zero_spec_green = check_grism(tbdata_green, config_pars['transition_wave1'], config_pars['transition_wave2'])
     # lam_spec_red, flux_spec_red, error_spec_red, contam_spec_red, zero_spec_red = check_grism(tbdata_red, config_pars['transition_wave2'], config_pars['lambda_max'])
 
-    # print('FH in trim_spec ', flux_spec_blue, flux_spec_green, flux_spec_red)
-
     # If one filter doesn't exist, then arrays are already empty. Just add them. 
     lam_spec = np.array(lam_spec_blue)
     flux_spec = np.array(flux_spec_blue)
