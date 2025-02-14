@@ -1,3 +1,5 @@
+#### This python script performs the fitting of emission lines, continua, etc.
+
 # Import required packages.
 from timeit import default_timer
 from poppies_analysis import * # KVN: bad practice. Will want to update at some point

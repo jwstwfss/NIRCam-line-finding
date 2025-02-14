@@ -1,3 +1,5 @@
+#### This python script performs the wavelength decomposition (CWT)
+
 import os
 import pdb
 from glob import glob
@@ -154,15 +156,6 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
 
     ## FH updated 12/23/24
     print('Looking for spectra here: ', str(path_to_data)+'Par'+str(parno)+'/Spectra/*_1D.dat')
-    # f444files = glob(str(path_to_data)+'/Par'+str(parno)+'/Spectra/A_F444W_*_1D.dat') # looking for spectra for POPPIES
-    # # grismfiles = glob(str(path_to_data)+'Par'+str(parno)+'/Spectra/*G150_1D.dat')
-    # f444files.sort()
-    # f277files = glob(str(path_to_data)+'Par'+str(parno)+'/Spectra/A_F277W_*_1D.dat') # looking for spectra for POPPIES
-    # f277files.sort()
-    # f356files = glob(str(path_to_data)+'Par'+str(parno)+'/Spectra/A_F356W_*_1D.dat') # looking for spectra for POPPIES
-    # f356files.sort()
-    # f322files = glob(str(path_to_data)+'Par'+str(parno)+'/Spectra/A_F322W2_*_1D.dat') # looking for spectra for POPPIES
-    # f322files.sort()
 
     ## Find GRISM R and C files:
     Rfiles = glob(str(path_to_data)+'Par'+str(parno)+'/Spectra/*_{}_R_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
@@ -310,8 +303,6 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     #     err = trimmed_spec[2]
     #     zeros = trimmed_spec[4]
 
-    #     # print('FH unpack spec ', lam, trimmed_spec)
-
     #     if len(lam) < config_pars['min_spec_length']:
     #         continue
 
@@ -374,8 +365,6 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     #     flux_corr = trimmed_spec[1] - trimmed_spec[3]
     #     err = trimmed_spec[2]
     #     zeros = trimmed_spec[4]
-
-    #     # print('FH unpack spec ', lam, trimmed_spec)
 
     #     if len(lam) < config_pars['min_spec_length']:
     #         continue

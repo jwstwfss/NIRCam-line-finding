@@ -1,3 +1,5 @@
+#### This python script has a bunch of very nifty utility functions that are used ubiquitously
+
 import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
@@ -48,8 +50,6 @@ def read_config(config, availgrism='F444W'):
                     config_pars['node_wave'].append(l)
 
             elif name == 'mask_region1':
-
-                # print('FH here ', line.split()[1::])
 
                 masklam = [float(s) for s in line.split()[1::]]
                 config_pars.setdefault('mask_region1', []) 
@@ -167,12 +167,10 @@ def create_regions(parno, path_to_data, filters):
     # if filt == "F444W":
 
     #     f444grism = glob.glob(path_to_data + "/Par" + str(parno) + "/DirectImages/*_F444W_i2d.fits") # Added FH 12/23/24
-    #     # print('FH regions ', f444grism_R)
     #     if len(f444grism) != 0:    
     #         write_obj_region(parno, path_to_data, cat, "F444r_grism.reg", 765.438247, 9.66479920022, w = WCS(f444grism[0][1]), 
     #                         b_width = 10.0, b_length = 131.78)        
     
-    #     # print('FH regions ', f444grism)
     #     if len(f444grism) != 0:
     #         write_obj_region(parno, path_to_data, cat, "F444c_grism.reg", 24.1334945641, 765.438247, w = WCS(f444grism[0][1]), 
     #                         b_width = 127.806, b_length = 10.0)        
@@ -180,12 +178,10 @@ def create_regions(parno, path_to_data, filters):
     # elif filt == "F277W":
 
     #     f444grism = glob.glob(path_to_data + "/Par" + str(parno) + "/DirectImages/*_F277W_i2d.fits") # Added FH 12/23/24
-    #     # print('FH regions ', f444grism_R)
     #     if len(f444grism) != 0:    
     #         write_obj_region(parno, path_to_data, cat, "F444r_grism.reg", 765.438247, 9.66479920022, w = WCS(f444grism[0][1]), 
     #                         b_width = 10.0, b_length = 131.78)        
     
-    #     # print('FH regions ', f444grism)
     #     if len(f444grism) != 0:
     #         write_obj_region(parno, path_to_data, cat, "F444c_grism.reg", 24.1334945641, 765.438247, w = WCS(f444grism[0][1]), 
     #                         b_width = 127.806, b_length = 10.0)    
@@ -286,7 +282,7 @@ def make_spectra_dat_files(parno, path_to_data, create_files_anyway = False):
                 # t_out['flux'][np.where(np.isnan(t_out['flux']))] = np.median(t_out['flux'][np.where(t_out['flux'] != 0.0)])
                 # t_out['flux'][np.where(np.isnan(t_out['flux']))] = np.median(t_out['flux'][np.where(t_out['error'] != 0.0)])
 
-                # FH 2/5/25 - catch those that have a 0 wavelength at the end:
+                # FH 2/5/25 - catch those that have wavelength = 0 at the end:
                 if t_out['wave'][-1] == 0:
                     t_out.remove_row(-1)
 
@@ -323,15 +319,11 @@ def find_filters(path_to_data,par):
 
     outfile.write('filter ' + 'orientation' + '\n')
 
-    # print('FH ',unique_filts)
-
     for i in unique_filts:
 
         Rfiles = glob.glob(path_to_data + "Par" + str(par) + "/Spec1D2D/*_{}_R_*.fits".format(i))
 
         Cfiles = glob.glob(path_to_data + "Par" + str(par) + "/Spec1D2D/*_{}_C_*.fits".format(i))
-
-        # print('FH ',i,Rfiles,Cfiles)
 
         if ((len(Rfiles) != 0) and (len(Cfiles) != 0)):
 
@@ -357,8 +349,6 @@ def make_full_list(path_to_data,path_to_out,par,filters,verbose=True):
     for filt in filters:
 
         secats = glob.glob(path_to_data + "Par" + str(par) + "/*_{}_i2d.cat".format(str(filt))) 
-
-        # print('FH ',path_to_data + "Par" + str(par) + "/*_A_{}_i2d.cat".format(str(filt))) 
         
         secats.sort()
 
@@ -380,7 +370,7 @@ def make_full_list(path_to_data,path_to_out,par,filters,verbose=True):
                 outfile.write(str(f'{par:03}') + '  ' + str(filt) + '  ' + str(id) + '\n')
 
         
-    # outfile.close()
+    outfile.close()
         # ids_all.append(ids)
 
     # ids_unique = np.unique(ids)

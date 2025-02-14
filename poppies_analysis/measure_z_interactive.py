@@ -1,3 +1,4 @@
+#### This is the main python script for analysis of objects!
 #!/usr/bin/env python
 ##########################################################################
 ##########################################################################
@@ -24,7 +25,7 @@
 # direct images (instead of cutout stamp). Reason for this change was the desire
 # to show the grism stamps that have a wavelength solution applied. When using
 # the IRAF display command, ds9 would fail to recognize this coordinate system.
-# The XPA system can be downloaded here: http://hea-www.harvard.edu/RD/xpa/index.html
+# The XPA system can be downloaded here: https://github.com/ericmandel/xpa
 #
 #### This version started 1/30/25
 ### FH (fhasan@stsci.edu)
@@ -371,11 +372,10 @@ def get_remaining_objects(full_obj_list, objid_done):
     return remaining
 
 
-
+## modified by FH 2/13/24
 def print_help_message():
     """
     Just putting this here to keep it out of the way.
-    -- modified by FH 12/5/24
     """
     msg = setcolors["helpmsg"] + "Available Options:\n"
     msg += setcolors["heading"] + "\tOBJECT SPECIFIC OPTIONS:\n"
@@ -1046,7 +1046,7 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
 
 
 
-### FH updated 1/6/24
+### FH updated 1/6/25
 
 def check_input_objid(objlist, objid, nextup):
     if verbose == True:
@@ -1076,7 +1076,7 @@ def check_input_objid(objlist, objid, nextup):
 
 
 ### FH started 2/3/25:
-
+## This version is for "all" objects identified by SE
 def inspect_object_all(
     user,
     par,
@@ -1602,8 +1602,6 @@ def inspect_object_all(
             plottitle,
             outdir, 
             )
-
-        ##### THIS IS WHERE PLOT_OBJ WAS
         
         #        print "    Guess Redshift: z = %f" % (zguess)
         print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
@@ -2541,7 +2539,7 @@ def inspect_object_all(
     #### ####
 
 ### FH started 2/3/25:
-
+## This version is for "all" objects identified by SE
 def measure_z_interactive_all(
     linelistfile=" ",
     path_to_data=" ",
@@ -3252,7 +3250,7 @@ def measure_z_interactive_all(
 
 
 ### FH 2/10/25:
-
+## This version is the classic one, i.e., for CWT
 def inspect_object(
     user,
     par,
@@ -4207,7 +4205,7 @@ def inspect_object(
             print_prompt(
                 "Reset configuration parameters, fwhm guess, and zguess to default values"
             )
-            config_pars = read_config(path_to_code+"/default.config", availgrism=availgrism)
+            config_pars = read_config(path_to_code+"/default.config", availgrism=filter)
             fwhm_guess = 2.35 * a_image * config_pars["dispersion_red"]
             # reset strongest line, too
             index_of_strongest_line = 0
@@ -4220,7 +4218,6 @@ def inspect_object(
                 contamflags[k] = contamflags[k] & 0
             ### if use stored = true, this should set us back to using the pickle file values
 
-        # change the blue cutoff of G102 (or whichever grism is present?)
         elif option.strip().lower() == "bluecut":
             print_prompt(
                 "The current blue cutoff is: "
@@ -4559,7 +4556,9 @@ def inspect_object(
         f.close()
 
 
-## FH 2/10/25: use for CWT line lists
+### FH 2/10/25
+## This version is the classic one, i.e., for CWT
+
 def measure_z_interactive(
     linelistfile=" ",
     path_to_data=" ",

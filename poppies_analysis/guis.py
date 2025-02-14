@@ -36,7 +36,6 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
 
     def parse_filename(path_to_data, parno, obid):
         # return path_to_data + f"/Par{parno}/spec2D/Par{parno}_{obid:05d}.2D.fits"
-        # print('FH here ',path_to_data + f"/Par{parno}/spec1D/A_F444W_GRISMR_{obid}.V4.fits")
         f1 = glob(path_to_data + f"/Par{parno}/Spec1D2D/A_{filter}_R_{obid}.V4.fits")  
         f2 = glob(path_to_data + f"/Par{parno}/Spec1D2D/A_{filter}_C_{obid}.V4.fits") 
 
@@ -248,12 +247,12 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
 
     # # for fno in np.arange(6,0,-1):
 
-    for fno in np.arange(1,8,1):
+    # for fno in np.arange(1,8,1):
 
-        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " + str(fno))
-        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " + str(fno))
+    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
 
-        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
 
     #     # For NIRCam F444W, image size is 1408 x 200
     #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9}"+" region command {box 710 105 100 10# color=green} ")        
@@ -312,8 +311,6 @@ def showDirect_POPPIES(parno, filter="F444W", path_to_data=""):
 
 
     image_files = glob(path_to_data + 'Par'+str(parno)+'/DirectImages/*_{}_i2d.fits'.format(filter))
-
-    # print('FH ', image_files, path_to_data + '/Par'+str(parno)+'/DirectImages/*_{}_i2d.fits'.format(filter))
     
     image_file = image_files[0]
 
@@ -691,7 +688,6 @@ def show2dNEW(
     if os.path.exists(path2dl) == 1:
         path2d = path2dl
     else:
-        # print('FH 10 ',path2dl)
 
         if path_to_data == " ":
             path2d = (
@@ -701,7 +697,6 @@ def show2dNEW(
             + ".V4.fits"
             )
         else:
-            # print('FH 11 ',path2dl)
 
             # path2d = path_to_data + '/Par' + str(parno) + '/Stamps/Par' + str(parno) + '_'+grism+'_BEAM_'+str(obid)+'A.fits'
             path2d = (

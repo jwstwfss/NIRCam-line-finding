@@ -1,3 +1,5 @@
+#### This python script manipulates spectral data and prepares them properly
+
 from poppies_analysis import *
 
 def initialize_arrays(data, bluecut, redcut):
@@ -175,6 +177,7 @@ def trim_spec_1filter(tbdata_blue, config_pars, filter, mask_zeros=False, return
         outcontam = np.ma.compressed(contam_spec)
         outzero = np.ma.compressed(zero_spec)
         return outlam,outflux,outerror,outcontam,outzero
+
 
 
 ### FH 2/4/25 POPPIES version:

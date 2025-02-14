@@ -1,3 +1,5 @@
+#### This python script is mostly for DS9 GUIs (as a sort of secondary script)
+
 # from collections import OrderedDict
 import os
 import numpy as np
@@ -57,8 +59,6 @@ def extract_image_extensions_key(filename):
         ext_out = 0 # running counter for frame no.
 
         for ext in range(2, n_ext-1):
-
-            # print('FH ext ', filename,hdu[ext].header, n_ext)
 
             # extract header information - if one of the extensions we care about
             if ext in extlist:
@@ -131,7 +131,6 @@ def display_image_in_DS9(frame_number, image_file, region_file, verbose=True):
     return
 
 
-## FH updated for POPPIES 2/5/25
 def display_images_in_DS9(images, region_files, root=None, verbose=True):
     """Main interface to display multi-images (direct and grism data)
     in DS9. This will produce a tiled display of the direct images (for now).

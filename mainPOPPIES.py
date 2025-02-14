@@ -124,7 +124,5 @@ if __name__ == "__main__":
         #run the measure_z_interactive code to go through objects individually:
         poppies.measure_z_interactive(path_to_data=DATA_DIR, path_to_code=CODE_DIR, parno=parno)
        
-        
-    # #### #### ####
 
 
