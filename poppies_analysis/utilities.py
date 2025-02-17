@@ -190,7 +190,7 @@ def create_regions(parno, path_to_data, filters):
 def add_header_keyword(parno, path_to_data):
 
     main_directory = os.path.join(path_to_data, f"Par{parno:s}")
-    files = glob.glob(os.path.join(main_directory, 'spec1D/*.fits'))
+    files = glob.glob(os.path.join(main_directory, 'spec2D/*.fits'))
     test_file = fits.open(files[0])
     header = test_file[2].header
 

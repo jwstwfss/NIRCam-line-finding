@@ -257,7 +257,13 @@ def display_images_in_DS9(images, region_files, root=None, verbose=True):
     for framename in range(1,2):
     
         os.system(f"xpaset -p {ds9_title} frame " + str(framename))
-        os.system(f"xpaset -p {ds9_title} wcs sky ecliptic")
+    
+        # FH 2/17/25: RA, Dec in degrees:
+        os.system(f"xpaset -p {ds9_title} wcs sky fk5")
+
+        os.system(f"xpaset -p {ds9_title} wcs skyformat degrees")
+
+        # os.system(f"xpaset -p {ds9_title} wcs sky ecliptic")
         os.system(f"xpaset -p {ds9_title} zoom to fit")
 
 

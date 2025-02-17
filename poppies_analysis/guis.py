@@ -1,3 +1,5 @@
+#### This python script is mostly for DS9 GUIs
+
 import astropy.io.fits as fits
 from astropy.wcs import WCS
 import numpy as np
@@ -206,6 +208,8 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
 
+
+
             # else:
             #     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame clear"
             #     os.system(command)
@@ -247,12 +251,18 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
 
     # # for fno in np.arange(6,0,-1):
 
-    # for fno in np.arange(1,8,1):
+    for fno in np.arange(1,8,1):
 
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " + str(fno))
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " + str(fno))
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
 
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+        
+        # FH 2/17/25: display wavelength beside alpha
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs fk5")
+
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs skyformat degrees")
+
 
     #     # For NIRCam F444W, image size is 1408 x 200
     #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9}"+" region command {box 710 105 100 10# color=green} ")        
