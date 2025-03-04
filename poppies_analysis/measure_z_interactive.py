@@ -109,6 +109,11 @@ he_10830_vac = 10832.86
 pg_10941_vac = 10941.1
 pb_12822_vac = 12821.6
 pa_18756_vac = 18756.1
+fe_12570_vac = 12570.2 #added by FH 2/28/25
+si6_19632_vac = 19632.0  #added by FH 2/28/25
+si7_24833_vac = 24833.0  #added by FH 2/28/25
+ne3_3869_vac = 3868.760  ## added by FH 3/4/25
+
 
 # Make all catalog header and data write commands loops over the 'flux_strings' variable.
 
@@ -137,6 +142,7 @@ supported_lines = [
     o3_5007_vac,
     o1_6300_vac,
     ha_6565_vac,
+    # n2_6585_vac, #added by FH 2/17/25    
     s2_6716_vac,
     s3_9069_vac,
     s3_9532_vac,
@@ -144,6 +150,7 @@ supported_lines = [
     pg_10941_vac,
     pb_12822_vac,
     pa_18756_vac,
+    ne3_3869_vac,
 ]
 
 # These lines are close to their doublets so are not plotted in ax1.
@@ -158,7 +165,7 @@ supported_lines_extra = [
     o2_3730_vac,
     o3_4959_vac,
     o1_6363_vac,
-    n2_6550_vac,
+    n2_6550_vac,   
     n2_6585_vac,
     s2_6731_vac,
 ]
@@ -180,6 +187,7 @@ supported_lines_strings = [
     "[O III]",
     "[O I]",
     r"H$\alpha$",
+    # "[N II]", #added by FH 2/17/25    
     "[S II]",
     "[S III]",
     "[S III]",
@@ -187,6 +195,7 @@ supported_lines_strings = [
     r"P$\gamma$",
     r"P$\beta$",
     r"P$\alpha$",
+    "[Ne III]",
 ]
 
 flux_strings_1gauss = [
@@ -213,6 +222,7 @@ flux_strings_1gauss = [
     "pg_10941",
     "pb_12822",
     "pa_18756",
+    "ne3_3869",
 ]
 
 flux_strings_2gauss = [
@@ -239,6 +249,7 @@ flux_strings_2gauss = [
     "pg_10941tot", "pg_10941nar", "pg_10941bro",
     "pb_12822tot", "pb_12822nar", "pb_12822bro",
     "pa_18756tot", "pa_18756nar", "pa_18756bro",
+    "ne3_3869tot", "ne3_3869nar", "ne3_3869bro",
 ]
 
 contam_flags_string = "la_1216, n5_1238, n5_1242, c4_1548, c4_1550, h2_1640, \
@@ -246,7 +257,7 @@ o3_1660, o3_1666, s3_1883, s3_1892, c3_1907, c3_1909, \
 m2_2796, m2_2803, o2_3727, o2_3730, hg_4342, o3_4363, \
 h2_4686, hb_4863, o3_4959, o3_5007, o1_6300, o1_6363, \
 n2_6550, ha_6565, n2_6585, s2_6716, s2_6731, s3_9069, \
-s3_9532, he10830, pg_10941, pb_12822, pa_18756, cont"
+s3_9532, he10830, pg_10941, pb_12822, pa_18756, ne3_3869, cont"
 
 # colors to help split up terminal output
 # helpmsg = light blue
@@ -420,8 +431,8 @@ def print_help_message():
         "\tgrismr = use only Grism-R spectrum for line-fitting (default) \n"
         "\tgrismrcontam = use only Grism-R spectrum (with contamination) for line-fitting\n"
         "\tgrismc = use only Grism-C spectrum for line-fitting\n"
-        "\tgrismccontam = use only Grism-C spectrum (with contamination) for line-fitting\n\n"
-        # "\tcomb = Use combined spectrum (default)\n"
+        "\tgrismccontam = use only Grism-C spectrum (with contamination) for line-fitting\n"
+        "\tcomb = fit on both R and C spectra (default)\n\n"
         # "\tcombcontam = Use combined spectrum with contamination\n\n"
     )
     msg += setcolors["heading"] + "\tDS9 SPECIFIC OPTIONS:\n"
@@ -600,7 +611,7 @@ def plot_chooseSpec(spdata1, spdata2, config_pars, plottitle, outdir, zset=None,
 
     # generate the plot grid.
     plt.ion()
-    fig = plt.figure(1, figsize=(11, 12), dpi=75)
+    fig = plt.figure(1, figsize=(12, 12), dpi=75)
     plt.clf()
     # gs = gridspec.GridSpec(3, 4)
     gs = gridspec.GridSpec(2, 1)
@@ -611,19 +622,35 @@ def plot_chooseSpec(spdata1, spdata2, config_pars, plottitle, outdir, zset=None,
     ## FH 2/5/25:
 
     try:
-        xmin = np.ma.min(spec_lam1) - 10.0  # 200.0 - M.D.R. - 10/22/2020
-        xmax = np.ma.max(spec_lam1) + 10.0  # 200.0 - M.D.R. - 10/22/2020
-        ymin = -0.2 * np.ma.max(spec_val1)
-        ymax = 1.5 * np.ma.max(spec_val1)
+        xmin1 = np.ma.min(spec_lam1) - 10.0  # 200.0 - M.D.R. - 10/22/2020
+        xmax1 = np.ma.max(spec_lam1) + 10.0  # 200.0 - M.D.R. - 10/22/2020
+        ymin1 = -0.2 * np.ma.max(spec_val1)
+        ymax1 = 1.5 * np.ma.max(spec_val1)
 
-        if np.isnan(ymax):
-            ymax = 1e-16
+        if np.isnan(ymax1):
+            ymax1 = 1e-16
+        if np.isnan(ymin1):
+            ymin1 = 1e-17
 
-        if np.isnan(ymin):
-            ymin = 1e-17
 
     except Exception as e:
-        xmin,xmax,ymin,ymax = 0,1,0,1
+        xmin1,xmax1,ymin1,ymax1 = 40000,50000,1e-17,1e-16
+
+
+    ## FH added 2/24/25 for different x,y axes limits
+    try:
+        xmin2 = np.ma.min(spec_lam2) - 10.0  
+        xmax2 = np.ma.max(spec_lam2) + 10.0 
+        ymin2 = -0.2 * np.ma.max(spec_val2)
+        ymax2 = 1.5 * np.ma.max(spec_val2)
+
+        if np.isnan(ymax2):
+            ymax2 = 1e-16
+        if np.isnan(ymin2):
+            ymin2 = 1e-17
+
+    except Exception as e:
+        xmin2,xmax2,ymin2,ymax2 = 40000,50000,1e-17,1e-16
 
     # the line widths for the data and overlaid fit.
     lw_data = 2.0
@@ -661,8 +688,13 @@ def plot_chooseSpec(spdata1, spdata2, config_pars, plottitle, outdir, zset=None,
         ax.set_xlabel("Observed Wavelength ($\AA$)", size="xx-large")
         # ax1.set_ylabel(r'F$_\lambda$ erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$', size='xx-large')
         ax.set_ylabel("Flux (erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$)", size="xx-large")
-        ax.set_xlim([xmin, xmax])
-        ax.set_ylim([ymin, ymax])
+
+    ax1.set_xlim([xmin1, xmax1])
+    ax1.set_ylim([ymin1, ymax1])
+
+    ax2.set_xlim([xmin2, xmax2])
+    ax2.set_ylim([ymin2, ymax2])
+
     ax1.set_title(plottitle+" R", size="xx-large")
     ax2.set_title(plottitle+" C", size="xx-large")
     # ax3.set_title(plottitle+" C", size="xx-large")
@@ -671,6 +703,541 @@ def plot_chooseSpec(spdata1, spdata2, config_pars, plottitle, outdir, zset=None,
     fig.savefig(plotfilename)
     plt.draw()
 
+
+
+## FH 2/24/25: New version w/ 4 panels (2 for each spec) - for Combined fits only
+
+def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_array, snr_tot_others, full_fitmodel, full_contmodel, broad_fitmodel, full_fitmodel2, full_contmodel2, broad_fitmodel2, current_lam, lamlines_found, index_of_strongest_line, contmodel, contmodel2, plottitle, outdir, zset=None):
+    if verbose == True:
+        print("\nRunning plot_object_comb...\n")  # MDR 2022/05/17
+    """
+    # save the figure for everything, junk objects and all
+    # previous figures are overwritten
+    """
+
+    # the expected wavelengths of emission lines given the zguess
+    lamobs = (1 + zguess) * np.array(supported_lines)
+    lamobs_extra = (1 + zguess) * np.array(supported_lines_extra)
+
+    # define the filename that will be used for figures.
+    plotfilename = os.path.join(outdir, "figs", "%s_fit_comb.png" % (plottitle))
+    plottitle_R = "%s_R" % (plottitle)
+    plottitle_C = "%s_C" % (plottitle)
+
+    # initialize the wavelength, flux, uncertainty, contamination, and zero order arrays.
+    # for 2 spectra
+    spec_lam = specdata[0]
+    spec_val = specdata[1]
+    spec_unc = specdata[2]
+    spec_con = specdata[3]
+    spec_zer = specdata[4]
+
+    spec_lam2 = specdata2[0]
+    spec_val2 = specdata2[1]
+    spec_unc2 = specdata2[2]
+    spec_con2 = specdata2[3]
+    spec_zer2 = specdata2[4]
+
+    # apply the mask to the wavelength array
+    masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
+    masked_spec_lam2 = np.ma.masked_where(np.ma.getmask(spec_val2), spec_lam2)
+
+    # limit the S/N array to MUSE so we can zoom-in on those lines.
+    snr_muse = snr_meas_array[np.argwhere(lamobs < config_pars["mask_region1"][0])]
+
+    # replace the occasional NaN value with zero to prevent gridspec crashes.
+    snr_muse = np.nan_to_num(snr_muse)
+
+    # determine the number of emission lines with S/N > 3.
+    num_gridspec_plots = len(np.where(snr_muse >= 100.0)[0])
+
+    # the maximum number of zoom-in plots is 7 for visibility.
+    if num_gridspec_plots > 7:
+        num_gridspec_plots = 7
+
+    # if (verbose == True): print 'There are '+str(num_gridspec_plots)+' lines with S/N > 3 in MUSE.\n'
+
+    # generate the plot grid.
+    plt.ion()
+    fig = plt.figure(4, figsize=(15, 16), dpi=75, layout='tight')
+    plt.clf()
+    # gs = gridspec.GridSpec(3, 4)
+    # gs = gridspec.GridSpec(3, num_gridspec_plots + 1)
+    gs = gridspec.GridSpec(6, 2, hspace=1.0)
+    ax1 = fig.add_subplot(gs[0:2, :])
+    ax2 = fig.add_subplot(gs[2:3, :])
+    ax3 = fig.add_subplot(gs[3:5, :])
+    ax4 = fig.add_subplot(gs[5:, :])
+
+    # if num_gridspec_plots == 1:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     all_ax = [ax1, ax2, ax3]
+    # elif num_gridspec_plots == 2:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     all_ax = [ax1, ax2, ax3, ax4]
+    # elif num_gridspec_plots == 3:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     ax5 = fig.add_subplot(gs[2:, 3:4])
+    #     all_ax = [ax1, ax2, ax3, ax4, ax5]
+    # elif num_gridspec_plots == 4:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     ax5 = fig.add_subplot(gs[2:, 3:4])
+    #     ax6 = fig.add_subplot(gs[2:, 4:5])
+    #     all_ax = [ax1, ax2, ax3, ax4, ax5, ax6]
+    # elif num_gridspec_plots == 5:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     ax5 = fig.add_subplot(gs[2:, 3:4])
+    #     ax6 = fig.add_subplot(gs[2:, 4:5])
+    #     ax7 = fig.add_subplot(gs[2:, 5:6])
+    #     all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7]
+    # elif num_gridspec_plots == 6:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     ax5 = fig.add_subplot(gs[2:, 3:4])
+    #     ax6 = fig.add_subplot(gs[2:, 4:5])
+    #     ax7 = fig.add_subplot(gs[2:, 5:6])
+    #     ax8 = fig.add_subplot(gs[2:, 6:7])
+    #     all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]
+    # elif num_gridspec_plots >= 7:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     ax5 = fig.add_subplot(gs[2:, 3:4])
+    #     ax6 = fig.add_subplot(gs[2:, 4:5])
+    #     ax7 = fig.add_subplot(gs[2:, 5:6])
+    #     ax8 = fig.add_subplot(gs[2:, 6:7])
+    #     ax9 = fig.add_subplot(gs[2:, 7:8])
+    #     all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9]
+    # else:
+    #     all_ax = [ax1, ax2]
+
+
+    # the line widths for the data and overlaid fit.
+    lw_data = 2.0
+    lw_fits = 1.75
+
+    ### For R-spec:
+    xmin = np.ma.min(spec_lam) - 10.0  # 200.0 - M.D.R. - 10/22/2020
+    xmax = np.ma.max(spec_lam) + 10.0  # 200.0 - M.D.R. - 10/22/2020
+    ymin = -0.2 * np.ma.max(spec_val)
+    ymax = 1.25 * np.ma.max(spec_val)
+
+    ax1.plot(spec_lam, spec_val, "k", spec_lam, spec_con, "hotpink", drawstyle="steps-mid", lw=lw_data)
+    # ax1.axvline(x=config_pars['transition_wave'], c='c', linestyle=':', lw=3)
+
+    # transforms for plotting in data and axes coordinates
+    ax1trans = mtransforms.blended_transform_factory(ax1.transData, ax1.transAxes)
+    ax2trans = mtransforms.blended_transform_factory(ax2.transData, ax2.transAxes)
+
+    # contamination model
+    ax1.fill_between(spec_lam, spec_con, -1, color="#ff69b4", alpha=0.1, step="pre", label="contamination")
+
+    # plot observed wavelengths of all the possible lines.
+    for li, lstring, sn_meas in zip(lamobs, supported_lines_strings, snr_meas_array):
+        if (li > xmin + 100) & (li < xmax - 100):
+            for ax in [ax1, ax2]:  # [ax1, ax2, ax3, ax4]: # for ax in [ax1, ax2]: # - M.D.R. - 10/22/2020
+                if ax != ax2:  # skip s/n plot.
+                    ax.axvline(x=li, color="b")
+                    # add blue lines for close doublets without text label.
+                    # for li in lamobs_extra:
+                    #     if (li > xmin + 1) & (li < xmax - 1):
+                    #         ax.axvline(x=li, color='b', linestyle='--')
+                    #
+            stringplot = lstring  # + '  (' + str(round(sn_meas, 1)) + ') '
+
+            # use data coordinates for x-axis and axes coords for y-axis
+            ax1.text(li, 0.8, stringplot, rotation="vertical",
+                ha="right", fontsize="16", transform=ax1trans)
+
+
+    # ax1.plot(spec_lam, full_fitmodel - offset_val, color="g", lw=lw_fits, label='sub')
+    ax1.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits, label='Emission line model')
+    ax1.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits, label='Continuum model')
+    ax1.plot(spec_lam, broad_fitmodel, color="r", linestyle="-", label='Broad line model', lw=0.5)  #, label='Continuum model'
+
+    #### testing:
+    # offset_val = np.abs(full_contmodel-full_fitmodel)
+    # ax1.plot(spec_lam, full_fitmodel - offset_val, color="brown", lw=lw_fits, label='fit-offset')
+    # # ax1.plot(spec_lam, full_fitmodel + offset_val, color="magenta", lw=lw_fits, label='fit+offset')
+    # # ax1.plot(spec_lam, full_contmodel + offset_val, color="teal", lw=lw_fits, label='cont+offset')
+    # ax1.plot(spec_lam, offset_val, color="black", ls=':', label='offset')
+    # ax1.plot(spec_lam, contmodel, color="darkgrey", linestyle=":", lw=2, label='Just Continuum model')
+
+
+    # plot 0th orders
+    w = np.where(spec_zer == 3)
+    spec_zero_bad = spec_zer * 0 - 1
+    spec_zero_bad[w] = 1.0
+    # mild zeroth orders
+    w = np.where(spec_zer == 2)
+    spec_zero_mild = spec_zer * 0 - 1
+    spec_zero_mild[w] = 1.0
+    for ax in [ax1, ax2]:
+        # use data coordinates for x-axis and axes coords for y-axis
+        trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
+        if np.any(spec_zero_bad[spec_zero_bad != -1]):
+            ax.fill_between(spec_lam, 0, 1, where=spec_zero_bad == 1,color="red", alpha=0.3, transform=trans, label="Major 0th order contam" )
+        if np.any(spec_zero_mild[spec_zero_mild != -1]):
+            ax.fill_between(spec_lam, 0, 1, where=spec_zero_mild == 1, color="orange", alpha=0.3, transform=trans, label="Minor 0th order contam")
+
+    # plot any masked regions
+    for mr in ["mask_region1", "mask_region2", "mask_region3", "mask_region4", "mask_region5", "mask_region6", "mask_region7", "mask_region8"]:
+        if (config_pars[mr][0] != 0.0) & (config_pars[mr][1] != 0.0):
+            for ax in [ax1,ax2]:  # [ax1, ax2]:
+                trans = mtransforms.blended_transform_factory(
+                    ax.transData, ax.transAxes
+                )
+                handles, labels = ax.get_legend_handles_labels()
+                if "masked regions" in labels:
+                    maskedlabel = None
+                else:
+                    maskedlabel = "masked regions"
+                ax.fill_between(config_pars[mr], 0, 1, color="grey", alpha=0.3, transform=trans, label=maskedlabel)
+    handles, labels = ax.get_legend_handles_labels()
+    if len(labels) > 0:
+        ax1.legend(bbox_to_anchor=[1.0, 1.08], ncol=2, loc="upper right", framealpha=0.5)
+
+    # find values of spec_lam nearest to the nodes
+    nodelam = config_pars["node_wave"]
+    nl_arr = []
+    cont_node = []
+    for nl in nodelam:
+        w = np.argmin(np.abs(spec_lam - nl))
+        nl_arr.append(spec_lam[w])
+        cont_node.append(full_contmodel[w])
+    ax1.plot(nl_arr, cont_node, "ko", mec='yellow', mew=1.5, ms=10)
+
+    # repeat for line_candidates
+    lf_lam = []
+    lf_cont = []
+
+    ## check if array-type, otherwise make it an arr:
+    if not hasattr(lamlines_found, "__len__"):
+        # print(lamlines_found)
+        lamlines_found = np.array([lamlines_found])
+
+    for lf in lamlines_found:
+        w = np.argmin(np.abs(spec_lam - lf))
+        lf_lam.append(spec_lam[w])
+        lf_cont.append(full_contmodel[w])
+    ax1.plot(lf_lam, lf_cont, "bo", ms=9)
+
+    #   indicate "current" line
+    #   current_lam = lamlines_found[index_of_strongest_line]
+    current_cont = contmodel[np.argmin(np.abs(np.ma.compressed(masked_spec_lam) - current_lam))]
+    ax1.plot(current_lam, current_cont, "ro", ms=10)
+
+    ax1.set_xlabel("Observed Wavelength ($\AA$)", size="xx-large")
+    # ax1.set_ylabel(r'F$_\lambda$ erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$', size='xx-large')
+    ax1.set_ylabel("Flux (erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$)", size="xx-large")
+    ax1.set_xlim([xmin, xmax])
+    ax1.set_ylim([ymin, ymax])
+    ax1.set_title(plottitle_R, size="xx-large")
+
+    # second panel for s/n
+    s2n = (spec_val - full_contmodel) / spec_unc
+    s2n_lam = spec_lam
+    mask = np.logical_and(s2n > -10000.0, s2n < 10000.0)
+    s2n = s2n[mask]
+    s2n_lam = s2n_lam[mask]
+    ax2.plot(s2n_lam, s2n, "k-", drawstyle="steps-mid", lw=lw_data)
+    
+    try:
+        ymin = -0.2 * s2n.max()
+        ymax = 1.2 * s2n.max()  # ymax = 1.5 * s2n.max() # M.D.R 01/07/2021
+    
+    except Exception:
+        ymin,ymax = 0.,3.
+
+    ax2.axhline(y=config_pars["n_sigma_above_cont"], c="r")
+    ax2.set_ylabel("S/N", size="xx-large")
+    ax2.set_xlim([xmin, xmax])
+    ax2.set_ylim(ymin, ymax)
+
+
+    ### For C-spec:
+    xmin = np.ma.min(spec_lam2) - 10.0  # 200.0 - M.D.R. - 10/22/2020
+    xmax = np.ma.max(spec_lam2) + 10.0  # 200.0 - M.D.R. - 10/22/2020
+    ymin = -0.2 * np.ma.max(spec_val2)
+    ymax = 1.25 * np.ma.max(spec_val2)
+
+    ax3.plot(spec_lam2, spec_val2, "k", spec_lam2, spec_con2, "hotpink", drawstyle="steps-mid", lw=lw_data)
+
+    # transforms for plotting in data and axes coordinates
+    ax3trans = mtransforms.blended_transform_factory(ax3.transData, ax3.transAxes)
+    ax4trans = mtransforms.blended_transform_factory(ax4.transData, ax4.transAxes)
+
+    # contamination model
+    ax3.fill_between(spec_lam2, spec_con2, -1, color="#ff69b4", alpha=0.1, step="pre", label="contamination")
+
+    # plot observed wavelengths of all the possible lines.
+    for li, lstring, sn_meas in zip(lamobs, supported_lines_strings, snr_meas_array):
+        if (li > xmin + 100) & (li < xmax - 100):
+            for ax in [ax3, ax4]:  # [ax1, ax2, ax3, ax4]: # for ax in [ax1, ax2]: # - M.D.R. - 10/22/2020
+                if ax != ax4:  # skip s/n plot.
+                    ax.axvline(x=li, color="b")
+                    # add blue lines for close doublets without text label.
+                    # for li in lamobs_extra:
+                    #     if (li > xmin + 1) & (li < xmax - 1):
+                    #         ax.axvline(x=li, color='b', linestyle='--')
+                    #
+            stringplot = lstring  # + '  (' + str(round(sn_meas, 1)) + ') '
+
+            # use data coordinates for x-axis and axes coords for y-axis
+            ax3.text(li, 0.8, stringplot, rotation="vertical",
+                ha="right", fontsize="16", transform=ax3trans)
+
+    # ax3.plot(spec_lam2, full_fitmodel2 - offset_val2, color="g", lw=lw_fits, label='sub')
+    ax3.plot(spec_lam2, full_fitmodel2, color="r", lw=lw_fits, label='Emission line model')
+    ax3.plot(spec_lam2, full_contmodel2, color="b", linestyle="--", lw=lw_fits, label='Continuum model')
+    ax3.plot(spec_lam2, broad_fitmodel2, color="r", linestyle="-", label='Broad line model', lw=0.5)  
+
+    #### testing:
+    # offset_val2 = np.abs(np.median(full_fitmodel2) - np.median(full_contmodel2))
+    # offset_val2 = np.abs(np.median(full_contmodel2)-np.median(full_fitmodel2))
+
+    # ax3.plot(spec_lam2, full_fitmodel2 - offset_val2, color="brown", lw=lw_fits, label='fit-offset')
+    # ax3.plot(spec_lam2, full_fitmodel2 + offset_val2, color="magenta", lw=lw_fits, label='fit+offset')
+    # ax3.plot(spec_lam2, full_fitmodel2 - full_contmodel2, color="g", lw=lw_fits, label='fit-cont')
+    # ax3.plot(spec_lam2, full_contmodel2_only, color="b", linestyle=":", lw=lw_fits, label='Continuum model ONLY')
+    # ax3.plot(spec_lam2, contmodel2, color="darkgrey", linestyle=":", lw=2, label='Just Continuum model')
+
+
+    # plot 0th orders
+    w = np.where(spec_zer2 == 3)
+    spec_zero_bad = spec_zer2 * 0 - 1
+    spec_zero_bad[w] = 1.0
+    # mild zeroth orders
+    w = np.where(spec_zer2 == 2)
+    spec_zero_mild = spec_zer2 * 0 - 1
+    spec_zero_mild[w] = 1.0
+    for ax in [ax3, ax4]:
+        # use data coordinates for x-axis and axes coords for y-axis
+        trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
+        if np.any(spec_zero_bad[spec_zero_bad != -1]):
+            ax.fill_between(spec_lam2, 0, 1, where=spec_zero_bad == 1,color="red", alpha=0.3, transform=trans, label="Major 0th order contam" )
+        if np.any(spec_zero_mild[spec_zero_mild != -1]):
+            ax.fill_between(spec_lam2, 0, 1, where=spec_zero_mild == 1, color="orange", alpha=0.3, transform=trans, label="Minor 0th order contam")
+
+    # plot any masked regions
+    for mr in ["mask_region1", "mask_region2", "mask_region3", "mask_region4", "mask_region5", "mask_region6", "mask_region7", "mask_region8"]:
+        if (config_pars[mr][0] != 0.0) & (config_pars[mr][1] != 0.0):
+            for ax in [ax3,ax4]:  # [ax1, ax2]:
+                trans = mtransforms.blended_transform_factory(
+                    ax.transData, ax.transAxes
+                )
+                handles, labels = ax.get_legend_handles_labels()
+                if "masked regions" in labels:
+                    maskedlabel = None
+                else:
+                    maskedlabel = "masked regions"
+                ax.fill_between(config_pars[mr], 0, 1, color="grey", alpha=0.3, transform=trans, label=maskedlabel)
+    handles, labels = ax.get_legend_handles_labels()
+    # if len(labels) > 0:
+    #     ax3.legend(bbox_to_anchor=[1.0, 1.08], ncol=2, loc="upper right", framealpha=0.5)
+
+    # find values of spec_lam nearest to the nodes
+    nodelam = config_pars["node_wave"]
+    nl_arr = []
+    cont_node = []
+    for nl in nodelam:
+        w = np.argmin(np.abs(spec_lam2 - nl))
+        nl_arr.append(spec_lam2[w])
+        cont_node.append(full_contmodel2[w])
+    ax3.plot(nl_arr, cont_node, "ko", mec='yellow', mew=1.5, ms=10)
+
+    # repeat for line_candidates
+    lf_lam = []
+    lf_cont = []
+
+    ## check if array-type, otherwise make it an arr:
+    if not hasattr(lamlines_found, "__len__"):
+        # print(lamlines_found)
+        lamlines_found = np.array([lamlines_found])
+
+    for lf in lamlines_found:
+        w = np.argmin(np.abs(spec_lam2 - lf))
+        lf_lam.append(spec_lam2[w])
+        lf_cont.append(full_contmodel2[w])
+    ax3.plot(lf_lam, lf_cont, "bo", ms=9)
+
+    #   indicate "current" line
+    #   current_lam = lamlines_found[index_of_strongest_line]
+    current_cont = contmodel2[np.argmin(np.abs(np.ma.compressed(masked_spec_lam2) - current_lam))]
+    ax3.plot(current_lam, current_cont, "ro", ms=10)
+
+    ax3.set_xlabel("Observed Wavelength ($\AA$)", size="xx-large")
+    # ax1.set_ylabel(r'F$_\lambda$ erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$', size='xx-large')
+    ax3.set_ylabel("Flux (erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$)", size="xx-large")
+    ax3.set_xlim([xmin, xmax])
+    ax3.set_ylim([ymin, ymax])
+    ax3.set_title(plottitle_C, size="xx-large")
+
+    # second panel for s/n
+    s2n = (spec_val2 - full_contmodel2) / spec_unc2
+    s2n_lam = spec_lam2
+    mask = np.logical_and(s2n > -10000.0, s2n < 10000.0)
+    s2n = s2n[mask]
+    s2n_lam = s2n_lam[mask]
+    ax4.plot(s2n_lam, s2n, "k-", drawstyle="steps-mid", lw=lw_data)
+    
+    try:
+        ymin = -0.2 * s2n.max()
+        ymax = 1.2 * s2n.max()  # ymax = 1.5 * s2n.max() # M.D.R 01/07/2021
+    
+    except Exception:
+        ymin,ymax = 0.,3.
+
+    ax4.axhline(y=config_pars["n_sigma_above_cont"], c="r")
+    ax4.set_ylabel("S/N", size="xx-large")
+    ax4.set_xlim([xmin, xmax])
+    ax4.set_ylim(ymin, ymax)
+
+
+    ######## ######## COMMENTED OUT FOR NOW - 2/24/25 ######## ########
+
+    # # - M.D.R. - 10/22/2020
+    # # find max S/N in list of detected lines.
+    # # pull index location, determine lambda of that line.
+    # # set ymin/max based on centroid +/-i range based on dispersion.
+    # # print('snr_meas_array =', snr_meas_array)  # M.D.R 01/27/2021
+    # # print(np.max(snr_meas_array)) # M.D.R 01/27/2021
+    # # print(np.argmax(snr_meas_array)) # M.D.R 01/27/2021
+    # # lamobs_maxsnr = lamobs[np.argmax(snr_meas_array)]
+    # lamobs_blue = lamobs[np.argwhere(lamobs < config_pars["mask_region1"][0])]
+    # # lamobs_red = lamobs[np.argwhere(lamobs > config_pars['mask_region1'][1])]
+    # # array of the indices for lines with s/n > 3 from strongest to weakest.
+    # snr_muse_idx = np.flip(np.argsort(snr_muse, axis=0))
+
+    # # loop over lines with s/n > 3 and create zoom-in plots.
+    # for x in range(num_gridspec_plots):
+    #     # print 'x =', x
+    #     if snr_muse[snr_muse_idx[x]][0] >= 10.0:
+
+    #         idx_i = snr_muse_idx[x][0]
+    #         snr_i = snr_muse[snr_muse_idx[x]][0][0]
+    #         lam_i = lamobs_blue[snr_muse_idx[x]][0][0]
+    #         # print 'idx_i = ', idx_i
+    #         # print 'snr_i = ', snr_i
+    #         # print 'lam_i = ', lam_i
+
+    #         # the wavelength array index corresponding to the detected line wavelength.
+    #         snr_muse_idy = min(enumerate(spec_lam), key=lambda x: abs(lam_i - x[1]))[0]
+    #         # half-width of zoom-in plots in angstroms
+    #         half_xrange_ang = 1000
+    #         # half-width of zoom-in plots in pixels
+    #         half_xrange_pix = int((half_xrange_ang / config_pars["dispersion_blue"]))
+
+    #         xmin = lam_i - half_xrange_ang
+    #         xmax = lam_i + half_xrange_ang
+
+    #         # update to a sigma rejected min?
+    #         # print(spec_val)
+    #         # print(np.shape(spec_val))
+    #         # print(snr_muse_idy - half_xrange_pix, snr_muse_idy + half_xrange_pix)
+    #         ymin = 0.9 * np.nanmin(spec_val[snr_muse_idy - half_xrange_pix : snr_muse_idy + half_xrange_pix])
+    #         ymax = 1.2 * np.nanmax(spec_val[snr_muse_idy - half_xrange_pix : snr_muse_idy + half_xrange_pix])
+
+    #         if x == 0:
+    #             ax3trans = mtransforms.blended_transform_factory(ax3.transData, ax3.transAxes)
+    #             ax3.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax3.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax3.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
+    #             ax3.set_xlim([xmin, xmax])
+    #             ax3.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax3, ax3trans, xmin, xmax)
+    #         #                 add_extra_lines(ax3, ax3trans, xmin, xmax)
+    #         elif x == 1:
+    #             ax4trans = mtransforms.blended_transform_factory(ax4.transData, ax4.transAxes)
+    #             ax4.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax4.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax4.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
+    #             ax4.set_xlim([xmin, xmax])
+    #             ax4.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax4, ax4trans, xmin, xmax)
+    #         #                 add_extra_lines(ax4, ax4trans, xmin, xmax)
+    #         elif x == 2:
+    #             ax5trans = mtransforms.blended_transform_factory(
+    #                 ax5.transData, ax5.transAxes
+    #             )
+    #             ax5.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax5.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax5.plot(
+    #                 spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits
+    #             )
+    #             ax5.set_xlim([xmin, xmax])
+    #             ax5.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax5, ax5trans, xmin, xmax)
+    #         #                 add_extra_lines(ax5, ax5trans, xmin, xmax)
+    #         elif x == 3:
+    #             ax6trans = mtransforms.blended_transform_factory(
+    #                 ax6.transData, ax6.transAxes
+    #             )
+    #             ax6.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax6.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax6.plot(
+    #                 spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits
+    #             )
+    #             ax6.set_xlim([xmin, xmax])
+    #             ax6.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax6, ax6trans, xmin, xmax)
+    #         #                 add_extra_lines(ax6, ax6trans, xmin, xmax)
+    #         elif x == 4:
+    #             ax7trans = mtransforms.blended_transform_factory(
+    #                 ax7.transData, ax7.transAxes
+    #             )
+    #             ax7.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax7.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax7.plot(
+    #                 spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits
+    #             )
+    #             ax7.set_xlim([xmin, xmax])
+    #             ax7.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax7, ax7trans, xmin, xmax)
+    #         #                 add_extra_lines(ax7, ax7trans, xmin, xmax)
+    #         elif x == 5:
+    #             ax8trans = mtransforms.blended_transform_factory(ax8.transData, ax8.transAxes)
+    #             ax8.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax8.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax8.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
+    #             ax8.set_xlim([xmin, xmax])
+    #             ax8.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax8, ax8trans, xmin, xmax)
+    #         #                 add_extra_lines(ax8, ax8trans, xmin, xmax)
+    #         elif x == 6:
+    #             ax9trans = mtransforms.blended_transform_factory(ax9.transData, ax9.transAxes)
+    #             ax9.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax9.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax9.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
+    #             ax9.set_xlim([xmin, xmax])
+    #             ax9.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax9, ax9trans, xmin, xmax)
+    #         #                 add_extra_lines(ax9, ax9trans, xmin, xmax)
+    #         else:
+    #             print("Failed to set XY limits.")
+
+    ######## ######## ######## ########
+
+    if zset is None:
+        addtext = ("In progress: z = {:.4f}".format(zfit) +", "+"wSNR = {:.2f}".format(snr_tot_others))
+        addtextcolor = "orange"
+    elif zset == 0:
+        addtext = "Rejected"
+        addtextcolor = "red"
+    elif zset == 1:
+        addtext = ("Accepted: z = {:.4f}".format(zfit) + ", " + "wSNR = {:.2f}".format(snr_tot_others))
+        addtextcolor = "green"
+
+    fig.text(0.35, 0.64, addtext, ha="right", va="bottom", color=addtextcolor,
+        fontsize=18, fontweight=500, path_effects=[PathEffects.withStroke(linewidth=0.5,foreground="k")])
+
+    gs.tight_layout(fig) # FH 2/24/25 - Added to fill screen when fitting.
+    # plt.tight_layout()  # MDR 2022/05/19 - Added to fill screen when fitting.
+    fig.savefig(plotfilename)
+    plt.draw()
     
 
 ## FH 2/6/25: New version - for one filter
@@ -717,7 +1284,7 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
 
     # generate the plot grid.
     plt.ion()
-    fig = plt.figure(2, figsize=(11, 8), dpi=75)
+    fig = plt.figure(2, figsize=(15, 8), dpi=75)
     plt.clf()
     # gs = gridspec.GridSpec(3, 4)
     gs = gridspec.GridSpec(3, num_gridspec_plots + 1)
@@ -1037,7 +1604,7 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
         addtext = ("Accepted: z = {:.4f}".format(zfit) + ", " + "wSNR = {:.2f}".format(snr_tot_others))
         addtextcolor = "green"
 
-    fig.text(0.32, 0.3, addtext, ha="right", va="bottom", color=addtextcolor,
+    fig.text(0.35, 0.3, addtext, ha="right", va="bottom", color=addtextcolor,
         fontsize=18, fontweight=500, path_effects=[PathEffects.withStroke(linewidth=0.5,foreground="k")])
 
     plt.tight_layout()  # MDR 2022/05/19 - Added to fill screen when fitting.
@@ -1122,25 +1689,7 @@ def inspect_object_all(
     fitdatafilename = os.path.join(outdir, "fitdata/%s_fitspec" % plottitle)
     availgrism = ""
     # read in 1D spectrum
-    # if os.path.exists(specnameg1):
-    #     availgrism += "f444w"
-    #     tab_blue = asciitable.read(specnameg1, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_blue_cont = np.copy(tab_blue)
-    #     tab_blue_cont['flux'] = tab_blue['flux'] + tab_blue['contam']
-    # else: tab_blue = None; tab_blue_cont = None 
-    # if os.path.exists(specnameg2):
-    #     availgrism += "g150"
-    #     tab_mid = asciitable.read(specnameg2, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_mid_cont = np.copy(tab_mid)
-    #     tab_mid_cont['flux'] = tab_mid['flux'] + tab_mid['contam']
-    # else: tab_mid = None; tab_mid_cont = None
-    # if os.path.exists(specnameg3):
-    #     availgrism += "g200"
-    #     tab_red = asciitable.read(specnameg3, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_red_cont = np.copy(tab_red)
-    #     tab_red_cont['flux'] = tab_red['flux'] + tab_red['contam']
-    # else: tab_red = None; tab_red_cont = None
-
+ 
     # if availfilt == "g115g150g200": availfilt = "both"  
 
     if os.path.exists(specnameA_R):
@@ -1184,33 +1733,6 @@ def inspect_object_all(
 
         tab_C = None; tab_C_cont = None
 
-
-    # if os.path.exists(specnameg2_R):
-    #     tab_mid_R = asciitable.read(specnameg2_R, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_mid_R_cont = np.copy(tab_mid_R)
-    #     tab_mid_R_cont['flux'] = tab_mid_R['flux'] + tab_mid_R['contam']
-    # else: tab_mid_R = None; tab_mid_R_cont= None
-    # if os.path.exists(specnameg3_R):
-    #     tab_red_R = asciitable.read(specnameg3_R, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_red_R_cont = np.copy(tab_red_R)
-    #     tab_red_R_cont['flux'] = tab_red_R['flux'] + tab_red_R['contam']
-    # else: tab_red_R = None; tab_red_R_cont = None
-
-    # if os.path.exists(specnameg1_C):
-    #     tab_blue_C = asciitable.read(specnameg1_C, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_blue_C_cont = np.copy(tab_blue_C)
-    #     tab_blue_C_cont['flux'] = tab_blue_C['flux'] + tab_blue_C['contam']
-    # else: tab_blue_C = None; tab_blue_C_cont = None
-    # if os.path.exists(specnameg2_C):
-    #     tab_mid_C = asciitable.read(specnameg2_C, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_mid_C_cont = np.copy(tab_mid_C)
-    #     tab_mid_C_cont['flux'] = tab_mid_C['flux'] + tab_mid_C['contam']
-    # else: tab_mid_C = None; tab_mid_C_cont = None
-    # if os.path.exists(specnameg3_C):
-    #     tab_red_C = asciitable.read(specnameg3_C, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_red_C_cont = np.copy(tab_red_C)
-    #     tab_red_C_cont['flux'] = tab_red_C['flux'] + tab_red_C['contam']
-    # else: tab_red_C = None; tab_red_C_cont = None 
 
     # =================== Show spec2d new (begin) =====================
 
@@ -1277,12 +1799,15 @@ def inspect_object_all(
 
     if os.path.exists(outdir + "/done_%s" % user):  # needed for the first run before file exists
         with open(outdir + "/done_%s" % user) as f:
-            for index, line in enumerate(f):
-                # print("Line {}: {}".format(index, line.strip()))
-                if int(line.strip()) == obj:
-                    catalogueEntryData = 1
-                    print("Match found...\n")
-                    break
+            first_char = f.read(1)
+            if first_char:  #make sure it's not empty
+                for index, line in enumerate(f):
+                    # print("Line {}: {}, obj: {}".format(index, line, obj))
+                    if int(line.strip()) == int(obj):
+                        catalogueEntryData = 1
+                        print("Match found...\n")
+                        break
+
 
         if catalogueEntryData != 1:
             print("No match found...\n")
@@ -1311,7 +1836,11 @@ def inspect_object_all(
     
     if tab_R_cont is not None:
 
-        lamlines_found,ston_found = utilities.quick_flux_max(tab_R_cont["wave"],tab_R_cont["flux"],tab_R_cont["error"])
+        lamlines_found,ston_found = utilities.quick_flux_max(tab_R_cont["wave"],tab_R_cont["flux"],tab_R_cont["error"],config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
+
+    elif (tab_C_cont is not None) and (tab_R_cont is None):
+
+        lamlines_found,ston_found = utilities.quick_flux_max(tab_C_cont["wave"],tab_C_cont["flux"],tab_C_cont["error"],config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
 
         # s = np.argsort(ston_found)
         # # reverse s/n order
@@ -1319,53 +1848,54 @@ def inspect_object_all(
         # ston_found = ston_found[s[::-1]]
         # lamlines_found = lamlines_found[s[::-1]]
 
-        index_of_strongest_line = 0
-        lamline = lamlines_found
-
-        # MDR 2022/06/10 - Changed the first guess line to [O II] for MUSE.
-        # KVN 2023/09/01 - Changed first guess back to Halpha for PASSAGE
-        # zguess = lamline / ha_6565_vac - 1
-
-        # FH 2/5/25 - Min. redshift has to be 0
-        zguess = np.max([lamline / ha_6565_vac - 1, 0.001])
-        # zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
-        # zguess = (lamline / o2_3730_vac) - 1.0
-        # fwhm is defined for the red side, regardless of where line is
-        fwhm_guess = 2.35 * a_image * config_pars["dispersion_red"]
-
-        if stored_fits != False:
-            first_stored_fit = stored_fits[0]
-            users = [path.split("/")[-3].split("_")[-1] for path in stored_fits]
-            fileObject = open(first_stored_fit, "r")
-            alldata = pickle.load(fileObject)
-            config_pars = alldata[10]
-            fitresults_old = alldata[8]
-            zguess = fitresults_old["redshift"]
-            fwhm_guess = fitresults_old["fwhm_g141"]
-            print("using stored fit from: " + users[0])
-            print("available stored fits: ")
-            print(users)
-            ### also need to figure out what else to add?
-            ### config pars for nodes can also be entered here.
-
-        ### replace this with printouts from pickle files
-
-
-        # print object info to screen
-        if rejectPrevFit:
-            print(" ")
-            print_prompt("=" * 72)
-            print_prompt("Par%i Obj %i:" % (int(par), int(obj)))
-            print_prompt("Initial redshift guess: z = %f" % (zguess))
-            print_prompt(
-                "\nWhat would you like to do with this object?\nSee the README for options, or type 'h' to print them all to the screen."
-            )
-
-        comment = ""
-
     else:
         print('Spectrum not found for object ' + str(obj))
         rejectPrevFit = False
+
+    index_of_strongest_line = 0
+    lamline = lamlines_found
+
+    # MDR 2022/06/10 - Changed the first guess line to [O II] for MUSE.
+    # KVN 2023/09/01 - Changed first guess back to Halpha for PASSAGE
+    # zguess = lamline / ha_6565_vac - 1
+
+    # FH 2/5/25 - Min. redshift has to be 0
+    zguess = np.max([lamline / ha_6565_vac - 1, 0.001])
+    # zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
+    # zguess = (lamline / o2_3730_vac) - 1.0
+    # fwhm is defined for the red side, regardless of where line is
+    fwhm_guess = 2.35 * a_image * config_pars["dispersion_red"]
+
+    if stored_fits != False:
+        first_stored_fit = stored_fits[0]
+        users = [path.split("/")[-3].split("_")[-1] for path in stored_fits]
+        fileObject = open(first_stored_fit, "r")
+        alldata = pickle.load(fileObject)
+        config_pars = alldata[10]
+        fitresults_old = alldata[8]
+        zguess = fitresults_old["redshift"]
+        fwhm_guess = fitresults_old["fwhm_g141"]
+        print("using stored fit from: " + users[0])
+        print("available stored fits: ")
+        print(users)
+        ### also need to figure out what else to add?
+        ### config pars for nodes can also be entered here.
+
+    ### replace this with printouts from pickle files
+
+
+    # print object info to screen
+    if rejectPrevFit:
+        print(" ")
+        print_prompt("=" * 72)
+        print_prompt("Par%i Obj %i:" % (int(par), int(obj)))
+        print_prompt("Initial redshift guess: z = %f" % (zguess))
+        print_prompt(
+            "\nWhat would you like to do with this object?\nSee the README for options, or type 'h' to print them all to the screen."
+        )
+
+    comment = ""
+
 
     # set this to loop over flags created at top of code.
     contamflags = {
@@ -1404,13 +1934,18 @@ def inspect_object_all(
         "pg_10941": 0,
         "pb_12822": 0,
         "pa_18756": 0,
+        "ne3_3869": 0,
         "cont": 0,
     }  # MDR 2022/07/22
 
+
     # Skip if previous fit is to be accepted
     done = 0 if rejectPrevFit else 1
-    fast_fit = False  # MDR 2022/06/30 - move to configuration file?
+    # fast_fit = False  # MDR 2022/06/30 - move to configuration file?
+    fast_fit = True # FH 2/18/25 - implementing fast fit as default
     orientation = None
+
+    fit_to_2spec = True  # FH 2/24/25 - this variable decides whether to fit to both spectra or not (default is True)
 
     while done == 0:
 
@@ -1427,15 +1962,15 @@ def inspect_object_all(
 
         spdata_C_contam = trim_spec_1filter(tab_C_cont, config_pars, filter, mask_zeros=True, return_masks=True)
 
-        # FH: using R spectra as default for now (2/4/25)
+        # KVN: the default is to use the combined spectra as this will likely be the preferred option for most cases.
         # This will be updated when/if the user makes a different selection
-       
-        # spdata = spdata_R
-        # spec_lam = spdata[0]; spec_val = spdata[1]; spec_unc = spdata[2]; spec_con = spdata[3]; spec_zer = spdata[4]; mask_flg = spdata[5]
-
         if orientation is None:
             spdata = copy(spdata_R)
+            spdata2 = copy(spdata_C)
+
+        ## FH 2/20/25 - when both R and C spec are used for combined fit:
         spec_lam = spdata[0]; spec_val = spdata[1]; spec_unc = spdata[2]; spec_con = spdata[3]; spec_zer = spdata[4]; mask_flg = spdata[5]
+        spec_lam2 = spdata2[0]; spec_val2 = spdata2[1]; spec_unc2 = spdata2[2]; spec_con2 = spdata2[3]; spec_zer2 = spdata2[4]; mask_flg2 = spdata2[5]
 
         # sticking with the while loop to determine whether user is finished with object
         # get spectrum for obj. do this every time because sometimes we
@@ -1446,165 +1981,457 @@ def inspect_object_all(
 
         plot_chooseSpec(spdata_R, spdata_C, config_pars, plottitle, outdir)
         # print_prompt("If you would like to change which spectrum is being fit, the options are: grismR, grismC, grismRcontam, grismCcontam, CombContam, or Comb to go back to the combined at any time. ")
-        print_prompt("If you would like to change which spectrum is being fit, the options are: grismR, grismC, grismRcontam, or grismCcontam to go back to the combined at any time. ")
+        print_prompt("If you would like to change which spectrum is being fit, the options are: grismR, grismC, grismRcontam, grismCcontam, or comb to go back to the combined at any time. ")
 
         # Determine the largest extent of the object so broadening of the lines can be accounted for in the fitting. MDR 2022/06/30
         ab_image_max = np.max([objinfo["a_image"][0], objinfo["b_image"][0]])
 
-        # apply the mask to the wavelength array
-        masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
-        
-        # compress the masked arrays for fitting
-        
-        print('Running the fit with the following settings: redshift = ', zguess, ', fast_fit = ', fast_fit, ', comp_fit = ', comp_fit,', polycont_fit = ', polycont_fit,', lincont_fit = ', lincont_fit)
+        ## FH 2/20/25 - Below, we take both R and C spec for combined fit - if spectra exist for both and fit2spec is True
 
-        fit_inputs = [
-            np.ma.compressed(masked_spec_lam),
-            np.ma.compressed(spec_val),
-            np.ma.compressed(spec_unc),
-            config_pars,
-            zguess,
-            fwhm_guess,
-            str(obj),
-            ab_image_max,
-            fast_fit,
-            comp_fit,
-            polycont_fit, 
-            lincont_fit] 
-        
-        # parsing the input to facilitate parallel processing when fitting is done in batch mode.        
-        try:
-            fitresults = fit_obj_all(fit_inputs,filter)
+        min_pix = 50    #50 is min. number of pixels needed - arbitrary for now
 
-        except Exception as e:
-            print('Skipping Obj. {}, Reason: '.format(obj),e)
-            done = 1
-            return 0
-        
-        zfit = fitresults["redshift"]
-        fitpars = fitresults["fit_parameters"]
-        fitpars_nolines = cp.deepcopy(fitpars)
-        fitpars_onlybroad = cp.deepcopy(fitpars)
+        if ((len(spec_lam) > min_pix) and (len(spec_lam2) > min_pix)) and (fit_to_2spec == True):   ## If both R and C exist and fit_to_2spec is True
+            # print('both R and C spectra exist')
+            print('Fitting to both R & C spectra\n')
 
-        ############################################################################
-        """
-        The model parameters for the emission line amplitudes must be set to zero
-        for the continuum fit, while the values for the line ratios must be non-zero
-        to avoid division by zero. The 'get_fitpar_indices()' and 'get_ratio_indices()'
-        functions below are defined in fitting.py to send these model parameter indices
-        back to measure_z_interactive().
-        """
-        first_line_index, first_node_index = poppies.get_fitpar_indices()
-        ####### KVN -- line below doesn't work (idk why?), so hard-coding the broad line index. Will need to update. 
-        # first_broad_line_index = poppies.get_broad_indices()
-        first_broad_line_index = 51
-        
-        fitpars_onlybroad[first_line_index:first_broad_line_index] = 0.0 
-        fitpars_nolines[first_line_index:first_node_index] = 0.0
+            # spec_lam = spdata[0]; spec_val = spdata[1]; spec_unc = spdata[2]; spec_con = spdata[3]; spec_zer = spdata[4]; mask_flg = spdata[5]
+            # spec_lam2 = spdata2[0]; spec_val2 = spdata2[1]; spec_unc2 = spdata2[2]; spec_con2 = spdata2[3]; spec_zer2 = spdata2[4]; mask_flg2 = spdata2[5]
 
-        for idx in get_ratio_indices():
-            fitpars_nolines[idx] = 1.0
-        for idx in get_ratio_indices():
-            if idx < first_broad_line_index:
-                fitpars_onlybroad[idx] = 1.0
+            # apply the mask to the wavelength array
+            masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
+            masked_spec_lam2 = np.ma.masked_where(np.ma.getmask(spec_val2), spec_lam2)
+            # compress the masked arrays for fitting
 
-        
-        ############################################################################
+            print('Running the fit with the following settings: redshift = ',zguess,', fast_fit = ',fast_fit,', comp_fit = ',comp_fit,', polycont_fit = ',polycont_fit,', lincont_fit = ',lincont_fit)
+            fit_inputs = [
+                np.ma.compressed(masked_spec_lam),
+                np.ma.compressed(spec_val),
+                np.ma.compressed(spec_unc),
+                np.ma.compressed(masked_spec_lam2),
+                np.ma.compressed(spec_val2),
+                np.ma.compressed(spec_unc2),
+                config_pars,
+                zguess,
+                fwhm_guess,
+                str(obj),
+                ab_image_max,
+                fast_fit,
+                comp_fit,
+                polycont_fit, 
+                lincont_fit] 
+            # parsing the input to facilitate parallel processing when fitting is done in batch mode.
+            try:
+                fitresults = fit_obj_comb(fit_inputs,filter)
 
-        fitmodel = (
-            emissionline_model(fitpars, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
-            * fitresults["scl_factor"])
-        
-        fitmodel_broad_gauss_fit = (
-            emissionline_model(fitpars_onlybroad, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
-            * fitresults["scl_factor"])
-        
-        contmodel = (
-            emissionline_model(fitpars_nolines, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
-            * fitresults["scl_factor"])
+            except Exception as e:
+                print('Skipping Obj. {}, Reason: '.format(obj),e)
+                # print('Skipping Obj. {}, Reason: {}, line: {}'.format(obj , e, e.__traceback__.tb_lineno))
+                done = 1
+                return 0
 
-        # the fitting is done on compressed arrays, so we need to
-        # create masked versions of the fit and continuum models
-        full_fitmodel = np.zeros(spec_lam.shape, dtype=float)
-        full_contmodel = np.zeros(spec_lam.shape, dtype=float)
-        broad_fitmodel = np.zeros(spec_lam.shape, dtype=float)
-        
-        full_fitmodel[np.ma.nonzero(spec_val)] = fitmodel
-        full_contmodel[np.ma.nonzero(spec_val)] = contmodel
-        broad_fitmodel[np.ma.nonzero(spec_val)] = fitmodel_broad_gauss_fit
-        
-        full_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_fitmodel)
-        full_contmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_contmodel)
-        broad_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), broad_fitmodel)
+            zfit = fitresults["redshift"]
+            fitpars = fitresults["fit_parameters"]
+            # fitpars_nolines = cp.deepcopy(fitpars)
+            fitpars_onlybroad = cp.deepcopy(fitpars)
+            
 
-        # loop over the lines specified in 'flux_strings' and save the results to an array.
-        # ---------
-        # Added by KVN 13-Aug-2024 because double gaussian fit has extra lines. 
-        if comp_fit == True: flux_strings = flux_strings_2gauss
-        elif comp_fit == False: flux_strings = flux_strings_1gauss
-        # ---------
+            ############################################################################
+            """
+            The model parameters for the emission line amplitudes must be set to zero
+            for the continuum fit, while the values for the line ratios must be non-zero
+            to avoid division by zero. The 'get_fitpar_indices()' and 'get_ratio_indices()'
+            functions below are defined in fitting.py to send these model parameter indices
+            back to measure_z_interactive().
+            """
+            first_line_index, first_node_index = poppies.get_fitpar_indices()
+            ####### KVN -- line below doesn't work (idk why?), so hard-coding the broad line index. Will need to update. 
+            first_broad_line_index = poppies.get_broad_indices()
+            # first_broad_line_index = 51
+            
+            fitpars_onlybroad[first_line_index:first_broad_line_index] = 0.0 
+            # fitpars_nolines[first_line_index:first_node_index] = 0.0
 
-        snr_meas_array = []
-        for line in flux_strings:
-            snr_meas_array.append(fitresults[line + "_flux"] / fitresults[line + "_error"])
-        snr_meas_array = np.array(snr_meas_array)
+            # for idx in get_ratio_indices():
+            #     fitpars_nolines[idx] = 1.0
+            for idx in get_ratio_indices():
+                if idx < first_broad_line_index:
+                    fitpars_onlybroad[idx] = 1.0
 
-        signal_lines = []
-        for line in flux_strings:
-            signal_lines.append(fitresults[line + "_flux"])
-        signal_lines = np.array(signal_lines)
+            
+            ############################################################################
 
-        err_lines = []
-        for line in flux_strings:
-            err_lines.append(fitresults[line + "_error"])
-        err_lines = np.array(err_lines)
+            #### FH modified 2/24/25 - one fit for each spec
 
-        # calculate a weighted s/n ratio for all lines and print on the plot.
-        # signal_lines = np.array([fitresults['o2_total_flux'], fitresults['hg_4342_flux'], fitresults['hb_4863_flux'],fitresults['ha_total_flux'], fitresults['s2_total_flux']])
-        # err_lines   = np.array([fitresults['o2_total_error'], fitresults['hg_4342_error'], fitresults['hb_4863_error'], fitresults['ha_total_error'], fitresults['s2_total_error']])
+            ### First for R-spec:
+            
+            fit_inputs = [
+                np.ma.compressed(masked_spec_lam),
+                np.ma.compressed(spec_val),
+                np.ma.compressed(spec_unc),
+                config_pars,
+                zguess,
+                fwhm_guess,
+                str(obj),
+                ab_image_max,
+                fast_fit,
+                comp_fit,
+                polycont_fit, 
+                lincont_fit]  
+            
+            try:
+                                
+                fitresults_R = fit_obj(fit_inputs,filter)
+                fitpars_R = fitresults_R["fit_parameters"]
+                fitpars_nolines = cp.deepcopy(fitpars_R)
+                
+                fitpars_nolines[first_line_index:first_broad_line_index] = 0.0
 
-        w = np.where(signal_lines > 0)
+                for idx in get_ratio_indices():
+                    fitpars_nolines[idx] = 1.0
 
-        # MDR 2022/06/10 - updated the definition of weight SNR to be sum of SNRs that are  > 3 weighted by their contribution to the total flux.
-        total_flux = 0
-        for line in flux_strings:
-            snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
-            if snr_line >= 3.0:
-                total_flux = total_flux + fitresults[line + "_flux"]
-        # MDR 2022/06/10
-        snr_tot_others = []
-        for line in flux_strings:
-            snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
-            if snr_line >= 3.0:
-                snr_tot_weight = fitresults[line + "_flux"] / total_flux
-                if np.isfinite(snr_line * snr_tot_weight):
-                    snr_tot_others.append(snr_line * snr_tot_weight)
-                else:
-                    snr_tot_others.append(0.0)
-        # MDR 2022/06/10
-        snr_tot_others = np.sum(snr_tot_others)
+            except Exception as e:
+                print('Could not fit R-continuum for Obj. {}, Reason: '.format(obj),e)
+                
+                #revert to combined fit, which is only applicable for emission lines
+                fitpars_R = fitresults["fit_parameters"] 
+                fitpars_nolines = cp.deepcopy(fitpars_R)
+                
+                fitpars_nolines[first_line_index:first_broad_line_index] = 0.0
 
-        # plot the whole darn thing
-        plot_object(
-            zguess,
-            fitresults["redshift"],
-            spdata,
-            config_pars,
-            snr_meas_array,
-            snr_tot_others,
-            full_fitmodel,
-            full_contmodel,
-            broad_fitmodel,
-            lamline,
-            lamlines_found,
-            index_of_strongest_line,
-            contmodel,
-            plottitle,
-            outdir, 
-            )
-        
-        #        print "    Guess Redshift: z = %f" % (zguess)
-        print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
+                for idx in get_ratio_indices():
+                    fitpars_nolines[idx] = 1.0
+            
+            ### Keep the continuum, but add the emission lines to the models:
+            fitpars_R[first_line_index:first_broad_line_index] = fitpars[first_line_index:first_broad_line_index]
+            fitpars_R[first_broad_line_index:first_node_index] = fitpars_onlybroad[first_broad_line_index:first_node_index]
+
+            fitmodel = (
+                emissionline_model(fitpars_R, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            fitmodel_broad_gauss_fit = (
+                emissionline_model(fitpars_R, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            contmodel = (
+                emissionline_model(fitpars_nolines, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+
+            # the fitting is done on compressed arrays, so we need to
+            # create masked versions of the fit and continuum models
+            full_fitmodel = np.zeros(spec_lam.shape, dtype=float)
+            broad_fitmodel = np.zeros(spec_lam.shape, dtype=float)
+            full_contmodel = np.zeros(spec_lam.shape, dtype=float)
+            
+            full_fitmodel[np.ma.nonzero(spec_val)] = fitmodel
+            broad_fitmodel[np.ma.nonzero(spec_val)] = fitmodel_broad_gauss_fit
+            full_contmodel[np.ma.nonzero(spec_val)] = contmodel
+            
+            full_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_fitmodel)
+            broad_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), broad_fitmodel)
+            full_contmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_contmodel)
+
+            ### Then for C-spec:
+            
+            fit_inputs = [
+                np.ma.compressed(masked_spec_lam2),
+                np.ma.compressed(spec_val2),
+                np.ma.compressed(spec_unc2),
+                config_pars,
+                zguess,
+                fwhm_guess,
+                str(obj),
+                ab_image_max,
+                fast_fit,
+                comp_fit,
+                polycont_fit, 
+                lincont_fit]  
+            
+            try:
+                                
+                fitresults_C = fit_obj(fit_inputs,filter)
+                fitpars_C = fitresults_C["fit_parameters"]
+                fitpars_nolines = cp.deepcopy(fitpars_C)
+                
+                fitpars_nolines[first_line_index:first_broad_line_index] = 0.0
+
+                for idx in get_ratio_indices():
+                    fitpars_nolines[idx] = 1.0
+
+            except Exception as e:
+                print('Could not fit C-continuum for Obj. {}, Reason: '.format(obj),e)
+                
+                #revert to combined fit, which is only applicable for emission lines
+                fitpars_C = fitresults["fit_parameters"] 
+                fitpars_nolines = cp.deepcopy(fitpars_C)
+                
+                fitpars_nolines[first_line_index:first_broad_line_index] = 0.0
+
+                for idx in get_ratio_indices():
+                    fitpars_nolines[idx] = 1.0
+            
+            ### Keep the continuum, but add the emission lines to the models:
+            fitpars_C[first_line_index:first_broad_line_index] = fitpars[first_line_index:first_broad_line_index]
+            fitpars_C[first_broad_line_index:first_node_index] = fitpars_onlybroad[first_broad_line_index:first_node_index]
+
+            fitmodel2 = (
+                emissionline_model(fitpars_C, np.ma.compressed(masked_spec_lam2), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            fitmodel_broad_gauss_fit2 = (
+                emissionline_model(fitpars_C, np.ma.compressed(masked_spec_lam2), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            contmodel2 = (
+                emissionline_model(fitpars_nolines, np.ma.compressed(masked_spec_lam2), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+
+            # the fitting is done on compressed arrays, so we need to
+            # create masked versions of the fit and continuum models
+            full_fitmodel2 = np.zeros(spec_lam2.shape, dtype=float)
+            broad_fitmodel2 = np.zeros(spec_lam2.shape, dtype=float)
+            full_contmodel2 = np.zeros(spec_lam2.shape, dtype=float)
+            
+            full_fitmodel2[np.ma.nonzero(spec_val2)] = fitmodel2
+            broad_fitmodel2[np.ma.nonzero(spec_val2)] = fitmodel_broad_gauss_fit2
+            full_contmodel2[np.ma.nonzero(spec_val2)] = contmodel2
+            
+            full_fitmodel2 = np.ma.masked_where(np.ma.getmask(spec_val2), full_fitmodel2)
+            broad_fitmodel2 = np.ma.masked_where(np.ma.getmask(spec_val2), broad_fitmodel2)
+            full_contmodel2 = np.ma.masked_where(np.ma.getmask(spec_val2), full_contmodel2)
+           
+
+            # loop over the lines specified in 'flux_strings' and save the results to an array.
+            # ---------
+            # Added by KVN 13-Aug-2024 because double gaussian fit has extra lines. 
+            if comp_fit == True: flux_strings = flux_strings_2gauss
+            elif comp_fit == False: flux_strings = flux_strings_1gauss
+            # ---------
+
+            snr_meas_array = []
+            for line in flux_strings:
+                snr_meas_array.append(fitresults[line + "_flux"] / fitresults[line + "_error"])
+            snr_meas_array = np.array(snr_meas_array)
+
+            signal_lines = []
+            for line in flux_strings:
+                signal_lines.append(fitresults[line + "_flux"])
+            signal_lines = np.array(signal_lines)
+
+            err_lines = []
+            for line in flux_strings:
+                err_lines.append(fitresults[line + "_error"])
+            err_lines = np.array(err_lines)
+
+            # calculate a weighted s/n ratio for all lines and print on the plot.
+            # signal_lines = np.array([fitresults['o2_total_flux'], fitresults['hg_4342_flux'], fitresults['hb_4863_flux'],fitresults['ha_total_flux'], fitresults['s2_total_flux']])
+            # err_lines   = np.array([fitresults['o2_total_error'], fitresults['hg_4342_error'], fitresults['hb_4863_error'], fitresults['ha_total_error'], fitresults['s2_total_error']])
+
+            w = np.where(signal_lines > 0)
+
+            # MDR 2022/06/10 - updated the definition of weight SNR to be sum of SNRs that are  > 3 weighted by their contribution to the total flux.
+            total_flux = 0
+            for line in flux_strings:
+                snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
+                if snr_line >= 3.0:
+                    total_flux = total_flux + fitresults[line + "_flux"]
+            # MDR 2022/06/10
+            snr_tot_others = []
+            for line in flux_strings:
+                snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
+                if snr_line >= 3.0:
+                    snr_tot_weight = fitresults[line + "_flux"] / total_flux
+                    if np.isfinite(snr_line * snr_tot_weight):
+                        snr_tot_others.append(snr_line * snr_tot_weight)
+                    else:
+                        snr_tot_others.append(0.0)
+            # MDR 2022/06/10
+            snr_tot_others = np.sum(snr_tot_others)
+
+            # plot the whole darn thing - combined version
+            plot_object_comb(
+                zguess,
+                fitresults["redshift"],
+                spdata,
+                spdata2,
+                config_pars,
+                snr_meas_array,
+                snr_tot_others,
+                full_fitmodel,
+                full_contmodel,
+                broad_fitmodel,
+                full_fitmodel2,
+                full_contmodel2,
+                broad_fitmodel2,
+                lamline,
+                lamlines_found,
+                index_of_strongest_line,
+                contmodel,
+                contmodel2,
+                plottitle,
+                outdir,
+                )
+            
+            print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
+            
+
+        else:
+            print('Fitting to just one spectrum\n')
+                
+            # apply the mask to the wavelength array
+            masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
+            # compress the masked arrays for fitting
+            
+            print('Running the fit with the following settings: redshift = ',zguess,', fast_fit = ',fast_fit,', comp_fit = ',comp_fit,', polycont_fit = ',polycont_fit,', lincont_fit = ',lincont_fit)
+            fit_inputs = [
+                np.ma.compressed(masked_spec_lam),
+                np.ma.compressed(spec_val),
+                np.ma.compressed(spec_unc),
+                config_pars,
+                zguess,
+                fwhm_guess,
+                str(obj),
+                ab_image_max,
+                fast_fit,
+                comp_fit,
+                polycont_fit, 
+                lincont_fit] 
+            # parsing the input to facilitate parallel processing when fitting is done in batch mode.
+            try:
+                fitresults = fit_obj(fit_inputs,filter)
+
+            except Exception as e:
+                print('Skipping Obj. {}, Reason: '.format(obj),e)
+                done = 1
+                return 0
+            
+            
+            zfit = fitresults["redshift"]
+            fitpars = fitresults["fit_parameters"]
+            fitpars_nolines = cp.deepcopy(fitpars)
+            fitpars_onlybroad = cp.deepcopy(fitpars)
+
+            ############################################################################
+            """
+            The model parameters for the emission line amplitudes must be set to zero
+            for the continuum fit, while the values for the line ratios must be non-zero
+            to avoid division by zero. The 'get_fitpar_indices()' and 'get_ratio_indices()'
+            functions below are defined in fitting.py to send these model parameter indices
+            back to measure_z_interactive().
+            """
+            first_line_index, first_node_index = poppies.get_fitpar_indices()
+            ####### KVN -- line below doesn't work (idk why?), so hard-coding the broad line index. Will need to update. 
+            first_broad_line_index = poppies.get_broad_indices()
+            # first_broad_line_index = 51
+            
+            fitpars_onlybroad[first_line_index:first_broad_line_index] = 0.0 
+            fitpars_nolines[first_line_index:first_node_index] = 0.0
+
+            for idx in get_ratio_indices():
+                fitpars_nolines[idx] = 1.0
+            for idx in get_ratio_indices():
+                if idx < first_broad_line_index:
+                    fitpars_onlybroad[idx] = 1.0
+
+            
+            ############################################################################
+
+            fitmodel = (
+                emissionline_model(fitpars, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            fitmodel_broad_gauss_fit = (
+                emissionline_model(fitpars_onlybroad, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            contmodel = (
+                emissionline_model(fitpars_nolines, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+
+            # the fitting is done on compressed arrays, so we need to
+            # create masked versions of the fit and continuum models
+            full_fitmodel = np.zeros(spec_lam.shape, dtype=float)
+            full_contmodel = np.zeros(spec_lam.shape, dtype=float)
+            broad_fitmodel = np.zeros(spec_lam.shape, dtype=float)
+            
+            full_fitmodel[np.ma.nonzero(spec_val)] = fitmodel
+            full_contmodel[np.ma.nonzero(spec_val)] = contmodel
+            broad_fitmodel[np.ma.nonzero(spec_val)] = fitmodel_broad_gauss_fit
+            
+            full_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_fitmodel)
+            full_contmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_contmodel)
+            broad_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), broad_fitmodel)
+
+            # loop over the lines specified in 'flux_strings' and save the results to an array.
+            # ---------
+            # Added by KVN 13-Aug-2024 because double gaussian fit has extra lines. 
+            if comp_fit == True: flux_strings = flux_strings_2gauss
+            elif comp_fit == False: flux_strings = flux_strings_1gauss
+            # ---------
+
+            snr_meas_array = []
+            for line in flux_strings:
+                snr_meas_array.append(fitresults[line + "_flux"] / fitresults[line + "_error"])
+            snr_meas_array = np.array(snr_meas_array)
+
+            signal_lines = []
+            for line in flux_strings:
+                signal_lines.append(fitresults[line + "_flux"])
+            signal_lines = np.array(signal_lines)
+
+            err_lines = []
+            for line in flux_strings:
+                err_lines.append(fitresults[line + "_error"])
+            err_lines = np.array(err_lines)
+
+            # calculate a weighted s/n ratio for all lines and print on the plot.
+            # signal_lines = np.array([fitresults['o2_total_flux'], fitresults['hg_4342_flux'], fitresults['hb_4863_flux'],fitresults['ha_total_flux'], fitresults['s2_total_flux']])
+            # err_lines   = np.array([fitresults['o2_total_error'], fitresults['hg_4342_error'], fitresults['hb_4863_error'], fitresults['ha_total_error'], fitresults['s2_total_error']])
+
+            w = np.where(signal_lines > 0)
+
+            # MDR 2022/06/10 - updated the definition of weight SNR to be sum of SNRs that are  > 3 weighted by their contribution to the total flux.
+            total_flux = 0
+            for line in flux_strings:
+                snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
+                if snr_line >= 3.0:
+                    total_flux = total_flux + fitresults[line + "_flux"]
+            # MDR 2022/06/10
+            snr_tot_others = []
+            for line in flux_strings:
+                snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
+                if snr_line >= 3.0:
+                    snr_tot_weight = fitresults[line + "_flux"] / total_flux
+                    if np.isfinite(snr_line * snr_tot_weight):
+                        snr_tot_others.append(snr_line * snr_tot_weight)
+                    else:
+                        snr_tot_others.append(0.0)
+            # MDR 2022/06/10
+            snr_tot_others = np.sum(snr_tot_others)
+
+            # plot the whole darn thing
+            plot_object(
+                zguess,
+                fitresults["redshift"],
+                spdata,
+                config_pars,
+                snr_meas_array,
+                snr_tot_others,
+                full_fitmodel,
+                full_contmodel,
+                broad_fitmodel,
+                lamline,
+                lamlines_found,
+                index_of_strongest_line,
+                contmodel,
+                plottitle,
+                outdir,
+                )
+            
+            print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
+            
+
+        #### USER INPUT OPTIONS BELOW ####
         # input
         option = input("> ")
 
@@ -1634,7 +2461,8 @@ def inspect_object_all(
                     zset = 1
                     flagcont = 1
                 elif fast_fit == True:
-                    print("\nWARNING: Still using fast fit mode, type full for refined fit.")
+                    print('\x1b[6;30;43m' +"\nWARNING: Still using fast fit mode, RUNNING FULL FIT NOW.\nTo accept the full fit type 'a' again" + '\x1b[0m')
+                    fast_fit = False
 
             elif comp_fit == False:
                 print("\n--- You are accepting the single Gaussian fit ---")
@@ -1643,10 +2471,8 @@ def inspect_object_all(
                     zset = 1
                     flagcont = 1
                 elif fast_fit == True:
-                    print("\nWARNING: Still using fast fit mode, type 'full' for refined fit.")
-                    # done = 1
-                    # zset = 1
-                    # flagcont = 1
+                    print('\x1b[6;30;43m' +"\nWARNING: Still using fast fit mode, RUNNING FULL FIT NOW.\nTo accept the full fit type 'a' again" + '\x1b[0m')
+                    fast_fit = False
 
         ### KVN 05-Aug-2024
         ### Adding option to fit double gaussian to emission lines:
@@ -1685,6 +2511,11 @@ def inspect_object_all(
 
         # accept object and note contamination
         elif option.strip().lower() == "ac":
+            if fast_fit == True:
+                print('\nPeforming full fit again.')
+                        # print("\nWARNING: Still using fast fit mode, TYPE 'full' FOR REFINED FIT.")
+                fast_fit = False
+
             done = 1
             zset = 1
             flagcont = 2
@@ -1693,25 +2524,29 @@ def inspect_object_all(
             for k, v in contamflags.items():
                 contamflags[k] = contamflags[k] | 1
         
+
         # added by KVN July 2024
-        # Choose which spectrum should be used for the line fitting.
+        # Choose which spectrum should be used for the line fitting:
         elif option.strip().lower() == "grismr":
             spdata_lam_org = spdata[0]
-            if (len(spdata_lam_org) <= len(spdata_R[0])) or (len(spdata_R[0])>50):
+            if (len(spdata_lam_org) <= len(spdata_R[0])) or (len(spdata_R[0])>min_pix):
+                fit_to_2spec = False # FH 2/24/25                
                 spdata = spdata_R
                 orientation = "R"
             else: print("The selected R orientation appears to have missing data, keeping the original selection.")
          
         elif option.strip().lower() == "grismrcontam":
             spdata_lam_org = spdata[0]
-            if (len(spdata_lam_org) <= len(spdata_R_contam[0])) or (len(spdata_R_contam[0])>50):
+            if (len(spdata_lam_org) <= len(spdata_R_contam[0])) or (len(spdata_R_contam[0])>min_pix):
+                fit_to_2spec = False # FH 2/24/25                
                 spdata = spdata_R_contam
                 orientation = "RContam"
             else: print("The selected R(with contamination) orientation appears to have missing data, keeping the original selection.")
                 
         elif option.strip().lower() == "grismc":
             spdata_lam_org = spdata[0]
-            if (len(spdata_lam_org) <= len(spdata_C[0])) or (len(spdata_C[0])>50):
+            if (len(spdata_lam_org) <= len(spdata_C[0])) or (len(spdata_C[0])>min_pix):
+                fit_to_2spec = False # FH 2/24/25
                 spdata = spdata_C
                 orientation = "C"
             
@@ -1719,10 +2554,22 @@ def inspect_object_all(
                 
         elif option.strip().lower() == "grismccontam":
             spdata_lam_org = spdata[0]
-            if (len(spdata_lam_org) <= len(spdata_C_contam[0])) or (len(spdata_C_contam[0])>50):
+            if (len(spdata_lam_org) <= len(spdata_C_contam[0])) or (len(spdata_C_contam[0])>min_pix):
+                fit_to_2spec = False # FH 2/24/25
                 spdata = spdata_C_contam
                 orientation = "CContam"
             else: print("The selected C(with contamination) orientation appears to have missing data, keeping the original selection.")
+
+        # FH added 2/24/25
+        elif option.strip().lower() == "comb":
+            # spdata_lam_org = spdata[0]
+            # if (len(spdata_lam_org) <= len(spdata_C_contam[0])) or (len(spdata_C_contam[0])>50):
+            #     spdata = spdata_C_contam
+            fit_to_2spec = True # FH 2/24/25
+            spdata = spdata_R
+            spdata2 = spdata_C
+            orientation = "comb"
+            # else: print("The selected C(with contamination) orientation appears to have missing data, keeping the original selection.")
 
 
         # change redshift guess
@@ -2402,26 +3249,53 @@ def inspect_object_all(
         
     # only re-save data if the previous fit was discarded
     if rejectPrevFit:
-        # plot the whole darn thing
-        plot_object(
-            zguess,
-            fitresults["redshift"],
-            spdata,
-            config_pars,
-            snr_meas_array,
-            snr_tot_others,
-            full_fitmodel,
-            full_contmodel,
-            broad_fitmodel,
-            lamline,
-            lamlines_found,
-            index_of_strongest_line,
-            contmodel,
-            plottitle,
-            outdir,
-            zset=zset,
-            orientation=orientation
-        )
+
+        #FH 3/4/25:
+        if fit_to_2spec == False:
+            plot_object(
+                zguess,
+                fitresults["redshift"],
+                spdata,
+                config_pars,
+                snr_meas_array,
+                snr_tot_others,
+                full_fitmodel,
+                full_contmodel,
+                broad_fitmodel,
+                lamline,
+                lamlines_found,
+                index_of_strongest_line,
+                contmodel,
+                plottitle,
+                outdir,
+                zset=zset,
+            )
+        else:
+            # plot the whole darn thing - combined version
+            plot_object_comb(
+                zguess,
+                fitresults["redshift"],
+                spdata,
+                spdata2,
+                config_pars,
+                snr_meas_array,
+                snr_tot_others,
+                full_fitmodel,
+                full_contmodel,
+                broad_fitmodel,
+                full_fitmodel2,
+                full_contmodel2,
+                broad_fitmodel2,
+                lamline,
+                lamlines_found,
+                index_of_strongest_line,
+                contmodel,
+                contmodel2,
+                plottitle,
+                outdir,
+                zset=zset,
+                )
+
 
         # write to file if object was accepted
         if zset == 1:
@@ -3447,12 +4321,14 @@ def inspect_object(
 
     if os.path.exists(outdir + "/done_%s" % user):  # needed for the first run before file exists
         with open(outdir + "/done_%s" % user) as f:
-            for index, line in enumerate(f):
-                # print("Line {}: {}, obj: {}".format(index, line.strip(), obj))
-                if int(line.strip()) == obj:
-                    catalogueEntryData = 1
-                    print("Match found...\n")
-                    break
+            first_char = f.read(1)
+            if first_char:  #make sure it's not empty
+                for index, line in enumerate(f):
+                    # print("Line {}: {}, obj: {}".format(index, line, obj))
+                    if int(line.strip()) == int(obj):
+                        catalogueEntryData = 1
+                        print("Match found...\n")
+                        break
 
         if catalogueEntryData != 1:
             print("No match found...\n")
@@ -3559,13 +4435,17 @@ def inspect_object(
         "pg_10941": 0,
         "pb_12822": 0,
         "pa_18756": 0,
+        "ne3_3869": 0,
         "cont": 0,
     }  # MDR 2022/07/22
 
     # Skip if previous fit is to be accepted
     done = 0 if rejectPrevFit else 1
-    fast_fit = False  # MDR 2022/06/30 - move to configuration file?
+    # fast_fit = False  # MDR 2022/06/30 - move to configuration file?
+    fast_fit = True # FH 2/18/25 - implementing fast fit as default
     orientation = None
+
+    fit_to_2spec = True  # FH 2/24/25 - this variable decides whether to fit to both spectra or not (default is True)
 
     while done == 0:
 
@@ -3585,8 +4465,12 @@ def inspect_object(
         # KVN: the default is to use the combined spectra as this will likely be the preferred option for most cases.
         # This will be updated when/if the user makes a different selection
         if orientation is None:
-            spdata = copy(spdata_R)        
+            spdata = copy(spdata_R)
+            spdata2 = copy(spdata_C)
+
+        ## FH 2/20/25 - when both R and C spec are used for combined fit:
         spec_lam = spdata[0]; spec_val = spdata[1]; spec_unc = spdata[2]; spec_con = spdata[3]; spec_zer = spdata[4]; mask_flg = spdata[5]
+        spec_lam2 = spdata2[0]; spec_val2 = spdata2[1]; spec_unc2 = spdata2[2]; spec_con2 = spdata2[3]; spec_zer2 = spdata2[4]; mask_flg2 = spdata2[5]
 
         # sticking with the while loop to determine whether user is finished with object
         # get spectrum for obj. do this every time because sometimes we
@@ -3597,162 +4481,459 @@ def inspect_object(
 
         plot_chooseSpec(spdata_R, spdata_C, config_pars, plottitle, outdir)
         # print_prompt("If you would like to change which spectrum is being fit, the options are: grismR, grismC, grismRcontam, grismCcontam, CombContam, or Comb to go back to the combined at any time. ")
-        print_prompt("If you would like to change which spectrum is being fit, the options are: grismR, grismC, grismRcontam, or grismCcontam to go back to the combined at any time. ")
+        print_prompt("If you would like to change which spectrum is being fit, the options are: grismR, grismC, grismRcontam, grismCcontam, or comb to go back to the combined at any time. ")
 
         # Determine the largest extent of the object so broadening of the lines can be accounted for in the fitting. MDR 2022/06/30
         ab_image_max = np.max([objinfo["a_image"][0], objinfo["b_image"][0]])
 
-        # apply the mask to the wavelength array
-        masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
-        # compress the masked arrays for fitting
-        
-        print('Running the fit with the following settings: redshift = ',zguess,', fast_fit = ',fast_fit,', comp_fit = ',comp_fit,', polycont_fit = ',polycont_fit,', lincont_fit = ',lincont_fit)
-        fit_inputs = [
-            np.ma.compressed(masked_spec_lam),
-            np.ma.compressed(spec_val),
-            np.ma.compressed(spec_unc),
-            config_pars,
-            zguess,
-            fwhm_guess,
-            str(obj),
-            ab_image_max,
-            fast_fit,
-            comp_fit,
-            polycont_fit, 
-            lincont_fit] 
-        # parsing the input to facilitate parallel processing when fitting is done in batch mode.
-        try:
-            fitresults = fit_obj_all(fit_inputs,filter)
+        ## FH 2/20/25 - Below, we take both R and C spec for combined fit - if spectra exist for both and fit2spec is True
 
-        except Exception as e:
-            print('Skipping Obj. {}, Reason: '.format(obj),e)
-            done = 1
-            return 0
+        min_pix = 50    #50 is min. number of pixels needed - arbitrary for now
+
+        if ((len(spec_lam) > min_pix) and (len(spec_lam2) > min_pix)) and (fit_to_2spec == True):   ## If both R and C exist and fit_to_2spec is True
+            # print('both R and C spectra exist')
+            print('Fitting to both R & C spectra\n')
+
+            # spec_lam = spdata[0]; spec_val = spdata[1]; spec_unc = spdata[2]; spec_con = spdata[3]; spec_zer = spdata[4]; mask_flg = spdata[5]
+            # spec_lam2 = spdata2[0]; spec_val2 = spdata2[1]; spec_unc2 = spdata2[2]; spec_con2 = spdata2[3]; spec_zer2 = spdata2[4]; mask_flg2 = spdata2[5]
+
+            # apply the mask to the wavelength array
+            masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
+            masked_spec_lam2 = np.ma.masked_where(np.ma.getmask(spec_val2), spec_lam2)
+            # compress the masked arrays for fitting
+
+            print('Running the fit with the following settings: redshift = ',zguess,', fast_fit = ',fast_fit,', comp_fit = ',comp_fit,', polycont_fit = ',polycont_fit,', lincont_fit = ',lincont_fit)
+            fit_inputs = [
+                np.ma.compressed(masked_spec_lam),
+                np.ma.compressed(spec_val),
+                np.ma.compressed(spec_unc),
+                np.ma.compressed(masked_spec_lam2),
+                np.ma.compressed(spec_val2),
+                np.ma.compressed(spec_unc2),
+                config_pars,
+                zguess,
+                fwhm_guess,
+                str(obj),
+                ab_image_max,
+                fast_fit,
+                comp_fit,
+                polycont_fit, 
+                lincont_fit] 
+            # parsing the input to facilitate parallel processing when fitting is done in batch mode.
+            try:
+                fitresults = fit_obj_comb(fit_inputs,filter)
+
+            except Exception as e:
+                print('Skipping Obj. {}, Reason: '.format(obj),e)
+                # print('Skipping Obj. {}, Reason: {}, line: {}'.format(obj , e, e.__traceback__.tb_lineno))
+                done = 1
+                return 0
+
+            zfit = fitresults["redshift"]
+            fitpars = fitresults["fit_parameters"]
+            # fitpars_nolines = cp.deepcopy(fitpars)
+            fitpars_onlybroad = cp.deepcopy(fitpars)
             
-        zfit = fitresults["redshift"]
-        fitpars = fitresults["fit_parameters"]
-        fitpars_nolines = cp.deepcopy(fitpars)
-        fitpars_onlybroad = cp.deepcopy(fitpars)
 
-        ############################################################################
-        """
-        The model parameters for the emission line amplitudes must be set to zero
-        for the continuum fit, while the values for the line ratios must be non-zero
-        to avoid division by zero. The 'get_fitpar_indices()' and 'get_ratio_indices()'
-        functions below are defined in fitting.py to send these model parameter indices
-        back to measure_z_interactive().
-        """
-        first_line_index, first_node_index = poppies.get_fitpar_indices()
-        ####### KVN -- line below doesn't work (idk why?), so hard-coding the broad line index. Will need to update. 
-        # first_broad_line_index = poppies.get_broad_indices()
-        first_broad_line_index = 51
-        
-        fitpars_onlybroad[first_line_index:first_broad_line_index] = 0.0 
-        fitpars_nolines[first_line_index:first_node_index] = 0.0
+            ############################################################################
+            """
+            The model parameters for the emission line amplitudes must be set to zero
+            for the continuum fit, while the values for the line ratios must be non-zero
+            to avoid division by zero. The 'get_fitpar_indices()' and 'get_ratio_indices()'
+            functions below are defined in fitting.py to send these model parameter indices
+            back to measure_z_interactive().
+            """
+            first_line_index, first_node_index = poppies.get_fitpar_indices()
+            ####### KVN -- line below doesn't work (idk why?), so hard-coding the broad line index. Will need to update. 
+            first_broad_line_index = poppies.get_broad_indices()
+            # first_broad_line_index = 51
+            
+            fitpars_onlybroad[first_line_index:first_broad_line_index] = 0.0 
+            # fitpars_nolines[first_line_index:first_node_index] = 0.0
 
-        for idx in get_ratio_indices():
-            fitpars_nolines[idx] = 1.0
-        for idx in get_ratio_indices():
-            if idx < first_broad_line_index:
-                fitpars_onlybroad[idx] = 1.0
+            # for idx in get_ratio_indices():
+            #     fitpars_nolines[idx] = 1.0
+            for idx in get_ratio_indices():
+                if idx < first_broad_line_index:
+                    fitpars_onlybroad[idx] = 1.0
 
-        
-        ############################################################################
+            
+            ############################################################################
 
-        fitmodel = (
-            emissionline_model(fitpars, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
-            * fitresults["scl_factor"])
-        
-        fitmodel_broad_gauss_fit = (
-            emissionline_model(fitpars_onlybroad, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
-            * fitresults["scl_factor"])
-        
-        contmodel = (
-            emissionline_model(fitpars_nolines, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
-            * fitresults["scl_factor"])
+            #### FH modified 2/24/25 - one fit for each spec
 
-        # the fitting is done on compressed arrays, so we need to
-        # create masked versions of the fit and continuum models
-        full_fitmodel = np.zeros(spec_lam.shape, dtype=float)
-        full_contmodel = np.zeros(spec_lam.shape, dtype=float)
-        broad_fitmodel = np.zeros(spec_lam.shape, dtype=float)
-        
-        full_fitmodel[np.ma.nonzero(spec_val)] = fitmodel
-        full_contmodel[np.ma.nonzero(spec_val)] = contmodel
-        broad_fitmodel[np.ma.nonzero(spec_val)] = fitmodel_broad_gauss_fit
-        
-        full_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_fitmodel)
-        full_contmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_contmodel)
-        broad_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), broad_fitmodel)
+            ### First for R-spec:
+            
+            fit_inputs = [
+                np.ma.compressed(masked_spec_lam),
+                np.ma.compressed(spec_val),
+                np.ma.compressed(spec_unc),
+                config_pars,
+                zguess,
+                fwhm_guess,
+                str(obj),
+                ab_image_max,
+                fast_fit,
+                comp_fit,
+                polycont_fit, 
+                lincont_fit]  
+            
+            try:
+                                
+                fitresults_R = fit_obj(fit_inputs,filter)
+                fitpars_R = fitresults_R["fit_parameters"]
+                fitpars_nolines = cp.deepcopy(fitpars_R)
+                
+                fitpars_nolines[first_line_index:first_broad_line_index] = 0.0
 
-        # loop over the lines specified in 'flux_strings' and save the results to an array.
-        # ---------
-        # Added by KVN 13-Aug-2024 because double gaussian fit has extra lines. 
-        if comp_fit == True: flux_strings = flux_strings_2gauss
-        elif comp_fit == False: flux_strings = flux_strings_1gauss
-        # ---------
+                for idx in get_ratio_indices():
+                    fitpars_nolines[idx] = 1.0
 
-        snr_meas_array = []
-        for line in flux_strings:
-            snr_meas_array.append(fitresults[line + "_flux"] / fitresults[line + "_error"])
-        snr_meas_array = np.array(snr_meas_array)
+            except Exception as e:
+                print('Could not fit R-continuum for Obj. {}, Reason: '.format(obj),e)
+                
+                #revert to combined fit, which is only applicable for emission lines
+                fitpars_R = fitresults["fit_parameters"] 
+                fitpars_nolines = cp.deepcopy(fitpars_R)
+                
+                fitpars_nolines[first_line_index:first_broad_line_index] = 0.0
 
-        signal_lines = []
-        for line in flux_strings:
-            signal_lines.append(fitresults[line + "_flux"])
-        signal_lines = np.array(signal_lines)
+                for idx in get_ratio_indices():
+                    fitpars_nolines[idx] = 1.0
+            
+            ### Keep the continuum, but add the emission lines to the models:
+            fitpars_R[first_line_index:first_broad_line_index] = fitpars[first_line_index:first_broad_line_index]
+            fitpars_R[first_broad_line_index:first_node_index] = fitpars_onlybroad[first_broad_line_index:first_node_index]
 
-        err_lines = []
-        for line in flux_strings:
-            err_lines.append(fitresults[line + "_error"])
-        err_lines = np.array(err_lines)
+            fitmodel = (
+                emissionline_model(fitpars_R, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            fitmodel_broad_gauss_fit = (
+                emissionline_model(fitpars_R, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            contmodel = (
+                emissionline_model(fitpars_nolines, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
 
-        # calculate a weighted s/n ratio for all lines and print on the plot.
-        # signal_lines = np.array([fitresults['o2_total_flux'], fitresults['hg_4342_flux'], fitresults['hb_4863_flux'],fitresults['ha_total_flux'], fitresults['s2_total_flux']])
-        # err_lines   = np.array([fitresults['o2_total_error'], fitresults['hg_4342_error'], fitresults['hb_4863_error'], fitresults['ha_total_error'], fitresults['s2_total_error']])
+            # the fitting is done on compressed arrays, so we need to
+            # create masked versions of the fit and continuum models
+            full_fitmodel = np.zeros(spec_lam.shape, dtype=float)
+            broad_fitmodel = np.zeros(spec_lam.shape, dtype=float)
+            full_contmodel = np.zeros(spec_lam.shape, dtype=float)
+            
+            full_fitmodel[np.ma.nonzero(spec_val)] = fitmodel
+            broad_fitmodel[np.ma.nonzero(spec_val)] = fitmodel_broad_gauss_fit
+            full_contmodel[np.ma.nonzero(spec_val)] = contmodel
+            
+            full_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_fitmodel)
+            broad_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), broad_fitmodel)
+            full_contmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_contmodel)
 
-        w = np.where(signal_lines > 0)
+            ### Then for C-spec:
+            
+            fit_inputs = [
+                np.ma.compressed(masked_spec_lam2),
+                np.ma.compressed(spec_val2),
+                np.ma.compressed(spec_unc2),
+                config_pars,
+                zguess,
+                fwhm_guess,
+                str(obj),
+                ab_image_max,
+                fast_fit,
+                comp_fit,
+                polycont_fit, 
+                lincont_fit]  
+            
+            try:
+                                
+                fitresults_C = fit_obj(fit_inputs,filter)
+                fitpars_C = fitresults_C["fit_parameters"]
+                fitpars_nolines = cp.deepcopy(fitpars_C)
+                
+                fitpars_nolines[first_line_index:first_broad_line_index] = 0.0
 
-        # MDR 2022/06/10 - updated the definition of weight SNR to be sum of SNRs that are  > 3 weighted by their contribution to the total flux.
-        total_flux = 0
-        for line in flux_strings:
-            snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
-            if snr_line >= 3.0:
-                total_flux = total_flux + fitresults[line + "_flux"]
-        # MDR 2022/06/10
-        snr_tot_others = []
-        for line in flux_strings:
-            snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
-            if snr_line >= 3.0:
-                snr_tot_weight = fitresults[line + "_flux"] / total_flux
-                if np.isfinite(snr_line * snr_tot_weight):
-                    snr_tot_others.append(snr_line * snr_tot_weight)
-                else:
-                    snr_tot_others.append(0.0)
-        # MDR 2022/06/10
-        snr_tot_others = np.sum(snr_tot_others)
+                for idx in get_ratio_indices():
+                    fitpars_nolines[idx] = 1.0
 
-        # plot the whole darn thing
-        plot_object(
-            zguess,
-            fitresults["redshift"],
-            spdata,
-            config_pars,
-            snr_meas_array,
-            snr_tot_others,
-            full_fitmodel,
-            full_contmodel,
-            broad_fitmodel,
-            lamline,
-            lamlines_found,
-            index_of_strongest_line,
-            contmodel,
-            plottitle,
-            outdir,
-            )
-        
-        #        print "    Guess Redshift: z = %f" % (zguess)
-        print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
+            except Exception as e:
+                print('Could not fit C-continuum for Obj. {}, Reason: '.format(obj),e)
+                
+                #revert to combined fit, which is only applicable for emission lines
+                fitpars_C = fitresults["fit_parameters"] 
+                fitpars_nolines = cp.deepcopy(fitpars_C)
+                
+                fitpars_nolines[first_line_index:first_broad_line_index] = 0.0
+
+                for idx in get_ratio_indices():
+                    fitpars_nolines[idx] = 1.0
+            
+            ### Keep the continuum, but add the emission lines to the models:
+            fitpars_C[first_line_index:first_broad_line_index] = fitpars[first_line_index:first_broad_line_index]
+            fitpars_C[first_broad_line_index:first_node_index] = fitpars_onlybroad[first_broad_line_index:first_node_index]
+
+            fitmodel2 = (
+                emissionline_model(fitpars_C, np.ma.compressed(masked_spec_lam2), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            fitmodel_broad_gauss_fit2 = (
+                emissionline_model(fitpars_C, np.ma.compressed(masked_spec_lam2), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            contmodel2 = (
+                emissionline_model(fitpars_nolines, np.ma.compressed(masked_spec_lam2), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+
+            # the fitting is done on compressed arrays, so we need to
+            # create masked versions of the fit and continuum models
+            full_fitmodel2 = np.zeros(spec_lam2.shape, dtype=float)
+            broad_fitmodel2 = np.zeros(spec_lam2.shape, dtype=float)
+            full_contmodel2 = np.zeros(spec_lam2.shape, dtype=float)
+            
+            full_fitmodel2[np.ma.nonzero(spec_val2)] = fitmodel2
+            broad_fitmodel2[np.ma.nonzero(spec_val2)] = fitmodel_broad_gauss_fit2
+            full_contmodel2[np.ma.nonzero(spec_val2)] = contmodel2
+            
+            full_fitmodel2 = np.ma.masked_where(np.ma.getmask(spec_val2), full_fitmodel2)
+            broad_fitmodel2 = np.ma.masked_where(np.ma.getmask(spec_val2), broad_fitmodel2)
+            full_contmodel2 = np.ma.masked_where(np.ma.getmask(spec_val2), full_contmodel2)
+           
+
+            # loop over the lines specified in 'flux_strings' and save the results to an array.
+            # ---------
+            # Added by KVN 13-Aug-2024 because double gaussian fit has extra lines. 
+            if comp_fit == True: flux_strings = flux_strings_2gauss
+            elif comp_fit == False: flux_strings = flux_strings_1gauss
+            # ---------
+
+            snr_meas_array = []
+            for line in flux_strings:
+                snr_meas_array.append(fitresults[line + "_flux"] / fitresults[line + "_error"])
+            snr_meas_array = np.array(snr_meas_array)
+
+            signal_lines = []
+            for line in flux_strings:
+                signal_lines.append(fitresults[line + "_flux"])
+            signal_lines = np.array(signal_lines)
+
+            err_lines = []
+            for line in flux_strings:
+                err_lines.append(fitresults[line + "_error"])
+            err_lines = np.array(err_lines)
+
+            # calculate a weighted s/n ratio for all lines and print on the plot.
+            # signal_lines = np.array([fitresults['o2_total_flux'], fitresults['hg_4342_flux'], fitresults['hb_4863_flux'],fitresults['ha_total_flux'], fitresults['s2_total_flux']])
+            # err_lines   = np.array([fitresults['o2_total_error'], fitresults['hg_4342_error'], fitresults['hb_4863_error'], fitresults['ha_total_error'], fitresults['s2_total_error']])
+
+            w = np.where(signal_lines > 0)
+
+            # MDR 2022/06/10 - updated the definition of weight SNR to be sum of SNRs that are  > 3 weighted by their contribution to the total flux.
+            total_flux = 0
+            for line in flux_strings:
+                snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
+                if snr_line >= 3.0:
+                    total_flux = total_flux + fitresults[line + "_flux"]
+            # MDR 2022/06/10
+            snr_tot_others = []
+            for line in flux_strings:
+                snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
+                if snr_line >= 3.0:
+                    snr_tot_weight = fitresults[line + "_flux"] / total_flux
+                    if np.isfinite(snr_line * snr_tot_weight):
+                        snr_tot_others.append(snr_line * snr_tot_weight)
+                    else:
+                        snr_tot_others.append(0.0)
+            # MDR 2022/06/10
+            snr_tot_others = np.sum(snr_tot_others)
+
+            # plot the whole darn thing - combined version
+            plot_object_comb(
+                zguess,
+                fitresults["redshift"],
+                spdata,
+                spdata2,
+                config_pars,
+                snr_meas_array,
+                snr_tot_others,
+                full_fitmodel,
+                full_contmodel,
+                broad_fitmodel,
+                full_fitmodel2,
+                full_contmodel2,
+                broad_fitmodel2,
+                lamline,
+                lamlines_found,
+                index_of_strongest_line,
+                contmodel,
+                contmodel2,
+                plottitle,
+                outdir,
+                )
+            
+            print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
+            
+
+        else:
+            print('Fitting to just one spectrum\n')
+                
+            # apply the mask to the wavelength array
+            masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
+            # compress the masked arrays for fitting
+            
+            print('Running the fit with the following settings: redshift = ',zguess,', fast_fit = ',fast_fit,', comp_fit = ',comp_fit,', polycont_fit = ',polycont_fit,', lincont_fit = ',lincont_fit)
+            fit_inputs = [
+                np.ma.compressed(masked_spec_lam),
+                np.ma.compressed(spec_val),
+                np.ma.compressed(spec_unc),
+                config_pars,
+                zguess,
+                fwhm_guess,
+                str(obj),
+                ab_image_max,
+                fast_fit,
+                comp_fit,
+                polycont_fit, 
+                lincont_fit] 
+            # parsing the input to facilitate parallel processing when fitting is done in batch mode.
+            try:
+                fitresults = fit_obj(fit_inputs,filter)
+
+            except Exception as e:
+                print('Skipping Obj. {}, Reason: '.format(obj),e)
+                done = 1
+                return 0
+            
+            
+            zfit = fitresults["redshift"]
+            fitpars = fitresults["fit_parameters"]
+            fitpars_nolines = cp.deepcopy(fitpars)
+            fitpars_onlybroad = cp.deepcopy(fitpars)
+
+            ############################################################################
+            """
+            The model parameters for the emission line amplitudes must be set to zero
+            for the continuum fit, while the values for the line ratios must be non-zero
+            to avoid division by zero. The 'get_fitpar_indices()' and 'get_ratio_indices()'
+            functions below are defined in fitting.py to send these model parameter indices
+            back to measure_z_interactive().
+            """
+            first_line_index, first_node_index = poppies.get_fitpar_indices()
+            ####### KVN -- line below doesn't work (idk why?), so hard-coding the broad line index. Will need to update. 
+            first_broad_line_index = poppies.get_broad_indices()
+            # first_broad_line_index = 51
+            
+            fitpars_onlybroad[first_line_index:first_broad_line_index] = 0.0 
+            fitpars_nolines[first_line_index:first_node_index] = 0.0
+
+            for idx in get_ratio_indices():
+                fitpars_nolines[idx] = 1.0
+            for idx in get_ratio_indices():
+                if idx < first_broad_line_index:
+                    fitpars_onlybroad[idx] = 1.0
+
+            
+            ############################################################################
+
+            fitmodel = (
+                emissionline_model(fitpars, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            fitmodel_broad_gauss_fit = (
+                emissionline_model(fitpars_onlybroad, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+            
+            contmodel = (
+                emissionline_model(fitpars_nolines, np.ma.compressed(masked_spec_lam), comp_fit, polycont_fit, lincont_fit)
+                * fitresults["scl_factor"])
+
+            # the fitting is done on compressed arrays, so we need to
+            # create masked versions of the fit and continuum models
+            full_fitmodel = np.zeros(spec_lam.shape, dtype=float)
+            full_contmodel = np.zeros(spec_lam.shape, dtype=float)
+            broad_fitmodel = np.zeros(spec_lam.shape, dtype=float)
+            
+            full_fitmodel[np.ma.nonzero(spec_val)] = fitmodel
+            full_contmodel[np.ma.nonzero(spec_val)] = contmodel
+            broad_fitmodel[np.ma.nonzero(spec_val)] = fitmodel_broad_gauss_fit
+            
+            full_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_fitmodel)
+            full_contmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_contmodel)
+            broad_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), broad_fitmodel)
+
+            # loop over the lines specified in 'flux_strings' and save the results to an array.
+            # ---------
+            # Added by KVN 13-Aug-2024 because double gaussian fit has extra lines. 
+            if comp_fit == True: flux_strings = flux_strings_2gauss
+            elif comp_fit == False: flux_strings = flux_strings_1gauss
+            # ---------
+
+            snr_meas_array = []
+            for line in flux_strings:
+                snr_meas_array.append(fitresults[line + "_flux"] / fitresults[line + "_error"])
+            snr_meas_array = np.array(snr_meas_array)
+
+            signal_lines = []
+            for line in flux_strings:
+                signal_lines.append(fitresults[line + "_flux"])
+            signal_lines = np.array(signal_lines)
+
+            err_lines = []
+            for line in flux_strings:
+                err_lines.append(fitresults[line + "_error"])
+            err_lines = np.array(err_lines)
+
+            # calculate a weighted s/n ratio for all lines and print on the plot.
+            # signal_lines = np.array([fitresults['o2_total_flux'], fitresults['hg_4342_flux'], fitresults['hb_4863_flux'],fitresults['ha_total_flux'], fitresults['s2_total_flux']])
+            # err_lines   = np.array([fitresults['o2_total_error'], fitresults['hg_4342_error'], fitresults['hb_4863_error'], fitresults['ha_total_error'], fitresults['s2_total_error']])
+
+            w = np.where(signal_lines > 0)
+
+            # MDR 2022/06/10 - updated the definition of weight SNR to be sum of SNRs that are  > 3 weighted by their contribution to the total flux.
+            total_flux = 0
+            for line in flux_strings:
+                snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
+                if snr_line >= 3.0:
+                    total_flux = total_flux + fitresults[line + "_flux"]
+            # MDR 2022/06/10
+            snr_tot_others = []
+            for line in flux_strings:
+                snr_line = fitresults[line + "_flux"] / fitresults[line + "_error"]
+                if snr_line >= 3.0:
+                    snr_tot_weight = fitresults[line + "_flux"] / total_flux
+                    if np.isfinite(snr_line * snr_tot_weight):
+                        snr_tot_others.append(snr_line * snr_tot_weight)
+                    else:
+                        snr_tot_others.append(0.0)
+            # MDR 2022/06/10
+            snr_tot_others = np.sum(snr_tot_others)
+
+            # plot the whole darn thing
+            plot_object(
+                zguess,
+                fitresults["redshift"],
+                spdata,
+                config_pars,
+                snr_meas_array,
+                snr_tot_others,
+                full_fitmodel,
+                full_contmodel,
+                broad_fitmodel,
+                lamline,
+                lamlines_found,
+                index_of_strongest_line,
+                contmodel,
+                plottitle,
+                outdir,
+                )
+            
+            #        print "    Guess Redshift: z = %f" % (zguess)
+            print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
+            
+
+        #### USER INPUT OPTIONS BELOW ####
+
         # input
         option = input("> ")
 
@@ -3768,12 +4949,6 @@ def inspect_object(
                 comment = "rejected"
             done = 1
 
-        # # accept object
-        # elif option.strip().lower() == 'a':
-        #     done = 1
-        #     zset = 1
-        #     flagcont = 1
-        # accept object MDR 2022/06/30
         elif option.strip().lower() == "a":
             if comp_fit == True:
                 if fast_fit == False:
@@ -3781,7 +4956,9 @@ def inspect_object(
                     zset = 1
                     flagcont = 1
                 elif fast_fit == True:
-                    print("\nWARNING: Still using fast fit mode, type full for refined fit.")
+                    print('\x1b[6;30;43m' +"\nWARNING: Still using fast fit mode, RUNNING FULL FIT NOW.\nTo accept the full fit type 'a' again" + '\x1b[0m')
+                    fast_fit = False
+
 
             elif comp_fit == False:
                 print("\n--- You are accepting the single Gaussian fit ---")
@@ -3790,10 +4967,9 @@ def inspect_object(
                     zset = 1
                     flagcont = 1
                 elif fast_fit == True:
-                        print("\nWARNING: Still using fast fit mode, type full for refined fit.")
-                        # done = 1
-                        # zset = 1
-                        # flagcont = 1
+                    print('\x1b[6;30;43m' +"\nWARNING: Still using fast fit mode, RUNNING FULL FIT NOW.\nTo accept the full fit type 'a' again" + '\x1b[0m')
+                    fast_fit = False
+
 
         ### KVN 05-Aug-2024
         ### Adding option to fit double gaussian to emission lines:
@@ -3831,6 +5007,11 @@ def inspect_object(
 
         # accept object and note contamination
         elif option.strip().lower() == "ac":
+            if fast_fit == True:
+                print('\nPeforming full fit again.')
+                        # print("\nWARNING: Still using fast fit mode, TYPE 'full' FOR REFINED FIT.")
+                fast_fit = False
+
             done = 1
             zset = 1
             flagcont = 2
@@ -3840,24 +5021,27 @@ def inspect_object(
 
 
         # added by KVN July 2024
-        # Choose which spectrum should be used for the line fitting.
+        # Choose which spectrum should be used for the line fitting:
         elif option.strip().lower() == "grismr":
             spdata_lam_org = spdata[0]
-            if (len(spdata_lam_org) <= len(spdata_R[0])) or (len(spdata_R[0])>50):
+            if (len(spdata_lam_org) <= len(spdata_R[0])) or (len(spdata_R[0])>min_pix):
+                fit_to_2spec = False # FH 2/24/25                
                 spdata = spdata_R
                 orientation = "R"
             else: print("The selected R orientation appears to have missing data, keeping the original selection.")
          
         elif option.strip().lower() == "grismrcontam":
             spdata_lam_org = spdata[0]
-            if (len(spdata_lam_org) <= len(spdata_R_contam[0])) or (len(spdata_R_contam[0])>50):
+            if (len(spdata_lam_org) <= len(spdata_R_contam[0])) or (len(spdata_R_contam[0])>min_pix):
+                fit_to_2spec = False # FH 2/24/25                
                 spdata = spdata_R_contam
                 orientation = "RContam"
             else: print("The selected R(with contamination) orientation appears to have missing data, keeping the original selection.")
                 
         elif option.strip().lower() == "grismc":
             spdata_lam_org = spdata[0]
-            if (len(spdata_lam_org) <= len(spdata_C[0])) or (len(spdata_C[0])>50):
+            if (len(spdata_lam_org) <= len(spdata_C[0])) or (len(spdata_C[0])>min_pix):
+                fit_to_2spec = False # FH 2/24/25
                 spdata = spdata_C
                 orientation = "C"
             
@@ -3865,10 +5049,22 @@ def inspect_object(
                 
         elif option.strip().lower() == "grismccontam":
             spdata_lam_org = spdata[0]
-            if (len(spdata_lam_org) <= len(spdata_C_contam[0])) or (len(spdata_C_contam[0])>50):
+            if (len(spdata_lam_org) <= len(spdata_C_contam[0])) or (len(spdata_C_contam[0])>min_pix):
+                fit_to_2spec = False # FH 2/24/25
                 spdata = spdata_C_contam
                 orientation = "CContam"
             else: print("The selected C(with contamination) orientation appears to have missing data, keeping the original selection.")
+
+        # FH added 2/24/25
+        elif option.strip().lower() == "comb":
+            # spdata_lam_org = spdata[0]
+            # if (len(spdata_lam_org) <= len(spdata_C_contam[0])) or (len(spdata_C_contam[0])>50):
+            #     spdata = spdata_C_contam
+            fit_to_2spec = True # FH 2/24/25
+            spdata = spdata_R
+            spdata2 = spdata_C
+            orientation = "comb"
+            # else: print("The selected C(with contamination) orientation appears to have missing data, keeping the original selection.")
 
 
         # change redshift guess
@@ -4423,25 +5619,53 @@ def inspect_object(
     # only re-save data if the previous fit was discarded
     if rejectPrevFit:
         # plot the whole darn thing
-        plot_object(
-            zguess,
-            fitresults["redshift"],
-            spdata,
-            config_pars,
-            snr_meas_array,
-            snr_tot_others,
-            full_fitmodel,
-            full_contmodel,
-            broad_fitmodel,
-            lamline,
-            lamlines_found,
-            index_of_strongest_line,
-            contmodel,
-            plottitle,
-            outdir,
-            zset=zset,
-            orientation=orientation
-        )
+
+        #FH 3/4/25:
+        if fit_to_2spec == False:
+                
+            plot_object(
+                zguess,
+                fitresults["redshift"],
+                spdata,
+                config_pars,
+                snr_meas_array,
+                snr_tot_others,
+                full_fitmodel,
+                full_contmodel,
+                broad_fitmodel,
+                lamline,
+                lamlines_found,
+                index_of_strongest_line,
+                contmodel,
+                plottitle,
+                outdir,
+                zset=zset,
+            )
+        else:
+            # plot the whole darn thing - combined version
+            plot_object_comb(
+                zguess,
+                fitresults["redshift"],
+                spdata,
+                spdata2,
+                config_pars,
+                snr_meas_array,
+                snr_tot_others,
+                full_fitmodel,
+                full_contmodel,
+                broad_fitmodel,
+                full_fitmodel2,
+                full_contmodel2,
+                broad_fitmodel2,
+                lamline,
+                lamlines_found,
+                index_of_strongest_line,
+                contmodel,
+                contmodel2,
+                plottitle,
+                outdir,
+                zset=zset,
+                )
 
         # write to file if object was accepted
         if zset == 1:
@@ -5298,6 +6522,8 @@ def measure_z_interactive(
     #     os.unlink("G141_trace.reg")
 
 
+####### WRITE FILES
+
 
 # # parnos, objid are scalar not array.
 def writeToCatalog(
@@ -5387,7 +6613,8 @@ def writeToCatalog(
             "he10830",
             "pg_10941",
             "pb_12822",
-            "pa_18756",
+            "pa_18756", 
+            "ne3_3869",
         ]
 
         results_idx = 21
@@ -5683,6 +6910,11 @@ def writeToCatalog(
         + "{:>13.2e}".format(fitresults["pa_18756_ew_obs"])
         + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24
         + "{:>6d}".format(contamflags["pa_18756"])
+        + "{:>13.2e}".format(fitresults["ne3_3869_flux"])                # new line; Added KVN 02/2025
+        + "{:>13.2e}".format(fitresults["ne3_3869_error"])               # new line; Added KVN 02/2025
+        + "{:>13.2e}".format(fitresults["ne3_3869_ew_obs"])              # new line; Added KVN 02/2025 
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added KVN 02/2025
+        + "{:>6d}".format(contamflags["ne3_3869"])                       # new line; Added KVN 02/2025
     )
 
     """
@@ -5720,28 +6952,27 @@ def writeToCatalog2gauss(
     
     if not os.path.exists(catalogname):
         cat = open(catalogname, "w")
-        cat.write("#1 objid \n")
-        cat.write("#2 redshift \n")
-        cat.write("#3 redshift_error \n")
-        cat.write("#4 ra_obj \n")
-        cat.write("#5 dec_obj \n")
-        cat.write("#6 f140w_mag \n")
-        cat.write("#7 a_image_obj \n")
-        cat.write("#8 b_image_obj \n")
-        cat.write("#9 snr_tot_others \n")
-        cat.write("#10 chisq \n")
-        cat.write("#11 fwhm_muse \n")
-        cat.write("#12 fwhm_muse_error \n")
-        cat.write("#13 fwhm_g141 \n")
-        cat.write("#14 fwhm_g141_error \n")
-        cat.write("#15 2Gauss_fit \n")
-        cat.write("#16 la_1216_dz \n")
-        cat.write("#17 c4_1548_dz \n")
-        cat.write("#18 uv_line_dz \n")
-        cat.write("#19 m2_2796_dz \n")
-        cat.write("#20 o2_3727_dz \n")
-        cat.write("#21 o3_5007_dz \n")
-        cat.write("#22 s3_he_dz \n")
+        cat.write("objid  ")
+        cat.write("redshift  ")
+        cat.write("redshift_error  ")
+        cat.write("ra_obj  ")
+        cat.write("dec_obj  ")
+        cat.write("f140w_mag  ")
+        cat.write("a_image_obj  ")
+        cat.write("b_image_obj  ")
+        cat.write("snr_tot_others  ")
+        cat.write("chisq  ")
+        cat.write("fwhm  ")
+        cat.write("fwhm_error  ")
+        cat.write("double_comp  ")
+        cat.write("la_1216_dz  ")
+        cat.write("la_1216_dz  ")
+        cat.write("c4_1548_dz  ")
+        cat.write("uv_line_dz  ")
+        cat.write("m2_2796_dz  ")
+        cat.write("o2_3727_dz  ")
+        cat.write("o3_5007_dz  ")
+        cat.write("s3_he_dz  ")
 
         
         # flux_strings_2gauss = [
@@ -5818,9 +7049,10 @@ def writeToCatalog2gauss(
             "he10830",
             "pg_10941",
             "pb_12822",
-            "pa_18756"]
+            "pa_18756", 
+            "ne3_3869"]
 
-        results_idx = 23
+        results_idx = 21
 
         for line in result_lines:
             cat.write("#" + str(results_idx + 0) + " " + line + "_flux \n")
@@ -5844,11 +7076,11 @@ def writeToCatalog2gauss(
         + "{:>8.3f}".format(b_image_obj[0])
         + "{:>10.2f}".format(snr_tot_others)
         + "{:>10.2f}".format(fitresults["chisq"])
-        + "{:>10.2f}".format(fitresults["fwhm_muse"])
-        + "{:>10.2f}".format(fitresults["fwhm_muse_error"])
-        + "{:>10.2f}".format(fitresults["fwhm_g141"])
-        + "{:>10.2f}".format(fitresults["fwhm_g141_error"])
-        + "{:>s}".format(str(comp_fit))
+        # + "{:>10.2f}".format(fitresults["fwhm_muse"])
+        # + "{:>10.2f}".format(fitresults["fwhm_muse_error"])
+        + "{:>13.3e}".format(fitresults["fwhm_g141"])
+        + "{:>13.3e}".format(fitresults["fwhm_g141_error"])
+        + "    " + "{:>s}".format(str(comp_fit))
         + "{:>10.5f}".format(fitresults["la_1216_dz"])
         + "{:>10.5f}".format(fitresults["c4_1548_dz"])
         + "{:>10.5f}".format(fitresults["uv_line_dz"])
@@ -6086,6 +7318,8 @@ def writeToCatalog2gauss(
     cat.close()
 
 
+
+
 def writeFitdata(filename, lam, flux, eflux, contam, zero, fit, continuum, masks):
     if verbose == True:
         print("\nRunning writeFitdata...\n")  # MDR 2022/05/17
@@ -6120,7 +7354,6 @@ def writeFitdata(filename, lam, flux, eflux, contam, zero, fit, continuum, masks
         format="fixed_width_two_line",
         position_char="#",
         delimiter_pad=" ")
-
 
 def writeComments(filename, parnos, objid, comment):
     if verbose == True:

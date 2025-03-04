@@ -15,6 +15,7 @@ import time
 os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_DIRECT &')
 os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_spec2D &')
 
+
 ### Please update these directories to match yours:
 CODE_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/line-finding/poppies_analysis"
 OUTPUT_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/Output"

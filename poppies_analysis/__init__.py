@@ -23,11 +23,18 @@ from utilities import read_config
 from find_cwt import find_cwt
 from find_cwt  import loop_field_cwt
 from find_cwt import test_obj_cwt
-from fitting import emissionline_model
-from fitting import model_resid
-from fitting import fit_obj, fit_obj_all
-from fitting import get_ratio_indices
-from fitting import get_fitpar_indices
+
+from fitting import (
+    emissionline_model,
+    model_resid,
+    model_resid_comb,
+    fit_obj,
+    fit_obj_comb,
+    get_ratio_indices,
+    get_fitpar_indices,
+    get_broad_indices,
+)
+
 #from fitting import fitandplot # MDR 2022/05/26 - Defined in fitting.py but not used so commented out.
 from guis import *
 from measure_z_interactive import *

@@ -435,23 +435,28 @@ def make_file_structure(path_to_data,par):
             os.system(command)
 
 ## FH 2/4/25:
-def quick_flux_max(wave,flux,err):
+def quick_flux_max(wave,flux,err,wavemin,wavemax):
     
     ''' very simple function to find maximum flux of a spectrum '''
-    
-    sn = flux/err
+    # config_pars = read_config(config, filter)
 
-    maxind = np.argmax(sn)
-    # maxind = np.argmax(flux)
+    # wavemin,wavemax = config_pars['lambda_min_{}'.format(filter)], config_pars['lambda_max_{}'.format(filter)]
+
+    sn = flux/err #S/N array
+
+    maxsn = np.sort(sn) #sort S/N array
+    
+    id = -1
+    maxind = np.where(sn == maxsn[id])[0][0]  #Max S/N index
+
+    #iterate towards smaller S/N if needed until we reach a wavelength that is within filter limits
+    while (wave[maxind] < wavemin) or (wave[maxind] > wavemax):
+        id += -1
+        maxind = np.where(sn == maxsn[id])[0][0]
 
     wave_maxind = wave[maxind]
 
     sn_maxind = sn[maxind]
-
-    # while sn_maxind < minsn:
-
-    #     maxind = np.where(flux == np.max(flux))[0]
-    #     sn_maxind = sn[maxind]
 
     return wave_maxind, sn_maxind
 

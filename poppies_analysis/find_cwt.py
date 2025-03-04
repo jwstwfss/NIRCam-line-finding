@@ -26,8 +26,6 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, filter
     npix_thresh = config_pars['npix_thresh']
     min_line_contrast = config_pars['min_line_contrast'] # minimum allowed for rejecting low EW lines.
     
-    # print('this is the max:', config_pars['lambda_max'])
-
     if plotflag == True:
         f, axarr = plt.subplots(2, 1, figsize=(8, 8))
         w=np.where((lam > config_pars['lambda_min_{}'.format(filter)]) & (lam < config_pars['lambda_max_{}'.format(filter)]))
