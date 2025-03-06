@@ -2278,6 +2278,7 @@ def inspect_object_all(
 
         else:
             print('Fitting to just one spectrum\n')
+            fit_to_2spec = False
 
             ## check if R-spec exists or not - else just make C-spec the spec_val (FH 3/6/25)
             if len(spdata[0])==0:
@@ -4802,6 +4803,7 @@ def inspect_object(
 
         else:
             print('Fitting to just one spectrum\n')
+            fit_to_2spec = False
 
             ## check if R-spec exists or not - else just make C-spec the spec_val (FH 3/6/25)
             if len(spdata[0])==0:
