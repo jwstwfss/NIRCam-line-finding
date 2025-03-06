@@ -400,6 +400,7 @@ def print_help_message():
         "\ts = print the (in progress) object summary\n"
         "\tlist = list all the objects in line list\n"
         "\tleft = list all the objects left to inspect\n"
+        "\tlen = count number of unique objects in list\n"
         "\treset = reset interactive options back to default for this object\n\n"
     )
     # Look at the full line list and select which 
@@ -1335,7 +1336,6 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
         all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9]
     else:
         all_ax = [ax1, ax2]
-
     xmin = np.ma.min(spec_lam) - 10.0  # 200.0 - M.D.R. - 10/22/2020
     xmax = np.ma.max(spec_lam) + 10.0  # 200.0 - M.D.R. - 10/22/2020
     ymin = -0.2 * np.ma.max(spec_val)
@@ -1803,10 +1803,11 @@ def inspect_object_all(
             if first_char:  #make sure it's not empty
                 for index, line in enumerate(f):
                     # print("Line {}: {}, obj: {}".format(index, line, obj))
-                    if int(line.strip()) == int(obj):
-                        catalogueEntryData = 1
-                        print("Match found...\n")
-                        break
+                    if isinstance(line.strip(), int):  #make sure this is not a blank line
+                        if int(line.strip()) == int(obj):
+                            catalogueEntryData = 1
+                            print("Match found...\n")
+                            break
 
 
         if catalogueEntryData != 1:
@@ -2277,7 +2278,18 @@ def inspect_object_all(
 
         else:
             print('Fitting to just one spectrum\n')
-                
+
+            ## check if R-spec exists or not - else just make C-spec the spec_val (FH 3/6/25)
+            if len(spdata[0])==0:
+                print("R-spectrum doesn't exist - fittin to C by default")
+                spec_val = spec_val2
+                spec_lam = spec_lam2
+                spec_unc = spec_unc2
+                spec_con = spec_con2
+                spec_zer = spec_zer2
+                mask_flg = mask_flg2
+                spdata = spdata_C
+
             # apply the mask to the wavelength array
             masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
             # compress the masked arrays for fitting
@@ -2297,13 +2309,13 @@ def inspect_object_all(
                 polycont_fit, 
                 lincont_fit] 
             # parsing the input to facilitate parallel processing when fitting is done in batch mode.
-            try:
-                fitresults = fit_obj(fit_inputs,filter)
+            # try:
+            fitresults = fit_obj(fit_inputs,filter)
 
-            except Exception as e:
-                print('Skipping Obj. {}, Reason: '.format(obj),e)
-                done = 1
-                return 0
+            # except Exception as e:
+            #     print('Skipping Obj. {}, Reason: '.format(obj),e)
+            #     done = 1
+            #     return 0
             
             
             zfit = fitresults["redshift"]
@@ -3228,6 +3240,11 @@ def inspect_object_all(
             print_prompt("All objects:")
             print(allobjects)
 
+        # print number of unique objects in line list
+        elif option.strip().lower() == "len":
+            print_prompt("Number of unique objects:")
+            print(len(np.unique(allobjects)))
+
         # quit this object
         elif option.strip().lower() == "q":
             print_prompt("Quitting Obj %i. Nothing saved to file" % (obj))
@@ -3777,13 +3794,15 @@ def measure_z_interactive_all(
 
         remaining_objects = get_remaining_objects(objid_unique, objid_done)
         allobjects = [unique_obj for unique_obj in objid_unique]
+        
+        print('\nNumber of unique Objects: ',len(allobjects))
 
         # if (verbose == True):
         #     print('remaining_objects =', remaining_objects) # MDR 2022/05/17
         #     print('allobjects =', allobjects) # MDR 2022/05/17
 
         print_prompt(
-            "\nAs you loop through the objects, you can choose from the following\noptions at any time:\n\txxx = skip to object xxx\n\tb = revisit the previous object\n\tleft = list all remaining objects that need review\n\tlist = list all objects in line list\n\tany other key = continue with the next object\n\th = help/list interactive commands\n\tq = quit\n",
+            "\nAs you loop through the objects, you can choose from the following\noptions at any time:\n\txxx = skip to object xxx\n\tb = revisit the previous object\n\tleft = list all remaining objects that need review\n\tlist = list all objects in line list\n\tlen = count number of unique objects in list\n\tany other key = continue with the next object\n\th = help/list interactive commands\n\tq = quit\n",
             prompt_type="interim",
         )
 
@@ -3816,6 +3835,11 @@ def measure_z_interactive_all(
                 print_prompt("All objects:", prompt_type="interim")
                 print(allobjects)
                 o = input("> ")
+
+            # print number of unique objects in line list
+            elif o.strip().lower() == "len":
+                print_prompt("Number of unique objects:", prompt_type="interim")
+                print(len(allobjects))
 
             if o.strip().lower() == "b":
                 previous_obj = int(objid_done[-1])
@@ -4325,10 +4349,11 @@ def inspect_object(
             if first_char:  #make sure it's not empty
                 for index, line in enumerate(f):
                     # print("Line {}: {}, obj: {}".format(index, line, obj))
-                    if int(line.strip()) == int(obj):
-                        catalogueEntryData = 1
-                        print("Match found...\n")
-                        break
+                    if isinstance(line.strip(), int):  #make sure this is not a blank line
+                        if int(line.strip()) == int(obj):
+                            catalogueEntryData = 1
+                            print("Match found...\n")
+                            break
 
         if catalogueEntryData != 1:
             print("No match found...\n")
@@ -4777,7 +4802,18 @@ def inspect_object(
 
         else:
             print('Fitting to just one spectrum\n')
-                
+
+            ## check if R-spec exists or not - else just make C-spec the spec_val (FH 3/6/25)
+            if len(spdata[0])==0:
+                print("R-spectrum doesn't exist - fittin to C by default")
+                spec_val = spec_val2
+                spec_lam = spec_lam2
+                spec_unc = spec_unc2
+                spec_con = spec_con2
+                spec_zer = spec_zer2
+                mask_flg = mask_flg2
+                spdata = spdata_C
+                                
             # apply the mask to the wavelength array
             masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
             # compress the masked arrays for fitting
@@ -5605,6 +5641,12 @@ def inspect_object(
         elif option.strip().lower() == "list":
             print_prompt("All objects:")
             print(allobjects)
+        
+        # print number of unique objects in line list
+        elif option.strip().lower() == "len":
+            print_prompt("Number of unique objects:")
+            print(len(allobjects))
+            
 
         # quit this object
         elif option.strip().lower() == "q":
@@ -6136,12 +6178,13 @@ def measure_z_interactive(
         remaining_objects = get_remaining_objects(objid_unique, objid_done)
         allobjects = [unique_obj for unique_obj in objid_unique]
 
+        print('\nNumber of unique Objects: ',len(allobjects))
         # if (verbose == True):
         #     print('remaining_objects =', remaining_objects) # MDR 2022/05/17
         #     print('allobjects =', allobjects) # MDR 2022/05/17
 
         print_prompt(
-            "\nAs you loop through the objects, you can choose from the following\noptions at any time:\n\txxx = skip to object xxx\n\tb = revisit the previous object\n\tleft = list all remaining objects that need review\n\tlist = list all objects in line list\n\tany other key = continue with the next object\n\th = help/list interactive commands\n\tq = quit\n",
+            "\nAs you loop through the objects, you can choose from the following\noptions at any time:\n\txxx = skip to object xxx\n\tb = revisit the previous object\n\tleft = list all remaining objects that need review\n\tlist = list all objects in line list\n\tlen = count number of unique objects in list\n\tany other key = continue with the next object\n\th = help/list interactive commands\n\tq = quit\n",
             prompt_type="interim",
         )
         
@@ -6174,6 +6217,12 @@ def measure_z_interactive(
                 print_prompt("All objects:", prompt_type="interim")
                 print(allobjects)
                 o = input("> ")
+
+            # print number of unique objects in line list
+            if o.strip().lower() == "len":
+                print_prompt("Number of unique objects:",prompt_type="interim")
+                print(len(np.unique(allobjects)))
+                
 
             if o.strip().lower() == "b":
                 previous_obj = int(objid_done[-1])

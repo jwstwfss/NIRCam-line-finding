@@ -178,8 +178,12 @@ number_of_param = fwhm_ratio_idx_broad + 1 # + 1 of highest index. taking the la
 
 first_line_index = 6  # This should be the first emission line parameter index.
 first_node_index = number_of_param # This must be one larger than last line parameter index.
-ratio_indices = [15, 17, 20, 22, 24, 26, 28, 34, 36, 39, 41, 43, 46, 53, 55, 58, 60, 62, 64, 66, 72, 74, 77, 79, 81] # A list of all parameter indices that are ratios below.
-first_broadline_index = 51
+# ratio_indices = [15, 17, 20, 22, 24, 26, 28, 34, 36, 39, 41, 43, 46, 53, 55, 58, 60, 62, 64, 66, 72, 74, 77, 79, 81] # A list of all parameter indices that are ratios below.
+# first_broadline_index = 51
+
+ratio_indices = [n5_1242_idx, c4_1550_idx, o3_1666_idx, s3_1892_idx, c3_1909_idx, m2_2803_idx, o2_3730_idx, o3_5007_idx, o1_6363_idx, n2_6585_idx, s2_6731_idx, s3_9532_idx, la_wing_sig_idx, n5_1242_broad_idx, c4_1550_broad_idx, o3_1666_broad_idx, s3_1892_broad_idx, c3_1909_broad_idx, m2_2803_broad_idx, o2_3730_broad_idx, o3_5007_broad_idx, o1_6363_broad_idx, n2_6585_broad_idx, s2_6731_broad_idx, s3_9532_broad_idx] # A list of all parameter indices that are ratios below.
+first_broadline_index = la_1216_broad_idx
+
 
 def get_ratio_indices():
     return ratio_indices
@@ -922,7 +926,7 @@ def fit_obj(input_list,filter='F444W'):
     mask_emission_lines(pb_12822_obs, pb_12822_obs)
     mask_emission_lines(pa_18756_obs, pa_18756_obs)
     mask_emission_lines(si7_24833_obs, si7_24833_obs) # FH added 2/28/25
-    mask_emission_lines(ne3_3869_obs, ne3_3869_obs)  # Fh added 3/4/25
+    mask_emission_lines(ne3_3869_obs, ne3_3869_obs)  # FH added 3/4/25
 
     w = np.where(mask_spec == 0.0)
     cont_guess = np.median(flux_spec[w])
