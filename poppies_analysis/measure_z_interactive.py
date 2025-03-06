@@ -2309,13 +2309,13 @@ def inspect_object_all(
                 polycont_fit, 
                 lincont_fit] 
             # parsing the input to facilitate parallel processing when fitting is done in batch mode.
-            # try:
-            fitresults = fit_obj(fit_inputs,filter)
+            try:
+                fitresults = fit_obj(fit_inputs,filter)
 
-            # except Exception as e:
-            #     print('Skipping Obj. {}, Reason: '.format(obj),e)
-            #     done = 1
-            #     return 0
+            except Exception as e:
+                print('Skipping Obj. {}, Reason: '.format(obj),e)
+                done = 1
+                return 0
             
             
             zfit = fitresults["redshift"]
@@ -4813,7 +4813,7 @@ def inspect_object(
                 spec_zer = spec_zer2
                 mask_flg = mask_flg2
                 spdata = spdata_C
-                                
+
             # apply the mask to the wavelength array
             masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
             # compress the masked arrays for fitting
