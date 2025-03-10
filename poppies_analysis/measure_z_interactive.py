@@ -1735,8 +1735,13 @@ def inspect_object_all(
 
 
     # =================== Show spec2d new (begin) =====================
+    ## FH modified 3/6/25
+    if (tab_R is not None) or (tab_C is not None):
 
-    showSpec2D_POPPIES(par, obj, filter, path_to_data)
+        showSpec2D_POPPIES(par, obj, filter, path_to_data)
+
+    else:
+        print("Could not correctly display spec2D as it doesn't exist!")
 
     # =================== Show spec2d new (end) =====================
 
@@ -1799,16 +1804,30 @@ def inspect_object_all(
 
     if os.path.exists(outdir + "/done_%s" % user):  # needed for the first run before file exists
         with open(outdir + "/done_%s" % user) as f:
-            first_char = f.read(1)
-            if first_char:  #make sure it's not empty
-                for index, line in enumerate(f):
-                    # print("Line {}: {}, obj: {}".format(index, line, obj))
-                    if isinstance(line.strip(), int):  #make sure this is not a blank line
-                        if int(line.strip()) == int(obj):
-                            catalogueEntryData = 1
-                            print("Match found...\n")
-                            break
+            # first_char = f.read(1)
+            # if first_char:  #make sure it's not empty
+                # for index, line in enumerate(f):
+                #     print("Line {}: {}, obj: {}".format(index, line.strip(), obj))
+                #     if isinstance(line.strip(), int):  #make sure this is not a blank line
+                #         if int(line.strip()) == int(obj):
+                #             catalogueEntryData = 1
+                #             print("Match found...\n")
+                #             break
+            
+            for line in f.readlines():
+                # print("Line value: {}, obj: {}".format(line.strip(), obj))
+                # print(type(line))
+                # if isinstance(line.strip(), int):  #make sure this is not a blank line
+                try:
+                    if int(line.strip()) == int(obj):
+                        catalogueEntryData = 1
+                        print("Match found...\n")
+                        break
+                except:
+                    pass
 
+
+        f.close()
 
         if catalogueEntryData != 1:
             print("No match found...\n")
@@ -1837,11 +1856,19 @@ def inspect_object_all(
     
     if tab_R_cont is not None:
 
-        lamlines_found,ston_found = utilities.quick_flux_max(tab_R_cont["wave"],tab_R_cont["flux"],tab_R_cont["error"],config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
+        # masks = np.ma.masked_where(np.ma.getmask(tab_R_cont["flux"]), tab_R_cont["wave"])
+        # mask_wave, mask_flux, mask_err = np.ma.masked_array(tab_R_cont["flux"], mask=tab_R_cont["flux"]<=0)
+        masks = np.where(tab_R_cont["flux"]>0)[0]
+        masked_wave, masked_flux, masked_err = np.ma.compressed(tab_R_cont["wave"][masks]), np.ma.compressed(tab_R_cont["flux"][masks]), np.ma.compressed(tab_R_cont["wave"][masks])
+        lamlines_found,ston_found = utilities.quick_flux_max(masked_wave, masked_flux, masked_err,config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
 
     elif (tab_C_cont is not None) and (tab_R_cont is None):
 
-        lamlines_found,ston_found = utilities.quick_flux_max(tab_C_cont["wave"],tab_C_cont["flux"],tab_C_cont["error"],config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
+        # lamlines_found,ston_found = utilities.quick_flux_max(tab_C_cont["wave"],tab_C_cont["flux"],tab_C_cont["error"],config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
+
+        masks = np.where(tab_C_cont["flux"]>0)[0]
+        masked_wave, masked_flux, masked_err = np.ma.compressed(tab_C_cont["wave"][masks]), np.ma.compressed(tab_C_cont["flux"][masks]), np.ma.compressed(tab_C_cont["wave"][masks])
+        lamlines_found,ston_found = utilities.quick_flux_max(masked_wave, masked_flux, masked_err,config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
 
         # s = np.argsort(ston_found)
         # # reverse s/n order
@@ -1849,9 +1876,23 @@ def inspect_object_all(
         # ston_found = ston_found[s[::-1]]
         # lamlines_found = lamlines_found[s[::-1]]
 
+    #FH modified 3/6/25
     else:
         print('Spectrum not found for object ' + str(obj))
-        rejectPrevFit = False
+        zset = 0
+        comment = "spec not found"
+        done = 1
+        # rejectPrevFit = True
+        ## making sure this gets written in the done file
+        donefile = outdir + "/done_%s" % user
+        if not os.path.exists(donefile):
+            f = open(donefile, "w")
+        else:
+            f = open(donefile, "a")
+        f.write("%i\n" % obj)
+        f.close()
+
+        return 0
 
     index_of_strongest_line = 0
     lamline = lamlines_found
@@ -4289,8 +4330,13 @@ def inspect_object(
     # else: tab_red_C = None; tab_red_C_cont = None 
 
     # =================== Show spec2d new (begin) =====================
+    ## FH modified 3/6/25
+    if (tab_R is not None) or (tab_C is not None):
 
-    showSpec2D_POPPIES(par, obj, filter, path_to_data)
+        showSpec2D_POPPIES(par, obj, filter, path_to_data)
+
+    else:
+        print("Could not correctly display spec2D as it doesn't exist!")
 
     # =================== Show spec2d new (end) =====================
 
@@ -4346,15 +4392,28 @@ def inspect_object(
 
     if os.path.exists(outdir + "/done_%s" % user):  # needed for the first run before file exists
         with open(outdir + "/done_%s" % user) as f:
-            first_char = f.read(1)
-            if first_char:  #make sure it's not empty
-                for index, line in enumerate(f):
-                    # print("Line {}: {}, obj: {}".format(index, line, obj))
-                    if isinstance(line.strip(), int):  #make sure this is not a blank line
-                        if int(line.strip()) == int(obj):
-                            catalogueEntryData = 1
-                            print("Match found...\n")
-                            break
+            # first_char = f.read(1)
+            # if first_char:  #make sure it's not empty
+            #     for index, line in enumerate(f):
+            #         # print("Line {}: {}, obj: {}".format(index, line, obj))
+            #         if isinstance(line.strip(), int):  #make sure this is not a blank line
+            #             if int(line.strip()) == int(obj):
+            #                 catalogueEntryData = 1
+            #                 print("Match found...\n")
+            #                 break
+
+            for line in f.readlines():
+            # print("Line value: {}, obj: {}".format(line.strip(), obj))
+            # print(type(line))
+            # if isinstance(line.strip(), int):  #make sure this is not a blank line
+                try:
+                    if int(line.strip()) == int(obj):
+                        catalogueEntryData = 1
+                        print("Match found...\n")
+                        break
+                except:
+                    pass
+
 
         if catalogueEntryData != 1:
             print("No match found...\n")

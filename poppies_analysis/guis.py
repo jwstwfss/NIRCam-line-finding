@@ -229,9 +229,12 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width 1600")
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height 1200")
 
-
-    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
-    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
+    try:  #FH modified 3/6/25
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
+    except Exception as e:
+        print('Could not correctly display spec2D, Reason: ', e)
+        pass
 
     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode zscale")
     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode 99.5")
