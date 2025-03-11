@@ -823,8 +823,9 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
     ### For R-spec:
     xmin = np.ma.min(spec_lam) - 10.0  # 200.0 - M.D.R. - 10/22/2020
     xmax = np.ma.max(spec_lam) + 10.0  # 200.0 - M.D.R. - 10/22/2020
-    ymin = -0.2 * np.ma.max(spec_val)
-    ymax = 1.25 * np.ma.max(spec_val)
+    ymin = -0.2 * np.ma.max(spec_val2)
+    ymax = 1.25 * np.ma.max(spec_val2)
+
 
     ax1.plot(spec_lam, spec_val, "k", spec_lam, spec_con, "hotpink", drawstyle="steps-mid", lw=lw_data)
     # ax1.axvline(x=config_pars['transition_wave'], c='c', linestyle=':', lw=3)
@@ -935,7 +936,15 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
     # ax1.set_ylabel(r'F$_\lambda$ erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$', size='xx-large')
     ax1.set_ylabel("Flux (erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$)", size="xx-large")
     ax1.set_xlim([xmin, xmax])
-    ax1.set_ylim([ymin, ymax])
+
+    # FH modified 3/11/25:
+    try:
+        ax1.set_ylim([ymin, ymax])
+
+    except Exception:
+        ymin,ymax = 0.,1.0e-18
+        ax1.set_ylim([ymin, ymax])
+
     ax1.set_title(plottitle_R, size="xx-large")
 
     # second panel for s/n
@@ -1074,7 +1083,15 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
     # ax1.set_ylabel(r'F$_\lambda$ erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$', size='xx-large')
     ax3.set_ylabel("Flux (erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$)", size="xx-large")
     ax3.set_xlim([xmin, xmax])
-    ax3.set_ylim([ymin, ymax])
+        
+    # FH modified 3/11/25:
+    try:
+        ax3.set_ylim([ymin, ymax])
+
+    except Exception:
+        ymin,ymax = 0.,1.0e-18
+        ax3.set_ylim([ymin, ymax])
+    
     ax3.set_title(plottitle_C, size="xx-large")
 
     # second panel for s/n
@@ -2064,12 +2081,57 @@ def inspect_object_all(
             # parsing the input to facilitate parallel processing when fitting is done in batch mode.
             try:
                 fitresults = fit_obj_comb(fit_inputs,filter)
-
+        
+        
+            ## FH modified 3/10/25:
             except Exception as e:
-                print('Skipping Obj. {}, Reason: '.format(obj),e)
+
+                print('Could not perform dual fit for Obj. {}, Reason: {}. Trying single fit.'.format(obj,e))
+                fit_to_2spec = False
+                    
+                ## check if R-spec exists or not - else just make C-spec the spec_val (FH 3/6/25)
+                if len(spdata[0])==0:
+                    print("R-spectrum doesn't exist - fittin to C by default")
+                    spec_val = spec_val2
+                    spec_lam = spec_lam2
+                    spec_unc = spec_unc2
+                    spec_con = spec_con2
+                    spec_zer = spec_zer2
+                    mask_flg = mask_flg2
+                    spdata = spdata_C
+
+                # apply the mask to the wavelength array
+                masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
+                # compress the masked arrays for fitting
+                
+                print('Running the fit with the following settings: redshift = ',zguess,', fast_fit = ',fast_fit,', comp_fit = ',comp_fit,', polycont_fit = ',polycont_fit,', lincont_fit = ',lincont_fit)
+                fit_inputs = [
+                    np.ma.compressed(masked_spec_lam),
+                    np.ma.compressed(spec_val),
+                    np.ma.compressed(spec_unc),
+                    config_pars,
+                    zguess,
+                    fwhm_guess,
+                    str(obj),
+                    ab_image_max,
+                    fast_fit,
+                    comp_fit,
+                    polycont_fit, 
+                    lincont_fit] 
+                
+                try:
+                    fitresults = fit_obj(fit_inputs,filter)
+
+                except Exception as e:
+                    print('Skipping Obj. {}, Reason: '.format(obj),e)
+                    zset = 0
+                    comment = "failed"
+                    done = 1
+                    return 0
+                
                 # print('Skipping Obj. {}, Reason: {}, line: {}'.format(obj , e, e.__traceback__.tb_lineno))
-                done = 1
-                return 0
+                # done = 1
+                # return 0
 
             zfit = fitresults["redshift"]
             fitpars = fitresults["fit_parameters"]
@@ -2316,14 +2378,13 @@ def inspect_object_all(
             
             print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
             
-
         else:
             print('Fitting to just one spectrum\n')
             fit_to_2spec = False
 
             ## check if R-spec exists or not - else just make C-spec the spec_val (FH 3/6/25)
             if len(spdata[0])==0:
-                print("R-spectrum doesn't exist - fittin to C by default")
+                print("R-spectrum doesn't exist - fitting to C by default")
                 spec_val = spec_val2
                 spec_lam = spec_lam2
                 spec_unc = spec_unc2
@@ -2356,6 +2417,8 @@ def inspect_object_all(
 
             except Exception as e:
                 print('Skipping Obj. {}, Reason: '.format(obj),e)
+                zset = 0
+                comment = "failed"
                 done = 1
                 return 0
             
@@ -4608,11 +4671,51 @@ def inspect_object(
             try:
                 fitresults = fit_obj_comb(fit_inputs,filter)
 
+            ## FH modified 3/10/25:
             except Exception as e:
-                print('Skipping Obj. {}, Reason: '.format(obj),e)
-                # print('Skipping Obj. {}, Reason: {}, line: {}'.format(obj , e, e.__traceback__.tb_lineno))
-                done = 1
-                return 0
+
+                print('Could not perform dual fit for Obj. {}, Reason: {}. Trying single fit.'.format(obj,e))
+                fit_to_2spec = False
+                    
+                ## check if R-spec exists or not - else just make C-spec the spec_val (FH 3/6/25)
+                if len(spdata[0])==0:
+                    print("R-spectrum doesn't exist - fittin to C by default")
+                    spec_val = spec_val2
+                    spec_lam = spec_lam2
+                    spec_unc = spec_unc2
+                    spec_con = spec_con2
+                    spec_zer = spec_zer2
+                    mask_flg = mask_flg2
+                    spdata = spdata_C
+
+                # apply the mask to the wavelength array
+                masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
+                # compress the masked arrays for fitting
+                
+                print('Running the fit with the following settings: redshift = ',zguess,', fast_fit = ',fast_fit,', comp_fit = ',comp_fit,', polycont_fit = ',polycont_fit,', lincont_fit = ',lincont_fit)
+                fit_inputs = [
+                    np.ma.compressed(masked_spec_lam),
+                    np.ma.compressed(spec_val),
+                    np.ma.compressed(spec_unc),
+                    config_pars,
+                    zguess,
+                    fwhm_guess,
+                    str(obj),
+                    ab_image_max,
+                    fast_fit,
+                    comp_fit,
+                    polycont_fit, 
+                    lincont_fit] 
+                
+                try:
+                    fitresults = fit_obj(fit_inputs,filter)
+
+                except Exception as e:
+
+                    print('Skipping Obj. {}, Reason: '.format(obj),e)
+                    # print('Skipping Obj. {}, Reason: {}, line: {}'.format(obj , e, e.__traceback__.tb_lineno))
+                    done = 1
+                    return 0
 
             zfit = fitresults["redshift"]
             fitpars = fitresults["fit_parameters"]
