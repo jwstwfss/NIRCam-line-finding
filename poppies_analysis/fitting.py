@@ -2074,8 +2074,6 @@ def fit_obj(input_list,filter='F444W'):
         # for j in range(len(out.params)):
         #     print 'out.params['+str(j)+']', out.params[j
 
-
-
     return fit_results
 
 

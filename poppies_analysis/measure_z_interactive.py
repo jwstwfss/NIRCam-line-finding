@@ -629,13 +629,13 @@ def plot_chooseSpec(spdata1, spdata2, config_pars, plottitle, outdir, zset=None,
         ymax1 = 1.5 * np.ma.max(spec_val1)
 
         if np.isnan(ymax1):
-            ymax1 = 1e-16
+            ymax1 = 1e-18
         if np.isnan(ymin1):
-            ymin1 = 1e-17
+            ymin1 = 1e-20
 
 
     except Exception as e:
-        xmin1,xmax1,ymin1,ymax1 = 40000,50000,1e-17,1e-16
+        xmin1,xmax1,ymin1,ymax1 = 40000,50000,1e-20,1e-18
 
 
     ## FH added 2/24/25 for different x,y axes limits
@@ -646,12 +646,12 @@ def plot_chooseSpec(spdata1, spdata2, config_pars, plottitle, outdir, zset=None,
         ymax2 = 1.5 * np.ma.max(spec_val2)
 
         if np.isnan(ymax2):
-            ymax2 = 1e-16
+            ymax2 = 1e-18
         if np.isnan(ymin2):
-            ymin2 = 1e-17
+            ymin2 = 1e-20
 
     except Exception as e:
-        xmin2,xmax2,ymin2,ymax2 = 40000,50000,1e-17,1e-16
+        xmin2,xmax2,ymin2,ymax2 = 40000,50000,1e-20,1e-18
 
     # the line widths for the data and overlaid fit.
     lw_data = 2.0
@@ -1758,7 +1758,7 @@ def inspect_object_all(
         showSpec2D_POPPIES(par, obj, filter, path_to_data)
 
     else:
-        print("Could not correctly display spec2D as it doesn't exist!")
+        print("Could not display spec2D as it doesn't exist!")
 
     # =================== Show spec2d new (end) =====================
 
@@ -1819,8 +1819,8 @@ def inspect_object_all(
     print("\nSearching for previous fits to object {}...\n".format(str(obj)))
     # print('file = ', outdir + '/done_%s'%user)
 
-    if os.path.exists(outdir + "/done_%s" % user):  # needed for the first run before file exists
-        with open(outdir + "/done_%s" % user) as f:
+    if os.path.exists(outdir + "/done_%s_all" % user):  # needed for the first run before file exists
+        with open(outdir + "/done_%s_all" % user) as f:
             # first_char = f.read(1)
             # if first_char:  #make sure it's not empty
                 # for index, line in enumerate(f):
@@ -1871,20 +1871,20 @@ def inspect_object_all(
     
     # choose the lamline that has the highest S/N estimate - using utilities function
     
-    if tab_R_cont is not None:
+    if tab_R is not None:
 
         # masks = np.ma.masked_where(np.ma.getmask(tab_R_cont["flux"]), tab_R_cont["wave"])
         # mask_wave, mask_flux, mask_err = np.ma.masked_array(tab_R_cont["flux"], mask=tab_R_cont["flux"]<=0)
-        masks = np.where(tab_R_cont["flux"]>0)[0]
-        masked_wave, masked_flux, masked_err = np.ma.compressed(tab_R_cont["wave"][masks]), np.ma.compressed(tab_R_cont["flux"][masks]), np.ma.compressed(tab_R_cont["wave"][masks])
-        lamlines_found,ston_found = utilities.quick_flux_max(masked_wave, masked_flux, masked_err,config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
+        masks = np.where(tab_R["flux"]/tab_R["error"] > 0)[0]
+        masked_wave, masked_flux, masked_err = np.ma.compressed(tab_R["wave"][masks]), np.ma.compressed(tab_R["flux"][masks]), np.ma.compressed(tab_R["wave"][masks])
+        lamlines_found,ston_found = utilities.quick_flux_max(masked_wave, masked_flux, masked_err, config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
 
-    elif (tab_C_cont is not None) and (tab_R_cont is None):
+    elif (tab_C is not None) and (tab_R is None):
 
         # lamlines_found,ston_found = utilities.quick_flux_max(tab_C_cont["wave"],tab_C_cont["flux"],tab_C_cont["error"],config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
 
-        masks = np.where(tab_C_cont["flux"]>0)[0]
-        masked_wave, masked_flux, masked_err = np.ma.compressed(tab_C_cont["wave"][masks]), np.ma.compressed(tab_C_cont["flux"][masks]), np.ma.compressed(tab_C_cont["wave"][masks])
+        masks = np.where(tab_C["flux"]/tab_C["error"] > 0)[0]
+        masked_wave, masked_flux, masked_err = np.ma.compressed(tab_C["wave"][masks]), np.ma.compressed(tab_C["flux"][masks]), np.ma.compressed(tab_C["wave"][masks])
         lamlines_found,ston_found = utilities.quick_flux_max(masked_wave, masked_flux, masked_err,config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
 
         # s = np.argsort(ston_found)
@@ -1901,7 +1901,7 @@ def inspect_object_all(
         done = 1
         # rejectPrevFit = True
         ## making sure this gets written in the done file
-        donefile = outdir + "/done_%s" % user
+        donefile = outdir + "/done_%s_all" % user
         if not os.path.exists(donefile):
             f = open(donefile, "w")
         else:
@@ -2047,9 +2047,9 @@ def inspect_object_all(
 
         ## FH 2/20/25 - Below, we take both R and C spec for combined fit - if spectra exist for both and fit2spec is True
 
-        min_pix = 50    #50 is min. number of pixels needed - arbitrary for now
+        min_pix = 100    #~15 A per pixel, so 15 A * min_pix is min. wavelength range needed - arbitrary for now
 
-        if ((len(spec_lam) > min_pix) and (len(spec_lam2) > min_pix)) and (fit_to_2spec == True):   ## If both R and C exist and fit_to_2spec is True
+        if ((len(spec_lam) >= min_pix) and (len(spec_lam2) >= min_pix)) and (fit_to_2spec == True):   ## If both R and C exist and fit_to_2spec is True
             # print('both R and C spectra exist')
             print('Fitting to both R & C spectra\n')
 
@@ -2125,8 +2125,15 @@ def inspect_object_all(
                 except Exception as e:
                     print('Skipping Obj. {}, Reason: '.format(obj),e)
                     zset = 0
-                    comment = "failed"
+                    # comment = "failed"
                     done = 1
+                    # FH 3/12/25: write object to done file, incase process gets interrupted
+                    if not os.path.exists(outdir + "/done_%s_all" % user):
+                        f = open(outdir + "/done_%s_all" % user, "w")
+                    else:
+                        f = open(outdir + "/done_%s_all" % user, "a")
+                    f.write("%i\n" % obj)
+                    f.close()
                     return 0
                 
                 # print('Skipping Obj. {}, Reason: {}, line: {}'.format(obj , e, e.__traceback__.tb_lineno))
@@ -2377,7 +2384,7 @@ def inspect_object_all(
                 )
             
             print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
-            
+
         else:
             print('Fitting to just one spectrum\n')
             fit_to_2spec = False
@@ -2392,6 +2399,7 @@ def inspect_object_all(
                 spec_zer = spec_zer2
                 mask_flg = mask_flg2
                 spdata = spdata_C
+
 
             # apply the mask to the wavelength array
             masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
@@ -2411,6 +2419,7 @@ def inspect_object_all(
                 comp_fit,
                 polycont_fit, 
                 lincont_fit] 
+            
             # parsing the input to facilitate parallel processing when fitting is done in batch mode.
             try:
                 fitresults = fit_obj(fit_inputs,filter)
@@ -2418,8 +2427,15 @@ def inspect_object_all(
             except Exception as e:
                 print('Skipping Obj. {}, Reason: '.format(obj),e)
                 zset = 0
-                comment = "failed"
+                # comment = "failed"
                 done = 1
+                # FH 3/12/25: write object to done file, incase process gets interrupted
+                if not os.path.exists(outdir + "/done_%s_all" % user):
+                    f = open(outdir + "/done_%s_all" % user, "w")
+                else:
+                    f = open(outdir + "/done_%s_all" % user, "a")
+                f.write("%i\n" % obj)
+                f.close()
                 return 0
             
             
@@ -3524,10 +3540,10 @@ def inspect_object_all(
         writeComments(commentsfile, par, obj, comment)
 
         # write object to done file, incase process gets interrupted
-        if not os.path.exists(outdir + "/done_%s" % user):
-            f = open(outdir + "/done_%s" % user, "w")
+        if not os.path.exists(outdir + "/done_%s_all" % user):
+            f = open(outdir + "/done_%s_all" % user, "w")
         else:
-            f = open(outdir + "/done_%s" % user, "a")
+            f = open(outdir + "/done_%s_all" % user, "a")
         f.write("%i\n" % obj)
         f.close()
 
@@ -3600,6 +3616,7 @@ def measure_z_interactive_all(
     else:
         print_prompt("Found line list file: %s" % (linelistfile), prompt_type="interim")
 
+
     #### STEP 1b:   read the list of candidate lines  ####################
     ###########################################################################
     
@@ -3664,7 +3681,7 @@ def measure_z_interactive_all(
     linelistoutfile = os.path.join(outdir, "%s_catalog_%s.dat" % (parts[0], user))
     commentsfile = os.path.join(outdir, "%s_comments_%s.dat" % (parts[0], user))
     # the file that will be used to determine which objects are "done"
-    donefile = outdir + "/done_%s" % user
+    donefile = outdir + "/done_%s_all" % user
 
     # if (verbose == True):
     #     print('parts =', parts) # MDR 2022/05/17
@@ -3672,6 +3689,7 @@ def measure_z_interactive_all(
     #     print('commentsfile =', commentsfile) # MDR 2022/05/17
     #     print('donefile =', donefile) # MDR 2022/05/17
 
+    ## FH updated 3/12/25: 
     if os.path.isfile(linelistoutfile):
         print_prompt(
             "\nOutput file: \n  %s \nalready exists\n" % linelistoutfile,
@@ -3679,11 +3697,13 @@ def measure_z_interactive_all(
         )
         ask = input("Append? [Y/n] ")
         if ask.lower() == "n":
-            os.unlink(linelistoutfile)
-            os.unlink(commentsfile)
-            # starting over, no objects have been done
-            os.unlink(donefile)
-            objid_done = np.array([])
+            askagain = input("Are you sure you want to start fresh? If yes, this will delete some files [y/n] ")
+            if askagain.lower() == "y":
+                os.unlink(linelistoutfile)
+                os.unlink(commentsfile)
+                # starting over, no objects have been done
+                os.unlink(donefile)
+                objid_done = np.array([])
 
     #         # sqlite3 database support - automatically creates and initializes DB if required
     #         # If the field has been previously examined, but those results are to be discarded,
@@ -3692,6 +3712,11 @@ def measure_z_interactive_all(
     #         # element corresponds to the current field ID.
     #         # databaseManager = WDBM(dbFileNamePrefix=os.path.join(outdir,'Par{}'.format(parnos[0])))
     #         # databaseManager.resetDatabaseTables()
+            else:
+                # an object may be written to the comment file before it has
+                # actually been inspected, so use donefile for a list
+                # of the "done" objects
+                objid_done = np.atleast_1d(np.genfromtxt(donefile, dtype=int))
         else:
             # an object may be written to the comment file before it has
             # actually been inspected, so use donefile for a list
@@ -3699,8 +3724,10 @@ def measure_z_interactive_all(
             objid_done = np.atleast_1d(np.genfromtxt(donefile, dtype=int))
     else:
         if os.path.exists(donefile):
-            os.unlink(donefile)
-        objid_done = np.array([], dtype=int)
+            objid_done = np.atleast_1d(np.genfromtxt(donefile, dtype=int))
+            # os.unlink(donefile)
+        else:
+            objid_done = np.array([], dtype=int)
 
     ## FH skipping STEP 4 for now:
     #### STEP 4: create trace.reg files ############################
@@ -3929,6 +3956,11 @@ def measure_z_interactive_all(
             next_obj = remaining_objects[0]
             print_prompt("Next up: Obj %i" % (next_obj), prompt_type="interim")
             o = input("Enter 'xxx' to skip to Obj xxx, 'q' to quit, or any other key to continue. > ")
+
+            # # FH 3/12/25:
+            # if o.strip().lower() == "update":
+            #     print_prompt("Updating line list catalog", prompt_type="interim")
+            #     UpdateCatalog(outdir,linelistoutfile)
 
             if o.strip().lower() == "left":
                 # remaining_list = ', '.join(['%i'%i for i in remaining_objects])
@@ -4399,7 +4431,7 @@ def inspect_object(
         showSpec2D_POPPIES(par, obj, filter, path_to_data)
 
     else:
-        print("Could not correctly display spec2D as it doesn't exist!")
+        print("Could not display spec2D as it doesn't exist!")
 
     # =================== Show spec2d new (end) =====================
 
@@ -4636,9 +4668,9 @@ def inspect_object(
 
         ## FH 2/20/25 - Below, we take both R and C spec for combined fit - if spectra exist for both and fit2spec is True
 
-        min_pix = 50    #50 is min. number of pixels needed - arbitrary for now
+        min_pix = 100    #~15 A per pixel, so 15 A * min_pix is min. wavelength range needed - arbitrary for now
 
-        if ((len(spec_lam) > min_pix) and (len(spec_lam2) > min_pix)) and (fit_to_2spec == True):   ## If both R and C exist and fit_to_2spec is True
+        if ((len(spec_lam) >= min_pix) and (len(spec_lam2) >= min_pix)) and (fit_to_2spec == True):   ## If both R and C exist and fit_to_2spec is True
             # print('both R and C spectra exist')
             print('Fitting to both R & C spectra\n')
 
@@ -4714,7 +4746,15 @@ def inspect_object(
 
                     print('Skipping Obj. {}, Reason: '.format(obj),e)
                     # print('Skipping Obj. {}, Reason: {}, line: {}'.format(obj , e, e.__traceback__.tb_lineno))
+                    zset = 0
                     done = 1
+                    # FH 3/12/25: write object to done file, incase process gets interrupted
+                    if not os.path.exists(outdir + "/done_%s" % user):
+                        f = open(outdir + "/done_%s" % user, "w")
+                    else:
+                        f = open(outdir + "/done_%s" % user, "a")
+                    f.write("%i\n" % obj)
+                    f.close()
                     return 0
 
             zfit = fitresults["redshift"]
@@ -5002,7 +5042,15 @@ def inspect_object(
 
             except Exception as e:
                 print('Skipping Obj. {}, Reason: '.format(obj),e)
+                zset = 0
                 done = 1
+                # FH 3/12/25: write object to done file, incase process gets interrupted
+                if not os.path.exists(outdir + "/done_%s" % user):
+                    f = open(outdir + "/done_%s" % user, "w")
+                else:
+                    f = open(outdir + "/done_%s" % user, "a")
+                f.write("%i\n" % obj)
+                f.close()
                 return 0
             
             
@@ -6122,6 +6170,8 @@ def measure_z_interactive(
     #     print('commentsfile =', commentsfile) # MDR 2022/05/17
     #     print('donefile =', donefile) # MDR 2022/05/17
 
+
+    ## FH updated 3/12/25: 
     if os.path.isfile(linelistoutfile):
         print_prompt(
             "\nOutput file: \n  %s \nalready exists\n" % linelistoutfile,
@@ -6129,19 +6179,26 @@ def measure_z_interactive(
         )
         ask = input("Append? [Y/n] ")
         if ask.lower() == "n":
-            os.unlink(linelistoutfile)
-            os.unlink(commentsfile)
-            # starting over, no objects have been done
-            os.unlink(donefile)
-            objid_done = np.array([])
+            askagain = input("Are you sure you want to start fresh? If yes, this will delete some files [y/n] ")
+            if askagain.lower() == "y":
+                os.unlink(linelistoutfile)
+                os.unlink(commentsfile)
+                # starting over, no objects have been done
+                os.unlink(donefile)
+                objid_done = np.array([])
 
-            # sqlite3 database support - automatically creates and initializes DB if required
-            # If the field has been previously examined, but those results are to be discarded,
-            # then reset the database tables.
-            # All Par numbers in the putative line list file should be the same, so the zeroth
-            # element corresponds to the current field ID.
-            # databaseManager = WDBM(dbFileNamePrefix=os.path.join(outdir,'Par{}'.format(parnos[0])))
-            # databaseManager.resetDatabaseTables()
+    #         # sqlite3 database support - automatically creates and initializes DB if required
+    #         # If the field has been previously examined, but those results are to be discarded,
+    #         # then reset the database tables.
+    #         # All Par numbers in the putative line list file should be the same, so the zeroth
+    #         # element corresponds to the current field ID.
+    #         # databaseManager = WDBM(dbFileNamePrefix=os.path.join(outdir,'Par{}'.format(parnos[0])))
+    #         # databaseManager.resetDatabaseTables()
+            else:
+                # an object may be written to the comment file before it has
+                # actually been inspected, so use donefile for a list
+                # of the "done" objects
+                objid_done = np.atleast_1d(np.genfromtxt(donefile, dtype=int))
         else:
             # an object may be written to the comment file before it has
             # actually been inspected, so use donefile for a list
@@ -6149,8 +6206,11 @@ def measure_z_interactive(
             objid_done = np.atleast_1d(np.genfromtxt(donefile, dtype=int))
     else:
         if os.path.exists(donefile):
-            os.unlink(donefile)
-        objid_done = np.array([], dtype=int)
+            objid_done = np.atleast_1d(np.genfromtxt(donefile, dtype=int))
+            # os.unlink(donefile)
+        else:
+            objid_done = np.array([], dtype=int)
+
 
     # #### STEP 4: create trace.reg files ############################
     # #########################################################################
@@ -7582,20 +7642,21 @@ def writeComments(filename, parnos, objid, comment):
     cat.close()
 
 
-
-def UpdateCatalog(linelistoutfile):
+# FH updated 3/12/25 for POPPIES
+def UpdateCatalog(outdir,linelistoutfile):
     if verbose == True:
         print("Running UpdateCatalog...\n")  # MDR 2022/05/17
-    allDirectoryFiles = os.listdir("./fitdata/")
+    allDirectoryFiles = os.listdir(outdir + "/fitdata/")
     objid_list = []
     for obj in allDirectoryFiles:
         x = obj.split("_")[2]
         objid_list.append(int(x))
-        Parno = obj.split("_")[0]  # this is inefficient, but I don't care.
+        Parno = obj.split("_")[1]  # this is inefficient, but I don't care.
     objid_list = np.sort(np.unique(np.array(objid_list)))
+    print('FH here ',objid_list)
     for obj in objid_list:
         print(obj)
-        inpickle = "./fitdata/" + Parno + "_BEAM_" + str(obj) + "_fitspec.pickle"
+        inpickle = outdir + "/fitdata/POPPIES_" + Parno + "_" + str(obj) + "_fitspec.pickle"
         fileObject = open(inpickle, "r")
         alldata = pickle.load(fileObject)
         # definition from above

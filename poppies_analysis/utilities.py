@@ -441,21 +441,27 @@ def quick_flux_max(wave,flux,err,wavemin,wavemax):
     # config_pars = read_config(config, filter)
 
     # wavemin,wavemax = config_pars['lambda_min_{}'.format(filter)], config_pars['lambda_max_{}'.format(filter)]
-
+    minwave_offset = 300  #small offset
     sn = flux/err #S/N array
 
-    maxsn = np.sort(sn) #sort S/N array
+    snsorted = np.sort(sn) #sort S/N array
     
     id = -1
-    maxind = np.where(sn == maxsn[id])[0][0]  #Max S/N index
+    maxind = np.where(sn == snsorted[id])[0][0]  #Max S/N index
 
     #iterate towards smaller S/N if needed until we reach a wavelength that is within filter limits
-    while (wave[maxind] < wavemin) or (wave[maxind] > wavemax):
+    while (wave[maxind] < wavemin+minwave_offset) or (wave[maxind] > wavemax-minwave_offset):
         id += -1
-        maxind = np.where(sn == maxsn[id])[0][0]
+        try:
+            maxind = np.where(sn == snsorted[id])[0][0]
+
+        except Exception as e: #fail-safe to prevent crashing
+            print("Max. S/N didn't work: \n", e)
+            maxind = 0
+            break
+
 
     wave_maxind = wave[maxind]
-
     sn_maxind = sn[maxind]
 
     return wave_maxind, sn_maxind
