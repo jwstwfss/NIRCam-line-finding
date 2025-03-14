@@ -823,8 +823,8 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
     ### For R-spec:
     xmin = np.ma.min(spec_lam) - 10.0  # 200.0 - M.D.R. - 10/22/2020
     xmax = np.ma.max(spec_lam) + 10.0  # 200.0 - M.D.R. - 10/22/2020
-    ymin = -0.2 * np.ma.max(spec_val2)
-    ymax = 1.25 * np.ma.max(spec_val2)
+    ymin = -0.2 * np.ma.max(spec_val)
+    ymax = 1.25 * np.ma.max(spec_val)
 
 
     ax1.plot(spec_lam, spec_val, "k", spec_lam, spec_con, "hotpink", drawstyle="steps-mid", lw=lw_data)
@@ -2091,7 +2091,7 @@ def inspect_object_all(
                     
                 ## check if R-spec exists or not - else just make C-spec the spec_val (FH 3/6/25)
                 if len(spdata[0])==0:
-                    print("R-spectrum doesn't exist - fittin to C by default")
+                    print("R-spectrum doesn't exist - fitting to C by default")
                     spec_val = spec_val2
                     spec_lam = spec_lam2
                     spec_unc = spec_unc2
@@ -2140,6 +2140,21 @@ def inspect_object_all(
                 # done = 1
                 # return 0
 
+            #FH catching the case where fit_status was 0 (3/12/25):
+            if fitresults['fit_status'] == 0:
+                print('Fit did not run for Obj. {} for some reason: '.format(obj))
+                zset = 0
+                # comment = "failed"
+                done = 1
+                # FH 3/12/25: write object to done file, incase process gets interrupted
+                if not os.path.exists(outdir + "/done_%s_all" % user):
+                    f = open(outdir + "/done_%s_all" % user, "w")
+                else:
+                    f = open(outdir + "/done_%s_all" % user, "a")
+                f.write("%i\n" % obj)
+                f.close()
+                return 0
+ 
             zfit = fitresults["redshift"]
             fitpars = fitresults["fit_parameters"]
             # fitpars_nolines = cp.deepcopy(fitpars)
@@ -2438,7 +2453,21 @@ def inspect_object_all(
                 f.close()
                 return 0
             
-            
+            #FH catching the case where fit_status was 0 (3/12/25):
+            if fitresults['fit_status'] == 0:
+                print('Fit did not run for Obj. {} for some reaso: '.format(obj))
+                zset = 0
+                # comment = "failed"
+                done = 1
+                # FH 3/12/25: write object to done file, incase process gets interrupted
+                if not os.path.exists(outdir + "/done_%s_all" % user):
+                    f = open(outdir + "/done_%s_all" % user, "w")
+                else:
+                    f = open(outdir + "/done_%s_all" % user, "a")
+                f.write("%i\n" % obj)
+                f.close()
+                return 0
+                        
             zfit = fitresults["redshift"]
             fitpars = fitresults["fit_parameters"]
             fitpars_nolines = cp.deepcopy(fitpars)
