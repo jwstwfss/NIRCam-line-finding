@@ -2074,6 +2074,11 @@ def fit_obj(input_list,filter='F444W'):
         # for j in range(len(out.params)):
         #     print 'out.params['+str(j)+']', out.params[j
 
+    # FH added 3/12/25 to 
+    else:
+        fit_results = {}
+        fit_results['fit_status'] = out.status
+
     return fit_results
 
 

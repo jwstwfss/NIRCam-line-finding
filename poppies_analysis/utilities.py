@@ -458,7 +458,6 @@ def quick_flux_max(wave,flux,err,wavemin,wavemax):
         except Exception as e: #fail-safe to prevent crashing
             print("Max. S/N didn't work: \n", e)
             maxind = 0
-            break
 
 
     wave_maxind = wave[maxind]

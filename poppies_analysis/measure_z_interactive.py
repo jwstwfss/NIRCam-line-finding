@@ -3400,6 +3400,10 @@ def inspect_object_all(
             print_prompt("Quitting Obj %i. Nothing saved to file" % (obj))
             print_prompt("-" * 72)
             return 0
+        
+        # elif option.strip().lower() == "update":
+        #     print_prompt("Updating line list catalog", prompt_type="interim")
+        #     UpdateCatalog(linelistoutfile)
 
         # elif option.strip().lower() == "comb":
         #     spdata = spdata_T
@@ -3985,11 +3989,6 @@ def measure_z_interactive_all(
             next_obj = remaining_objects[0]
             print_prompt("Next up: Obj %i" % (next_obj), prompt_type="interim")
             o = input("Enter 'xxx' to skip to Obj xxx, 'q' to quit, or any other key to continue. > ")
-
-            # # FH 3/12/25:
-            # if o.strip().lower() == "update":
-            #     print_prompt("Updating line list catalog", prompt_type="interim")
-            #     UpdateCatalog(outdir,linelistoutfile)
 
             if o.strip().lower() == "left":
                 # remaining_list = ', '.join(['%i'%i for i in remaining_objects])
@@ -7671,21 +7670,21 @@ def writeComments(filename, parnos, objid, comment):
     cat.close()
 
 
-# FH updated 3/12/25 for POPPIES
-def UpdateCatalog(outdir,linelistoutfile):
+
+## FH POPPIES version 3/14/25
+def UpdateCatalog(linelistoutfile):
     if verbose == True:
         print("Running UpdateCatalog...\n")  # MDR 2022/05/17
-    allDirectoryFiles = os.listdir(outdir + "/fitdata/")
+    allDirectoryFiles = os.listdir("./fitdata/")
     objid_list = []
     for obj in allDirectoryFiles:
         x = obj.split("_")[2]
         objid_list.append(int(x))
-        Parno = obj.split("_")[1]  # this is inefficient, but I don't care.
+        Parno = obj.split("_")[0]  # this is inefficient, but I don't care.
     objid_list = np.sort(np.unique(np.array(objid_list)))
-    print('FH here ',objid_list)
     for obj in objid_list:
         print(obj)
-        inpickle = outdir + "/fitdata/POPPIES_" + Parno + "_" + str(obj) + "_fitspec.pickle"
+        inpickle = "./fitdata/POPPIES_" + Parno + "_" + str(obj) + "_fitspec.pickle"
         fileObject = open(inpickle, "r")
         alldata = pickle.load(fileObject)
         # definition from above
@@ -7736,5 +7735,136 @@ def UpdateCatalog(outdir,linelistoutfile):
                 flagcont, 
                 comp_fit)
 
+
+# # FH updated 3/12/25 for POPPIES
+# def UpdateCatalog(outdir,linelistoutfile):
+#     if verbose == True:
+#         print("Running UpdateCatalog...\n")  # MDR 2022/05/17
+#     allDirectoryFiles = os.listdir(outdir + "/fitdata/")
+#     objid_list = []
+#     for obj in allDirectoryFiles:
+#         x = obj.split("_")[2]
+#         objid_list.append(int(x))
+#         Parno = obj.split("_")[1]  # this is inefficient, but I don't care.
+#     objid_list = np.sort(np.unique(np.array(objid_list)))
+#     print('FH here ',objid_list)
+#     for obj in objid_list:
+#         print(obj)
+#         inpickle = outdir + "/fitdata/POPPIES_" + Parno + "_" + str(obj) + "_fitspec.pickle"
+#         fileObject = open(inpickle, "r")
+#         alldata = pickle.load(fileObject)
+#         # definition from above
+#         #                      0          1                 2      3        4           5            6         7         8           9         10
+#         # output_meta_data = [parnos[0], objid_unique[i], ra_obj, dec_obj, a_image_obj, b_image_obj, jmag_obj, hmag_obj, fitresults, flagcont, config_pars]
+#         parnos = alldata[0]
+#         objid_unique = alldata[1]
+#         ra_obj = alldata[2]
+#         dec_obj = alldata[3]
+#         a_image_obj = alldata[4]
+#         b_image_obj = alldata[5]
+#         jmag_obj = alldata[6]
+#         hmag_obj = alldata[7]
+#         fitresults = alldata[8]
+#         flagcont = alldata[9]
+#         # config_pars = alldata[10] ## not used here.
+
+#         if verbose == True:
+#             print("Writing to catalog...\n")  # MDR 2022/05/17
+
+#         if comp_fit == True:
+#             writeToCatalog2gauss(
+#                 linelistoutfile,
+#                 parnos,
+#                 objid_unique,
+#                 ra_obj,
+#                 dec_obj,
+#                 a_image_obj,
+#                 b_image_obj,
+#                 jmag_obj,
+#                 hmag_obj,
+#                 fitresults,
+#                 flagcont,
+#                 comp_fit)
+
+#         if comp_fit == False:
+#             WriteToCatalog(
+#                 linelistoutfile,
+#                 parnos,
+#                 objid_unique,
+#                 ra_obj,
+#                 dec_obj,
+#                 a_image_obj,
+#                 b_image_obj,
+#                 jmag_obj,
+#                 hmag_obj,
+#                 fitresults,
+#                 flagcont, 
+#                 comp_fit)
+
+
+
+### PASSAGE version (3/14/25):
+# def UpdateCatalog(linelistoutfile):
+#     if verbose == True:
+#         print("Running UpdateCatalog...\n")  # MDR 2022/05/17
+#     allDirectoryFiles = os.listdir("./fitdata/")
+#     objid_list = []
+#     for obj in allDirectoryFiles:
+#         x = obj.split("_")[2]
+#         objid_list.append(int(x))
+#         Parno = obj.split("_")[0]  # this is inefficient, but I don't care.
+#     objid_list = np.sort(np.unique(np.array(objid_list)))
+#     for obj in objid_list:
+#         print(obj)
+#         inpickle = "./fitdata/" + Parno + "_BEAM_" + str(obj) + "_fitspec.pickle"
+#         fileObject = open(inpickle, "r")
+#         alldata = pickle.load(fileObject)
+#         # definition from above
+#         #                      0          1                 2      3        4           5            6         7         8           9         10
+#         # output_meta_data = [parnos[0], objid_unique[i], ra_obj, dec_obj, a_image_obj, b_image_obj, jmag_obj, hmag_obj, fitresults, flagcont, config_pars]
+#         parnos = alldata[0]
+#         objid_unique = alldata[1]
+#         ra_obj = alldata[2]
+#         dec_obj = alldata[3]
+#         a_image_obj = alldata[4]
+#         b_image_obj = alldata[5]
+#         jmag_obj = alldata[6]
+#         hmag_obj = alldata[7]
+#         fitresults = alldata[8]
+#         flagcont = alldata[9]
+#         # config_pars = alldata[10] ## not used here.
+
+#         if verbose == True:
+#             print("Writing to catalog...\n")  # MDR 2022/05/17
+
+#         if comp_fit == True:
+#             writeToCatalog2gauss(
+#                 linelistoutfile,
+#                 parnos,
+#                 objid_unique,
+#                 ra_obj,
+#                 dec_obj,
+#                 a_image_obj,
+#                 b_image_obj,
+#                 jmag_obj,
+#                 hmag_obj,
+#                 fitresults,
+#                 flagcont,
+#                 comp_fit)
+
+#         if comp_fit == False:
+#             WriteToCatalog(
+#                 linelistoutfile,
+#                 parnos,
+#                 objid_unique,
+#                 ra_obj,
+#                 dec_obj,
+#                 a_image_obj,
+#                 b_image_obj,
+#                 jmag_obj,
+#                 hmag_obj,
+#                 fitresults,
+#                 flagcont, 
+#                 comp_fit)
 
 ###### END OF FILE

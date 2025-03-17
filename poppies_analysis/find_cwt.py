@@ -4,7 +4,7 @@ import os
 import pdb
 from glob import glob
 from poppies_analysis import *
-from astropy.table import Table
+from astropy.table import Table, vstack
 from astropy.io import ascii as asc
 
 
@@ -143,9 +143,8 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, filter
 
     return [lam[real_peaks], flux[real_peaks], npix_real, snr_real, cwarray, cont_filter, lam[peaks], flux[peaks]]
 
-
+## FH modifying 3/14/25
 # FH 2/10/25 - this version looks at one filter only:
-
 def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     # no inputs and run from inside the data directory
     # KVN updating this to write the linelist to the 'output' directory... take path to data as input
@@ -195,7 +194,7 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     a_images = cat['A_IMAGE']
     beam_se = cat['NUMBER']
     
-    outfile = open('linelist/temp', 'w')
+    outfile = open('linelist/temp_R', 'w')
 
     #config_pars['transition_wave'] = 11700.
     # config_pars['transition_wave'] = 0. # FH 12/23/24
@@ -515,8 +514,96 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
 
     outfile.close()
 
-    tab = asc.read('linelist/temp',format='no_header',guess=False,fast_reader=False)
 
+    outfile = open('linelist/temp_C', 'w')
+
+    #config_pars['transition_wave'] = 11700.
+    # config_pars['transition_wave'] = 0. # FH 12/23/24
+    # config_pars['transition_wave'] = 32000. # FH 12/23/24
+    # config_pars['lambda_min_{}'.format(filter)] = 32000. # FH 12/23/24
+
+    print('')
+    print('Analyzing grism files...')
+
+    for filename in Cfiles:
+        print('running CWT for ' + filter + ' for object in file ', filename)
+        # get spectral data
+        try:
+            spdata = asc.read(filename, names = ['wave', 'flux', 'error', 'contam', 'zeroth'])
+        # trimmed_spec = trim_spec(spdata, None, None, config_pars)
+        except Exception as e:
+            print('Skipping object {} as spectrum not found'.format(filename))
+            break
+
+        trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+
+        # print('TRIMMED SPEC ',trimmed_spec)
+        # look up the object in the se catalog and grab the a_image
+        # beam = float(filename.split('_')[3].split('.')[0])
+        beam = int(filename.split('C_')[1].split('.')[0])
+
+        parno = parno #os.getcwd().split('/')[-2].split('Par')[-1] # fixed parallel field number to zero for the mudf program
+        # print('Par Number: ', parno)
+
+        w = np.where(beam_se == beam)
+        w = w[0] # because of tuples
+        a_image = a_images[w][0]
+        fwhm_est_pix = a_image * 2.0
+
+        # unpack spectrum and check that it is long enough to proceed
+        lam = trimmed_spec[0]
+        flux_corr = trimmed_spec[1] - trimmed_spec[3]
+        err = trimmed_spec[2]
+        zeros = trimmed_spec[4]
+
+        if len(lam) < config_pars['min_spec_length']:
+            continue
+
+        # cwt it and unpack and write results
+        full_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(int(beam)), config_pars, filter = filter, plotflag=False)
+        lam_cwt = full_cwt[0]
+        flam_cwt = full_cwt[1]
+        npix_cwt = full_cwt[2]
+        snr_cwt = full_cwt[3]
+
+        for i in np.arange(len(lam_cwt)):
+            #  FH - commented out 
+            # print(beam, 'F444W', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+            outfile.write(str(parno) + '  ' + str(filter) + '  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
+        if config_pars['n_sigma_for_2pix_lines'] != False:
+            config_pars['npix_thresh'] = 2
+            config_pars['n_sigma_above_cont'] = config_pars['n_sigma_for_2pix_lines']
+            full_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(int(beam)), config_pars, filter = filter, plotflag=False)
+            lam_cwt = full_cwt[0]
+            flam_cwt = full_cwt[1]
+            npix_cwt = full_cwt[2]
+            snr_cwt = full_cwt[3]
+            for i in np.arange(len(lam_cwt)):
+                #print(beam, 'G102', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+                # FH - commented out 
+                # print(beam, 'F444W', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+                outfile.write(str(parno) + '  ' + str(filter) + '  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
+        # # go back to the beginning with the old config pars
+        # config_pars = read_config(str(path_to_code)+'/default.config')
+        # #config_pars['transition_wave'] = 11700.
+        # config_pars['transition_wave'] = 50000. # FH 12/23/24
+
+    # #config_pars['transition_wave'] = 11100.
+    # config_pars['transition_wave'] = 0. # FH 12/23/24
+
+    # # ########## ##########
+
+    outfile.close()
+
+
+    tab_R = asc.read('linelist/temp_R',format='no_header',guess=False,fast_reader=False)
+    
+    tab_C = asc.read('linelist/temp_C',format='no_header',guess=False,fast_reader=False)
+
+    #stack tables together:
+    tab = vstack([tab_R,tab_C])
     # # print(tab)
 
     par = tab['col1']
@@ -525,15 +612,39 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     wave = tab['col4']
     npix = tab['col5']
     snr = tab['col6']
+
+    # par_C = tab_C['col1']
+    # filt_C = tab_C['col2']
+    # beam_C = tab_C['col3']
+    # wave_C = tab_C['col4']
+    # npix_C = tab_C['col5']
+    # snr_C = tab_C['col6']
+
     s = np.argsort(beam)
     beam = beam[s]
     filt = filt[s]
-    wave =wave[s]
+    wave = wave[s]
     npix = npix[s]
     snr = snr[s]
     par = par[0]
-    beams_unique = np.unique(beam)
-    # print('UNIQUE OBJECTS: ', beams_unique)
+
+    beams_unique_R = np.unique(beam)
+
+    s = np.argsort(beam_C)
+    beam_C = beam_C[s]
+    filt_C = filt_C[s]
+    wave_R = wave_C[s]
+    npix_C = npix_C[s]
+    snr_C = snr_C[s]
+    par_C = par_C[0]
+
+    beams_unique_C = np.unique(beam_C)
+
+    beams_unique = np.unique(np.hstack(beams_unique_R,beams_unique_C))
+
+    # start writing new file showing uniquely identified objects:
+
+    print('UNIQUE OBJECTS: ', beams_unique)
     outfile = open('linelist/Par'+str(parno) + 'lines.dat', 'w')
 
     for b in beams_unique:
