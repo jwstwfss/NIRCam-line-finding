@@ -628,23 +628,32 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     snr = snr[s]
     par = par[0]
 
-    beams_unique_R = np.unique(beam)
+    # beams_unique_R = np.unique(beam)
 
-    s = np.argsort(beam_C)
-    beam_C = beam_C[s]
-    filt_C = filt_C[s]
-    wave_R = wave_C[s]
-    npix_C = npix_C[s]
-    snr_C = snr_C[s]
-    par_C = par_C[0]
+    # s = np.argsort(beam_C)
+    # beam_C = beam_C[s]
+    # filt_C = filt_C[s]
+    # wave_R = wave_C[s]
+    # npix_C = npix_C[s]
+    # snr_C = snr_C[s]
+    # par_C = par_C[0]
 
-    beams_unique_C = np.unique(beam_C)
+    # beams_unique_C = np.unique(beam_C)
 
-    beams_unique = np.unique(np.hstack(beams_unique_R,beams_unique_C))
+    # beams_unique = np.unique(np.hstack(beams_unique_R,beams_unique_C))
+
+    beams_unique = np.unique(beam)
 
     # start writing new file showing uniquely identified objects:
 
-    print('UNIQUE OBJECTS: ', beams_unique)
+    print('UNIQUE OBJECTS: ', len(beams_unique))
+
+    # ## Unique IDs list output into a text file:
+    # with open('linelist/unique.dat','w') as f:
+    #     for j in beams_unique:
+    #         f.write(str(j)+' \n')
+
+
     outfile = open('linelist/Par'+str(parno) + 'lines.dat', 'w')
 
     for b in beams_unique:
