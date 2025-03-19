@@ -342,6 +342,11 @@ def find_filters(path_to_data,par):
 def make_full_list(path_to_data,path_to_out,par,filters,verbose=True):
     ''' makes full object list from se cats'''
 
+    #check that linelist directory exists in Output:
+    if os.path.exists(path_to_out+'/linelist/'):
+        command = "mkdir {} ".format(str(path_to_out+'/linelist/'))
+        os.system(command)
+
     # file for full object list:
     outfile = open(path_to_out+'/linelist/Par'+str(par) + 'objects.dat', 'w')
 
