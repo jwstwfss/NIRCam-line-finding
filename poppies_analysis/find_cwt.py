@@ -597,14 +597,29 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
 
     outfile.close()
 
+    #try-exception to catch cases where None is available
+    try:
+        tab_R = asc.read('linelist/temp_R',format='no_header',guess=False,fast_reader=False)
+    except Exception:
+        print('R spectrum not found')
 
-    tab_R = asc.read('linelist/temp_R',format='no_header',guess=False,fast_reader=False)
-    
-    tab_C = asc.read('linelist/temp_C',format='no_header',guess=False,fast_reader=False)
+    try:    
+        tab_C = asc.read('linelist/temp_C',format='no_header',guess=False,fast_reader=False)
 
-    #stack tables together:
-    tab = vstack([tab_R,tab_C])
+    except Exception:
+        print('C spectrum not found')     
+
+    if (tab_R is not None) and (tab_C is not None):
+        #stack tables together:
+        tab = vstack([tab_R,tab_C])
+
     # # print(tab)
+
+    elif (tab_R is not None) and (tab_C is None):
+        tab = tab_R
+
+    elif (tab_C is not None) and (tab_R is None):
+        tab = tab_C
 
     par = tab['col1']
     filt = tab['col2']
