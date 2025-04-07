@@ -11,9 +11,9 @@ import astropy.io.ascii as asciitable
 import time
 
 
-# Open two ds9 windows:
-os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_DIRECT &')
-os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_spec2D &')
+# # Open two ds9 windows:
+# os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_DIRECT &')
+# os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_spec2D &')
 
 
 ### Please update these directories to match yours:
@@ -58,7 +58,6 @@ if __name__ == "__main__":
 
 
     #FH 1/30/25: check for full object list from SE cats
-    
     objectfiles = glob.glob(OUTPUT_DIR + '/linelist/Par'+str(parno) + 'objects.dat')
     
     if len(objectfiles) == 0:
@@ -70,7 +69,6 @@ if __name__ == "__main__":
         objectfiles = glob.glob(OUTPUT_DIR + '/linelist/Par'+str(parno) + 'objects.dat')
 
     objectlist = asciitable.read(objectfiles[0],names=['parno','filter','id'])
-
 
     # Check if .dat spec files exists or not
     specdatfiles = glob.glob(DATA_DIR + "Par" + str(parno) + "/Spectra/*.dat")
