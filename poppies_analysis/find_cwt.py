@@ -152,12 +152,12 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
         os.mkdir('linelist')
 
     ## FH updated 12/23/24
-    print('Looking for spectra here: ', str(path_to_data)+'Par'+str(parno)+'/Spectra/*_1D.dat')
+    print('Looking for spectra here: ', str(path_to_data)+'POPPIES'+str(parno)+'/Spectra/*_1D.dat')
 
     ## Find GRISM R and C files:
-    Rfiles = glob(str(path_to_data)+'Par'+str(parno)+'/Spectra/*_{}_R_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
+    Rfiles = glob(str(path_to_data)+'POPPIES'+str(parno)+'/Spectra/*_{}_R_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
     Rfiles.sort()
-    Cfiles = glob(str(path_to_data)+'Par'+str(parno)+'/Spectra/*_{}_C_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
+    Cfiles = glob(str(path_to_data)+'POPPIES'+str(parno)+'/Spectra/*_{}_C_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
     Cfiles.sort()
 
     # M.D.R. - 10/08/2020
@@ -166,12 +166,12 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     config_pars = read_config(str(path_to_code)+'/default.config')
     
     # FH - 12/18/24
-    print('Searching for catalogs at: ' + str(path_to_data) + "Par" + str(parno) + "/*_{}_i2d.cat".format(str(filter)))
-    # catalogs = glob(str(path_to_data) +'Par'+str(parno)+'/DATA/DIRECT_GRISM/Par'+str(parno)+'_phot*.fits') # get list of available catalogs
+    print('Searching for catalogs at: ' + str(path_to_data) + "POPPIES" + str(parno) + "/*_{}_i2d.cat".format(str(filter)))
+    # catalogs = glob(str(path_to_data) +'POPPIES'+str(parno)+'/DATA/DIRECT_GRISM/POPPIES'+str(parno)+'_phot*.fits') # get list of available catalogs
 
-    catalogs = glob(path_to_data + "Par" + str(parno) + "/*_{}_i2d.cat".format(str(filter))) 
+    catalogs = glob(path_to_data + "POPPIES" + str(parno) + "/*_{}_i2d.cat".format(str(filter))) 
 
-    # catalogs =  glob(path_to_data + "Par" + str(parno) + "/DATA/DIRECT_GRISM/*_A_*_i2d.cat") 
+    # catalogs =  glob(path_to_data + "POPPIES" + str(parno) + "/DATA/DIRECT_GRISM/*_A_*_i2d.cat") 
     
     catalogs.sort()
     print('')
@@ -222,7 +222,7 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
         # beam = float(filename.split('_')[3].split('.')[0])
         beam = int(filename.split('R_')[1].split('.')[0])
 
-        parno = parno #os.getcwd().split('/')[-2].split('Par')[-1] # fixed parallel field number to zero for the mudf program
+        parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
         # print('Par Number: ', parno)
 
         w = np.where(beam_se == beam)
@@ -286,7 +286,7 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     #     # look up the object in the se catalog and grab the a_image
     #     # beam = float(filename.split('_')[3].split('.')[0])
     #     beam = int(filename.split('GRISM')[1].split('_')[1].split('.')[0])
-    #     parno = parno #os.getcwd().split('/')[-2].split('Par')[-1] # fixed parallel field number to zero for the mudf program
+    #     parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
     #     # print('Par Number: ', parno)
 
     #     w = np.where(beam_se == beam)
@@ -349,7 +349,7 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     #     # look up the object in the se catalog and grab the a_image
     #     # beam = float(filename.split('_')[3].split('.')[0])
     #     beam = int(filename.split('GRISM')[1].split('_')[1].split('.')[0])
-    #     parno = parno #os.getcwd().split('/')[-2].split('Par')[-1] # fixed parallel field number to zero for the mudf program
+    #     parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
     #     # print('Par Number: ', parno)
 
     #     w = np.where(beam_se == beam)
@@ -401,7 +401,7 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     # #     spdata = asc.read(filename, names = ['lambda', 'flux', 'ferror', 'contam', 'zero'])
     # #     trimmed_spec = trim_spec(None, spdata, None, config_pars)
     # #     beam = float(filename.split('_')[1].split('.')[0])
-    # #     parno = os.getcwd().split('/')[-2].split('Par')[-1] # fixed parallel field number to zero for the mudf program
+    # #     parno = os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
     # #     w = np.where(beam_se == beam)
     # #     w = w[0]    # because of tuples
     # #     a_image = a_images[w][0]
@@ -542,7 +542,7 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
         # beam = float(filename.split('_')[3].split('.')[0])
         beam = int(filename.split('C_')[1].split('.')[0])
 
-        parno = parno #os.getcwd().split('/')[-2].split('Par')[-1] # fixed parallel field number to zero for the mudf program
+        parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
         # print('Par Number: ', parno)
 
         w = np.where(beam_se == beam)
@@ -671,7 +671,7 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     #         f.write(str(j)+' \n')
 
 
-    outfile = open('linelist/Par'+str(parno) + 'lines.dat', 'w')
+    outfile = open('linelist/POPPIES'+str(parno) + 'lines.dat', 'w')
 
     for b in beams_unique:
         w = (beam == b) & (filt == filter)
@@ -763,8 +763,8 @@ def test_obj_cwt(parno, beamno, configfile):
     a_image_red = red_se['col5']
     beam_se = blue_se['col2']
     config_pars = read_config(configfile)
-    bluefile = 'Par'+str(parno) + '_G102_BEAM_'+str(beamno)+'A.dat'
-    redfile =  'Par'+str(parno) + '_G141_BEAM_'+str(beamno)+'A.dat'
+    bluefile = 'POPPIES'+str(parno) + '_G102_BEAM_'+str(beamno)+'A.dat'
+    redfile =  'POPPIES'+str(parno) + '_G141_BEAM_'+str(beamno)+'A.dat'
 
     spdata_blue = asciitable.read(bluefile, names = ['lambda', 'flux', 'ferror', 'contam', 'zero'])
     trimmed_spec_blue= trim_spec(spdata_blue, None, config_pars)

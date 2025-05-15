@@ -62,7 +62,9 @@ import readline
 from poppies_analysis.WISPLFDatabaseManager import WISPLFDatabaseManager as WDBM
 from poppies_analysis import *
 import poppies_analysis as poppies
-from poppies_analysis.guis import showSpec2D_POPPIES, showDirect_POPPIES, panDirect_POPPIES, panDispersed_POPPIES 
+from poppies_analysis.guis import showSpec2D_POPPIES, showDirect_POPPIES, panDirect_POPPIES
+
+# from poppies_analysis.guis import showSpec2D_POPPIES, showDirect_POPPIES, panDirect_POPPIES, panDispersed_POPPIES 
 
 verbose = True  # MDR 2022/05/17
 
@@ -1686,17 +1688,17 @@ def inspect_object_all(
     An attempt to move all object-specific tasks
     """
     # set up and filenames
-    outdir = "Par%s_output_%s" % (par, user)
+    outdir = "POPPIES%s_output_%s" % (par, user)
 
     if path_to_data == " ":
-        # specnameg1 = ("Par%i_" + str(obj).zfill(5) + ".G115_1D.dat" % (par)) 
+        # specnameg1 = ("POPPIES%i_" + str(obj).zfill(5) + ".G115_1D.dat" % (par)) 
         specnameA_C = ("A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = ("A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = ("B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameB_R = ("B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
 
     else:
-        base_path = path_to_data+ "Par"+ str(par)+ "/Spectra/"
+        base_path = path_to_data+ "POPPIES"+ str(par)+ "/Spectra/"
         specnameA_C = (base_path + "A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = (base_path + "A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = (base_path + "B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
@@ -1806,7 +1808,7 @@ def inspect_object_all(
 
 
     databaseManager = WDBM(
-        dbFileNamePrefix=os.path.join(outdir, "Par{}".format(par)))  
+        dbFileNamePrefix=os.path.join(outdir, "POPPIES{}".format(par)))  
     # databaseManager = WDBM(dbFileNamePrefix=os.path.join(outdir,'Par{}'.format(par))) - M.D.R. - 10/08/2020
     mostRecentObjectData = databaseManager.getMostRecentObject()
     # if mostRecentObjectData is not None:
@@ -1947,7 +1949,7 @@ def inspect_object_all(
     if rejectPrevFit:
         print(" ")
         print_prompt("=" * 72)
-        print_prompt("Par%i Obj %i:" % (int(par), int(obj)))
+        print_prompt("POPPIES%i Obj %i:" % (int(par), int(obj)))
         print_prompt("Initial redshift guess: z = %f" % (zguess))
         print_prompt(
             "\nWhat would you like to do with this object?\nSee the README for options, or type 'h' to print them all to the screen."
@@ -3633,7 +3635,7 @@ def measure_z_interactive_all(
     ###########################################################################
     if linelistfile == " ":
 
-        files = glob("linelist/Par"+str(parno)+"objects.dat")
+        files = glob("linelist/POPPIES"+str(parno)+"objects.dat")
         if len(files) == 0:
             print_prompt("No line list file found", prompt_type="interim")
             return 0
@@ -3677,7 +3679,7 @@ def measure_z_interactive_all(
         print(os.getcwd())
         print("")
 
-    tmp = glob(path_to_data + "Par" + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
+    tmp = glob(path_to_data + "POPPIES" + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
     print_prompt(
         "You are about to inspect emission lines identified in parallel field {}".format(parno),
         prompt_type="interim",
@@ -3692,7 +3694,7 @@ def measure_z_interactive_all(
             break
     user = user.strip().lower()
     # create output directory
-    outdir = "Par%s_output_%s" % (parno, user)
+    outdir = "POPPIES%s_output_%s" % (parno, user)
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
 
@@ -3769,7 +3771,7 @@ def measure_z_interactive_all(
     #     print("Creating trace.reg files...\n")  # MDR 2022/05/17
 
     # trace102 = open(
-    #     path_to_data + "/Par" + str(parno) + "/Spectra/G102_trace.reg", "w"
+    #     path_to_data + "/POPPIES" + str(parno) + "/Spectra/G102_trace.reg", "w"
     # )
     # trace102.write(
     #     'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\n'
@@ -3780,7 +3782,7 @@ def measure_z_interactive_all(
     # trace102.write("box(9895,0,3290,1,1.62844e-12)\n")
     # trace102.close()
     # trace141 = open(
-    #     path_to_data + "/Par" + str(par) + "/Spectra/G141_trace.reg", "w"
+    #     path_to_data + "/POPPIES" + str(par) + "/Spectra/G141_trace.reg", "w"
     # )
     # trace141.write(
     #     'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\n'
@@ -3810,12 +3812,12 @@ def measure_z_interactive_all(
     #do this for each field separately (for now)
     for filter in filters_field:
 
-        print(filter,path_to_data + "Par" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+        print(filter,path_to_data + "POPPIES" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
 
         try:
-            secats = glob(path_to_data + "Par" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+            secats = glob(path_to_data + "POPPIES" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
         except:
-            secats = glob(path_to_data + "Par" + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
+            secats = glob(path_to_data + "POPPIES" + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
         
         secats.sort()
 
@@ -3958,7 +3960,7 @@ def measure_z_interactive_all(
             print("\nStarting loop through objects...\n")  # MDR 2022/05/17
 
         remaining_objects = get_remaining_objects(objid_unique, objid_done)
-        allobjects = [unique_obj for unique_obj in objid_unique]
+        allobjects = [int(unique_obj) for unique_obj in objid_unique]
         
         print('\nNumber of unique Objects: ',len(allobjects))
 
@@ -4057,9 +4059,9 @@ def measure_z_interactive_all(
                 inpickles = []
                 path_pickle1 = (
                     path_to_stored_fits
-                    + "/Par"
+                    + "/POPPIES"
                     + str(parnos[0])
-                    + "_output_a/fitdata/Par0_"
+                    + "_output_a/fitdata/POPPIES0_"
                     + str(next_obj)
                     + "_fitspec.pickle"
                 )
@@ -4136,7 +4138,7 @@ def measure_z_interactive_all(
                     path_to_data=path_to_data, 
                     path_to_code=path_to_code,)
         
-                # if len(glob.glob(path_to_data +'Par'+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
+                # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
                 #     inspect_object_all(
                 #     user,
                 #     par,
@@ -4151,7 +4153,7 @@ def measure_z_interactive_all(
                 #     stored_fits=False,
                 #     path_to_data=path_to_data, orientation='R')
 
-                # if len(glob.glob(path_to_data +'Par'+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_C.dat'))> 0:
+                # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_C.dat'))> 0:
                 #     inspect_object_all(
                 #     user,
                 #     par,
@@ -4200,24 +4202,12 @@ def measure_z_interactive_all(
                             inpickles = []
                             path_pickle1 = (
                                 path_to_stored_fits
-                                + "/Par"
+                                + "/POPPIES"
                                 + str(parnos[0])
-                                + "_output_a/fitdata/Par0_"
+                                + "_output_a/fitdata/POPPIES0_"
                                 + str(next_obj)
                                 + "_fitspec.pickle"
                             )
-                            # path_pickle1 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_mbagley/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle2 = path_to_stored_fits + '/Par'  + str(parnos[0]) +    '_output_marc/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle3 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_claudia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle4 = path_to_stored_fits + '/Par'  + str(parnos[0]) +     '_output_ben/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle5 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_vihang/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle6 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_ivano/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle7 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mbeck/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle8 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_karlenoid/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle9 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mjr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle10 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_sophia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle11 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_marc-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle12 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_alaina-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
 
                             ### put new fits first
                             # if os.path.exists(path_pickle11):
@@ -4341,17 +4331,17 @@ def inspect_object(
     An attempt to move all object-specific tasks
     """
     # set up and filenames
-    outdir = "Par%s_output_%s" % (par, user)
+    outdir = "POPPIES%s_output_%s" % (par, user)
 
     if path_to_data == " ":
-        # specnameg1 = ("Par%i_" + str(obj).zfill(5) + ".G115_1D.dat" % (par)) 
+        # specnameg1 = ("POPPIES%i_" + str(obj).zfill(5) + ".G115_1D.dat" % (par)) 
         specnameA_C = ("A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = ("A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = ("B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameB_R = ("B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
 
     else:
-        base_path = path_to_data+ "Par"+ str(par)+ "/Spectra/"
+        base_path = path_to_data+ "POPPIES"+ str(par)+ "/Spectra/"
         specnameA_C = (base_path + "A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = (base_path + "A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = (base_path + "B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
@@ -4500,7 +4490,7 @@ def inspect_object(
     # and a retrieval option should be offered.
     #    databaseManager = WDBM(dbFileNamePrefix='Par{}'.format(par))
     databaseManager = WDBM(
-        dbFileNamePrefix=os.path.join(outdir, "Par{}".format(par)))  
+        dbFileNamePrefix=os.path.join(outdir, "POPPIES{}".format(par)))  
     # databaseManager = WDBM(dbFileNamePrefix=os.path.join(outdir,'Par{}'.format(par))) - M.D.R. - 10/08/2020
     mostRecentObjectData = databaseManager.getMostRecentObject()
     # if mostRecentObjectData is not None:
@@ -4598,7 +4588,7 @@ def inspect_object(
     if rejectPrevFit:
         print(" ")
         print_prompt("=" * 72)
-        print_prompt("Par%i Obj %i:" % (int(par), int(obj)))
+        print_prompt("POPPIES%i Obj %i:" % (int(par), int(obj)))
         print_prompt("Initial redshift guess: z = %f" % (zguess))
         print_prompt(
             "\nWhat would you like to do with this object?\nSee the README for options, or type 'h' to print them all to the screen."
@@ -6111,7 +6101,7 @@ def measure_z_interactive(
     ###########################################################################
     if linelistfile == " ":
         
-        files = glob("linelist/Par"+str(parno)+"lines.dat")
+        files = glob("linelist/POPPIES"+str(parno)+"lines.dat")
         if len(files) == 0:
             print_prompt("No line list file found", prompt_type="interim")
             return 0
@@ -6153,7 +6143,7 @@ def measure_z_interactive(
         print(os.getcwd())
         print("")
 
-    tmp = glob(path_to_data + "Par" + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
+    tmp = glob(path_to_data + "POPPIES" + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
     print_prompt(
         "You are about to inspect emission lines identified in parallel field {}".format(parno),
         prompt_type="interim",
@@ -6168,7 +6158,7 @@ def measure_z_interactive(
             break
     user = user.strip().lower()
     # create output directory
-    outdir = "Par%s_output_%s" % (parno, user)
+    outdir = "POPPIES%s_output_%s" % (parno, user)
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
 
@@ -6246,7 +6236,7 @@ def measure_z_interactive(
     #     print("Creating trace.reg files...\n")  # MDR 2022/05/17
 
     # trace102 = open(
-    #     path_to_data + "/Par" + str(parno) + "/Spectra/G102_trace.reg", "w"
+    #     path_to_data + "/POPPIES" + str(parno) + "/Spectra/G102_trace.reg", "w"
     # )
     # trace102.write(
     #     'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\n'
@@ -6257,7 +6247,7 @@ def measure_z_interactive(
     # trace102.write("box(9895,0,3290,1,1.62844e-12)\n")
     # trace102.close()
     # trace141 = open(
-    #     path_to_data + "/Par" + str(par) + "/Spectra/G141_trace.reg", "w"
+    #     path_to_data + "/POPPIES" + str(par) + "/Spectra/G141_trace.reg", "w"
     # )
     # trace141.write(
     #     'global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\n'
@@ -6287,12 +6277,12 @@ def measure_z_interactive(
     #do this for each field separately (for now)
     for filter in filters_field:
 
-        print(filter,path_to_data + "Par" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+        print(filter,path_to_data + "POPPIES" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
 
         try:
-            secats = glob(path_to_data + "Par" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+            secats = glob(path_to_data + "POPPIES" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
         except:
-            secats = glob(path_to_data + "Par" + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
+            secats = glob(path_to_data + "POPPIES" + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
 
         secats.sort()
 
@@ -6428,7 +6418,7 @@ def measure_z_interactive(
             print("\nStarting loop through objects...\n")  # MDR 2022/05/17
 
         remaining_objects = get_remaining_objects(objid_unique, objid_done)
-        allobjects = [unique_obj for unique_obj in objid_unique]
+        allobjects = [int(unique_obj) for unique_obj in objid_unique]
 
         print('\nNumber of unique Objects: ',len(allobjects))
         # if (verbose == True):
@@ -6467,7 +6457,7 @@ def measure_z_interactive(
 
             if o.strip().lower() == "list":
                 print_prompt("All objects:", prompt_type="interim")
-                print(allobjects)
+                print([obj for obj in allobjects])
                 o = input("> ")
 
             # print number of unique objects in line list
@@ -6526,9 +6516,9 @@ def measure_z_interactive(
                 inpickles = []
                 path_pickle1 = (
                     path_to_stored_fits
-                    + "/Par"
+                    + "/POPPIES"
                     + str(parnos[0])
-                    + "_output_a/fitdata/Par0_"
+                    + "_output_a/fitdata/POPPIES0_"
                     + str(next_obj)
                     + "_fitspec.pickle"
                 )
@@ -6606,7 +6596,7 @@ def measure_z_interactive(
                     show_dispersed=show_dispersed,
                     stored_fits=False,
                     path_to_data=path_to_data, path_to_code=path_to_code)
-                # if len(glob.glob(path_to_wisp_data +'Par'+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
+                # if len(glob.glob(path_to_wisp_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
                 #     inspect_object(
                 #         user,
                 #         parnos[0],
@@ -6623,7 +6613,7 @@ def measure_z_interactive(
                 #         show_dispersed=show_dispersed,
                 #         stored_fits=False,
                 #         path_to_wisp_data=path_to_wisp_data, orientation='R')
-                # if len(glob.glob(path_to_wisp_data +'Par'+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_C.dat'))> 0:
+                # if len(glob.glob(path_to_wisp_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_C.dat'))> 0:
                 #     inspect_object(
                 #         user,
                 #         parnos[0],
@@ -6676,9 +6666,9 @@ def measure_z_interactive(
                             inpickles = []
                             path_pickle1 = (
                                 path_to_stored_fits
-                                + "/Par"
+                                + "/POPPIES"
                                 + str(parnos[0])
-                                + "_output_a/fitdata/Par0_"
+                                + "_output_a/fitdata/POPPIES0_"
                                 + str(next_obj)
                                 + "_fitspec.pickle"
                             )
@@ -6758,7 +6748,7 @@ def measure_z_interactive(
                                 stored_fits=False,
                                 path_to_data=path_to_data, path_to_code=path_to_code
                                 )
-                            # if len(glob.glob(path_to_data +'Par'+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
+                            # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
                             #     inspect_object(
                             #         user,
                             #         parnos[0],
@@ -6776,7 +6766,7 @@ def measure_z_interactive(
                             #         show_dispersed=show_dispersed,
                             #         stored_fits=False,
                             #         path_to_data=path_to_data, orientation='R')
-                            # if len(glob.glob(path_to_data +'Par'+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_C.dat'))> 0:
+                            # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_C.dat'))> 0:
                             #     inspect_object(
                             #         user,
                             #         parnos[0],

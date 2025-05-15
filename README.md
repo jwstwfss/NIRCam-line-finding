@@ -1,6 +1,8 @@
 # Documentation for NIRCAM-line-finding code
 
-Farhan Hasan, 2/13/2025 ([fhasan@stsci.edu](mailto:fhasan@stsci.edu))
+Farhan Hasan, created 2/13/2025 ([fhasan@stsci.edu](mailto:fhasan@stsci.edu))
+
+Updated 5/15/2025
 
 This software is used to identify line-emitting objects and measure emission line properties in JWST NIRCam WFSS Grism spectra, based on the pure-parallel survey POPPIES (PID#5398).
 
@@ -22,8 +24,8 @@ The user will be asked to enter the number of a parallel field and a username of
 Steps for installation are as follows
 
 1. Make sure you have python 3.9 or later installed
-2. pip install the following packages (paying attention to specific versions:
-	- numpy>=1.26.4, <2
+2. pip install the following packages:
+	- numpy>=1.26.4
 	- astropy>=5.3, <7
 	- pandas>=1.0, <3
 	- scipy==1.14.1 (this one is strict)
@@ -69,7 +71,7 @@ e.g., export PYTHONPATH= "/Users/fhasan/POPPIES/line-finding/poppies_analysis/"
 Steps for running the line-finding tool after installing are as follows:
 
 1. Download the data.
-2. Rename the folder Par[Number] from [Number].
+2. Rename the folder POPPIES[Number] from [Number].
 3. Point CODE_DIR, OUTPUT_DIR, and DATA_DIR to the appropriate directories in the [mainPOPPIES.py](http://mainPOPPIES.py) file.
 4. Run `python mainPOPPIES.py`
 5. Enter the number of the parallel field (e.g., "004").

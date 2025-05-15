@@ -106,7 +106,7 @@ def read_config(config, availgrism='F444W'):
 # modified by FH for POPPIES NIRCam data
 
 def write_obj_region(parno, path_to_data, catalog, regfile_name, xoffset, yoffset, w, b_width, b_length): 
-    file = open(path_to_data + "/Par" + str(parno) + "/DATA/" + "Par" + str(parno) + regfile_name, 'a')
+    file = open(path_to_data + "/POPPIES" + str(parno) + "/DATA/" + "POPPIES" + str(parno) + regfile_name, 'a')
     for i in range(len(catalog)):
         ra, dec = catalog['RA'][i], catalog['DEC'][i]
         x, y = w.all_world2pix(ra, dec, 1)
@@ -118,19 +118,19 @@ def write_obj_region(parno, path_to_data, catalog, regfile_name, xoffset, yoffse
 #        F.H. started 12/17/24
 def create_regions(parno, path_to_data, filters):
 
-    # spec_cat =  glob.glob(path_to_data + "/Par" + str(parno) + "/*_A_*_i2d.cat") 
+    # spec_cat =  glob.glob(path_to_data + "/POPPIES" + str(parno) + "/*_A_*_i2d.cat") 
     
     # all_objects = []
 
     ## For now, just making separate region files for separate filters
     for filt in filters:
             
-        phot_cat = glob.glob(path_to_data + "Par" + str(parno) + "/*_{}_i2d.cat".format(str(filt))) 
+        phot_cat = glob.glob(path_to_data + "POPPIES" + str(parno) + "/*_{}_i2d.cat".format(str(filt))) 
 
         cat=asciitable.read(phot_cat[0])
 
         # Direct image region files
-        f = open(path_to_data + "/Par" + str(parno) + "/Par" + str(parno) + 'regions_phot_{}.reg'.format(str(filt)),'a')
+        f = open(path_to_data + "/POPPIES" + str(parno) + "/POPPIES" + str(parno) + 'regions_phot_{}.reg'.format(str(filt)),'a')
         for i in range(len(cat)):
             f.write("WCS;circle("+str(cat['RA'][i])+','+str(cat['DEC'][i])+',0.5") # color=green text={'+str(cat['NUMBER'][i])+'} font="times 10 bold italic" textangle=30\n')
         f.close()
@@ -141,22 +141,22 @@ def create_regions(parno, path_to_data, filters):
 
     ## for ref: write_obj_region(parno, path_to_data, catalog, regfile_name, xoffset, yoffset, w, b_width, b_length)
     
-    # f277grism_R = glob.glob(path_to_data + "/Par" + str(parno) + "/spec2D/*_F277W_*_i2d.fits")
+    # f277grism_R = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/spec2D/*_F277W_*_i2d.fits")
     # if len(f277grism_R) != 0:
     #     write_obj_region(parno, path_to_data, cat, "F277r_grism.reg", 0.6548681566074263, 33.73739138173772, w = WCS(f277grism_R[0][1]), 
     #                     b_width = 10.0, b_length = 93.54)
     
-    # f115grism_C = glob.glob(path_to_data + "/Par" + str(parno) + "/DATA/*f115w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
+    # f115grism_C = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f115w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
     # if len(f115grism_C) != 0:
     #     write_obj_region(parno, path_to_data, cat, "F115c_grism.reg", 31.91107156101387, 1.3922939626209256, w = WCS(f115grism_C[0]), 
     #                     b_width = 97.28751330105166, b_length = 10.0)
 
-    # f150grism_R = glob.glob(path_to_data + "/Par" + str(parno) + "/DATA/*f150w*gr150r_drz_sci.fits") # Added KVN 19-Aug-2024
+    # f150grism_R = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f150w*gr150r_drz_sci.fits") # Added KVN 19-Aug-2024
     # if len(f150grism_R) != 0:
     #     write_obj_region(parno, path_to_data, cat, "F150r_grism.reg", 0.6548681566074263, 106.79254657227568, w = WCS(f150grism_R[0]), 
     #                     b_width = 10.0, b_length = 93.54)
     
-    # f150grism_C = glob.glob(path_to_data + "/Par" + str(parno) + "/DATA/*f150w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
+    # f150grism_C = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f150w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
     # if len(f150grism_C) != 0:
     #     write_obj_region(parno, path_to_data, cat, "F150c_grism.reg", 96.44444, 0.6548681566074263, w = WCS(f150grism_C[0]), 
     #                     b_width = 93.54, b_length = 10.0)
@@ -166,7 +166,7 @@ def create_regions(parno, path_to_data, filters):
 
     # if filt == "F444W":
 
-    #     f444grism = glob.glob(path_to_data + "/Par" + str(parno) + "/DirectImages/*_F444W_i2d.fits") # Added FH 12/23/24
+    #     f444grism = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DirectImages/*_F444W_i2d.fits") # Added FH 12/23/24
     #     if len(f444grism) != 0:    
     #         write_obj_region(parno, path_to_data, cat, "F444r_grism.reg", 765.438247, 9.66479920022, w = WCS(f444grism[0][1]), 
     #                         b_width = 10.0, b_length = 131.78)        
@@ -177,7 +177,7 @@ def create_regions(parno, path_to_data, filters):
 
     # elif filt == "F277W":
 
-    #     f444grism = glob.glob(path_to_data + "/Par" + str(parno) + "/DirectImages/*_F277W_i2d.fits") # Added FH 12/23/24
+    #     f444grism = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DirectImages/*_F277W_i2d.fits") # Added FH 12/23/24
     #     if len(f444grism) != 0:    
     #         write_obj_region(parno, path_to_data, cat, "F444r_grism.reg", 765.438247, 9.66479920022, w = WCS(f444grism[0][1]), 
     #                         b_width = 10.0, b_length = 131.78)        
@@ -210,7 +210,7 @@ def add_header_keyword(parno, path_to_data):
 ## adapting for POPPIES, FH 1/23/25
 def make_spectra_dat_files(parno, path_to_data, create_files_anyway = False):
 
-    main_directory = os.path.join(path_to_data, f"Par{parno:s}")
+    main_directory = os.path.join(path_to_data, f"POPPIES{parno:s}")
     spec_directory = os.path.join(main_directory, "Spec1D2D")
 
     # os.system(f"mkdir -p {os.path.join(main_directory, 'Spectra'):s}")
@@ -303,7 +303,7 @@ def make_spectra_dat_files(parno, path_to_data, create_files_anyway = False):
 def find_filters(path_to_data,par):
     ''' searches catalogs for list of filters - and orientations '''
     
-    cats = glob.glob(path_to_data + "Par" + str(par) + "/*_i2d.cat")
+    cats = glob.glob(path_to_data + "POPPIES" + str(par) + "/*_i2d.cat")
 
     filts = []
 
@@ -315,15 +315,15 @@ def find_filters(path_to_data,par):
 
     unique_filts = np.unique(filts)
 
-    outfile = open(path_to_data+"Par" + str(par)+'/Par{}_filters.dat'.format(par), 'w')
+    outfile = open(path_to_data+"POPPIES" + str(par)+'/POPPIES{}_filters.dat'.format(par), 'w')
 
     outfile.write('filter ' + 'orientation' + '\n')
 
     for i in unique_filts:
 
-        Rfiles = glob.glob(path_to_data + "Par" + str(par) + "/Spec1D2D/*_{}_R_*.fits".format(i))
+        Rfiles = glob.glob(path_to_data + "POPPIES" + str(par) + "/Spec1D2D/*_{}_R_*.fits".format(i))
 
-        Cfiles = glob.glob(path_to_data + "Par" + str(par) + "/Spec1D2D/*_{}_C_*.fits".format(i))
+        Cfiles = glob.glob(path_to_data + "POPPIES" + str(par) + "/Spec1D2D/*_{}_C_*.fits".format(i))
 
         if ((len(Rfiles) != 0) and (len(Cfiles) != 0)):
 
@@ -349,12 +349,12 @@ def make_full_list(path_to_data,path_to_out,par,filters,verbose=True):
         os.system(command)
 
     # file for full object list:
-    outfile = open(path_to_out+'/linelist/Par'+str(par) + 'objects.dat', 'w')
+    outfile = open(path_to_out+'/linelist/POPPIES'+str(par) + 'objects.dat', 'w')
 
     # find all the catalogs:
     for filt in filters:
 
-        secats = glob.glob(path_to_data + "Par" + str(par) + "/*_{}_i2d.cat".format(str(filt))) 
+        secats = glob.glob(path_to_data + "POPPIES" + str(par) + "/*_{}_i2d.cat".format(str(filt))) 
         
         secats.sort()
 
@@ -395,9 +395,9 @@ def make_full_list(path_to_data,path_to_out,par,filters,verbose=True):
 ## FH 2/3/25
 def make_file_structure(path_to_data,par):
 
-    spec1d2dpath = path_to_data + "/Par" + str(par) + "/Spec1D2D/"
-    spectrapath = path_to_data + "/Par" + str(par) + "/Spectra/"
-    directpath = path_to_data + "/Par" + str(par) + "/DirectImages/"
+    spec1d2dpath = path_to_data + "/POPPIES" + str(par) + "/Spec1D2D/"
+    spectrapath = path_to_data + "/POPPIES" + str(par) + "/Spectra/"
+    directpath = path_to_data + "/POPPIES" + str(par) + "/DirectImages/"
 
     spec1d2d = glob.glob(spec1d2dpath)
     
@@ -417,7 +417,7 @@ def make_file_structure(path_to_data,par):
         print('Creating DirectImage directory')
         os.mkdir(directpath)
 
-    spec1d2dfiles = glob.glob(path_to_data + "/Par" + str(par) + "/jw*_ext/*.fits")
+    spec1d2dfiles = glob.glob(path_to_data + "/POPPIES" + str(par) + "/jw*_ext/*.fits")
 
     if len(spec1d2dfiles) != 0:
         print('Moving 1D and 2D spec files to correct path')
@@ -428,7 +428,7 @@ def make_file_structure(path_to_data,par):
 
             os.system(command)
 
-    directfiles = glob.glob(path_to_data + "/Par" + str(par) + "/*_i2d.fits")
+    directfiles = glob.glob(path_to_data + "/POPPIES" + str(par) + "/*_i2d.fits")
 
 
     if len(directfiles) != 0:
@@ -473,50 +473,50 @@ def quick_flux_max(wave,flux,err,wavemin,wavemax):
 
 
 
-# NOTE - The x & y offset values are specific for NIRISS. 
-#        These will need to be updated for NIRCam data!
-def create_regions_OLD(parno, path_to_data):
+# # NOTE - The x & y offset values are specific for NIRISS. 
+# #        These will need to be updated for NIRCam data!
+# def create_regions_OLD(parno, path_to_data):
 
-    spec_cat = glob.glob(path_to_data + "/Par" + str(parno) + "/DATA/DIRECT_GRISM/Par*spec*.fits")
-    hdul = fits.open(spec_cat[0])
-    cat=hdul[1].data
+#     spec_cat = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/DIRECT_GRISM/Par*spec*.fits")
+#     hdul = fits.open(spec_cat[0])
+#     cat=hdul[1].data
 
-    # Direct image region files
-    f = open(path_to_data + "/Par" + str(parno) + "/DATA/" + "Par" + str(parno) + 'regions_phot.reg','a')
-    for i in range(len(cat)):
-        f.write("WCS;circle("+str(cat['ra'][i])+','+str(cat['dec'][i])+',0.5") # color=green text={'+str(cat['id'][i])+' z='+str(round(cat['redshift'][i],3))+'} font="times 10 bold italic" textangle=30\n')
-    f.close()
+#     # Direct image region files
+#     f = open(path_to_data + "/POPPIES" + str(parno) + "/DATA/" + "POPPIES" + str(parno) + 'regions_phot.reg','a')
+#     for i in range(len(cat)):
+#         f.write("WCS;circle("+str(cat['ra'][i])+','+str(cat['dec'][i])+',0.5") # color=green text={'+str(cat['id'][i])+' z='+str(round(cat['redshift'][i],3))+'} font="times 10 bold italic" textangle=30\n')
+#     f.close()
 
-    #This and subsequent are for the first order beams. Offsets taken from the config files
-    # KVN :  Adding code to first check if the paths exist. Only create region file if filter/orientation is available 
-    f115grism_R = glob.glob(path_to_data + "/Par" + str(parno) + "/DATA/*f115w*gr150r_drz_sci.fits")
-    if len(f115grism_R) != 0:
-        write_obj_region(parno, path_to_data, cat, "F115r_grism.reg", 0.6548681566074263, 33.73739138173772, w = WCS(f115grism_R[0]), 
-                        b_width = 10.0, b_length = 93.54)
+#     #This and subsequent are for the first order beams. Offsets taken from the config files
+#     # KVN :  Adding code to first check if the paths exist. Only create region file if filter/orientation is available 
+#     f115grism_R = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f115w*gr150r_drz_sci.fits")
+#     if len(f115grism_R) != 0:
+#         write_obj_region(parno, path_to_data, cat, "F115r_grism.reg", 0.6548681566074263, 33.73739138173772, w = WCS(f115grism_R[0]), 
+#                         b_width = 10.0, b_length = 93.54)
     
-    f115grism_C = glob.glob(path_to_data + "/Par" + str(parno) + "/DATA/*f115w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
-    if len(f115grism_C) != 0:
-        write_obj_region(parno, path_to_data, cat, "F115c_grism.reg", 31.91107156101387, 1.3922939626209256, w = WCS(f115grism_C[0]), 
-                        b_width = 97.28751330105166, b_length = 10.0)
+#     f115grism_C = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f115w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
+#     if len(f115grism_C) != 0:
+#         write_obj_region(parno, path_to_data, cat, "F115c_grism.reg", 31.91107156101387, 1.3922939626209256, w = WCS(f115grism_C[0]), 
+#                         b_width = 97.28751330105166, b_length = 10.0)
 
-    f150grism_R = glob.glob(path_to_data + "/Par" + str(parno) + "/DATA/*f150w*gr150r_drz_sci.fits") # Added KVN 19-Aug-2024
-    if len(f150grism_R) != 0:
-        write_obj_region(parno, path_to_data, cat, "F150r_grism.reg", 0.6548681566074263, 106.79254657227568, w = WCS(f150grism_R[0]), 
-                        b_width = 10.0, b_length = 93.54)
+#     f150grism_R = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f150w*gr150r_drz_sci.fits") # Added KVN 19-Aug-2024
+#     if len(f150grism_R) != 0:
+#         write_obj_region(parno, path_to_data, cat, "F150r_grism.reg", 0.6548681566074263, 106.79254657227568, w = WCS(f150grism_R[0]), 
+#                         b_width = 10.0, b_length = 93.54)
     
-    f150grism_C = glob.glob(path_to_data + "/Par" + str(parno) + "/DATA/*f150w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
-    if len(f150grism_C) != 0:
-        write_obj_region(parno, path_to_data, cat, "F150c_grism.reg", 96.44444, 0.6548681566074263, w = WCS(f150grism_C[0]), 
-                        b_width = 93.54, b_length = 10.0)
+#     f150grism_C = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f150w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
+#     if len(f150grism_C) != 0:
+#         write_obj_region(parno, path_to_data, cat, "F150c_grism.reg", 96.44444, 0.6548681566074263, w = WCS(f150grism_C[0]), 
+#                         b_width = 93.54, b_length = 10.0)
     
-    f200grism_R = glob.glob(path_to_data + "/Par" + str(parno) + "/DATA/*f200w*gr150r_drz_sci.fits") # Added KVN 19-Aug-2024
-    if len(f200grism_R) != 0:    
-        write_obj_region(parno, path_to_data, cat, "F200r_grism.reg", 0.6548681566074263, 204.8370874255101, w = WCS(f200grism_R[0]), 
-                        b_width = 10.0, b_length = 131.78)        
+#     f200grism_R = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f200w*gr150r_drz_sci.fits") # Added KVN 19-Aug-2024
+#     if len(f200grism_R) != 0:    
+#         write_obj_region(parno, path_to_data, cat, "F200r_grism.reg", 0.6548681566074263, 204.8370874255101, w = WCS(f200grism_R[0]), 
+#                         b_width = 10.0, b_length = 131.78)        
     
-    f200grism_C = glob.glob(path_to_data + "/Par" + str(parno) + "/DATA/*f200w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
-    if len(f200grism_C) != 0:
-        write_obj_region(parno, path_to_data, cat, "F200c_grism.reg", 200.9228, 0.6548681566074263, w = WCS(f200grism_C[0]), 
-                        b_width = 127.806, b_length = 10.0)        
+#     f200grism_C = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f200w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
+#     if len(f200grism_C) != 0:
+#         write_obj_region(parno, path_to_data, cat, "F200c_grism.reg", 200.9228, 0.6548681566074263, w = WCS(f200grism_C[0]), 
+#                         b_width = 127.806, b_length = 10.0)        
     
 
