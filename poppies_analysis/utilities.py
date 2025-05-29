@@ -417,7 +417,7 @@ def make_file_structure(path_to_data,par):
         print('Creating DirectImage directory')
         os.mkdir(directpath)
 
-    spec1d2dfiles = glob.glob(path_to_data + "/POPPIES" + str(par) + "/jw*_ext/*.fits")
+    spec1d2dfiles = glob.glob(path_to_data + str(par) + "/jw*_ext/*.fits")
 
     if len(spec1d2dfiles) != 0:
         print('Moving 1D and 2D spec files to correct path')
@@ -428,7 +428,7 @@ def make_file_structure(path_to_data,par):
 
             os.system(command)
 
-    directfiles = glob.glob(path_to_data + "/POPPIES" + str(par) + "/*_i2d.fits")
+    directfiles = glob.glob(path_to_data + str(par) + "/*_i2d.fits")
 
 
     if len(directfiles) != 0:

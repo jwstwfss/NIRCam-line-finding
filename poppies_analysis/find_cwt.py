@@ -143,7 +143,7 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, filter
 
     return [lam[real_peaks], flux[real_peaks], npix_real, snr_real, cwarray, cont_filter, lam[peaks], flux[peaks]]
 
-## FH modifying 3/14/25
+## FH modified 5/29/25 - to combine two different runs
 # FH 2/10/25 - this version looks at one filter only:
 def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     # no inputs and run from inside the data directory
