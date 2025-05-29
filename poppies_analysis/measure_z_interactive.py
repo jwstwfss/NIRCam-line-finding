@@ -1691,14 +1691,13 @@ def inspect_object_all(
     outdir = "POPPIES%s_output_%s" % (par, user)
 
     if path_to_data == " ":
-        # specnameg1 = ("POPPIES%i_" + str(obj).zfill(5) + ".G115_1D.dat" % (par)) 
         specnameA_C = ("A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = ("A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = ("B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameB_R = ("B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
 
     else:
-        base_path = path_to_data+ "POPPIES"+ str(par)+ "/Spectra/"
+        base_path = path_to_data+ str(par)+ "/Spectra/"
         specnameA_C = (base_path + "A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = (base_path + "A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = (base_path + "B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
@@ -3679,7 +3678,7 @@ def measure_z_interactive_all(
         print(os.getcwd())
         print("")
 
-    tmp = glob(path_to_data + "POPPIES" + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
+    tmp = glob(path_to_data + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
     print_prompt(
         "You are about to inspect emission lines identified in parallel field {}".format(parno),
         prompt_type="interim",
@@ -3812,12 +3811,12 @@ def measure_z_interactive_all(
     #do this for each field separately (for now)
     for filter in filters_field:
 
-        print(filter,path_to_data + "POPPIES" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+        print(filter,path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
 
         try:
-            secats = glob(path_to_data + "POPPIES" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+            secats = glob(path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
         except:
-            secats = glob(path_to_data + "POPPIES" + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
+            secats = glob(path_to_data + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
         
         secats.sort()
 
@@ -4334,14 +4333,13 @@ def inspect_object(
     outdir = "POPPIES%s_output_%s" % (par, user)
 
     if path_to_data == " ":
-        # specnameg1 = ("POPPIES%i_" + str(obj).zfill(5) + ".G115_1D.dat" % (par)) 
         specnameA_C = ("A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = ("A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = ("B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameB_R = ("B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
 
     else:
-        base_path = path_to_data+ "POPPIES"+ str(par)+ "/Spectra/"
+        base_path = path_to_data + str(par)+ "/Spectra/"
         specnameA_C = (base_path + "A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = (base_path + "A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = (base_path + "B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
@@ -4729,7 +4727,7 @@ def inspect_object(
                     
                 ## check if R-spec exists or not - else just make C-spec the spec_val (FH 3/6/25)
                 if len(spdata[0])==0:
-                    print("R-spectrum doesn't exist - fittin to C by default")
+                    print("R-spectrum doesn't exist - fitting to C by default")
                     spec_val = spec_val2
                     spec_lam = spec_lam2
                     spec_unc = spec_unc2
@@ -5027,7 +5025,7 @@ def inspect_object(
 
             ## check if R-spec exists or not - else just make C-spec the spec_val (FH 3/6/25)
             if len(spdata[0])==0:
-                print("R-spectrum doesn't exist - fittin to C by default")
+                print("R-spectrum doesn't exist - fitting to C by default")
                 spec_val = spec_val2
                 spec_lam = spec_lam2
                 spec_unc = spec_unc2
@@ -6143,7 +6141,7 @@ def measure_z_interactive(
         print(os.getcwd())
         print("")
 
-    tmp = glob(path_to_data + "POPPIES" + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
+    tmp = glob(path_to_data + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
     print_prompt(
         "You are about to inspect emission lines identified in parallel field {}".format(parno),
         prompt_type="interim",
@@ -6277,12 +6275,12 @@ def measure_z_interactive(
     #do this for each field separately (for now)
     for filter in filters_field:
 
-        print(filter,path_to_data + "POPPIES" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+        print(filter,path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
 
         try:
-            secats = glob(path_to_data + "POPPIES" + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+            secats = glob(path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
         except:
-            secats = glob(path_to_data + "POPPIES" + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
+            secats = glob(path_to_data + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
 
         secats.sort()
 

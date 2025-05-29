@@ -2,7 +2,7 @@
 
 Farhan Hasan, created 2/13/2025 ([fhasan@stsci.edu](mailto:fhasan@stsci.edu))
 
-Updated 5/15/2025
+Last updated 5/29/2025
 
 This software is used to identify line-emitting objects and measure emission line properties in JWST NIRCam WFSS Grism spectra, based on the pure-parallel survey POPPIES (PID#5398).
 
@@ -71,14 +71,13 @@ e.g., export PYTHONPATH= "/Users/fhasan/POPPIES/line-finding/poppies_analysis/"
 Steps for running the line-finding tool after installing are as follows:
 
 1. Download the data.
-2. Rename the folder POPPIES[Number] from [Number].
-3. Point CODE_DIR, OUTPUT_DIR, and DATA_DIR to the appropriate directories in the [mainPOPPIES.py](http://mainPOPPIES.py) file.
-4. Run `python mainPOPPIES.py`
-5. Enter the number of the parallel field (e.g., "004").
-6. Hit ENTER or 'c' to go through the wavelength decomposition and find peaks, and only go through candidates identified by this method, or 'all' to go through all objects identified photometrically.
-7. Enter a username.
-8. Inspect objects individually.
-9. Choose what to do with each object (accept, reject, etc.). The outputs are saved in the OUTPUT_DIR directory, including line catalogs and 1D spectra figures.
+2. Point CODE_DIR, OUTPUT_DIR, and DATA_DIR to the appropriate directories in the [mainPOPPIES.py](http://mainPOPPIES.py) file.
+3. Run `python mainPOPPIES.py`
+4. Enter the number of the parallel field (e.g., "004").
+5. Hit ENTER or 'c' to go through the wavelength decomposition and find peaks, and only go through candidates identified by this method, or 'all' to go through all objects identified photometrically.
+6. Enter a username.
+7. Inspect objects individually.
+8. Choose what to do with each object (accept, reject, etc.). The outputs are saved in the OUTPUT_DIR directory, including line catalogs and 1D spectra figures.
 
 ----
 

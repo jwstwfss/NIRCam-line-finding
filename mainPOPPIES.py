@@ -46,13 +46,13 @@ if __name__ == "__main__":
     utilities.make_file_structure(DATA_DIR,str(parno))
    
     # FH 2/3/25: check for how many filters there are for this field:
-    filterfile = glob.glob(DATA_DIR + "POPPIES" + str(parno) + "/POPPIES{}_filters.dat".format(parno))
+    filterfile = glob.glob(DATA_DIR + str(parno) + "/POPPIES{}_filters.dat".format(parno))
    
     # FH 2/3/25: make list of filters if one does not exist
     if len(filterfile) == 0:
         utilities.find_filters(DATA_DIR,str(parno))
 
-        filterfile = glob.glob(DATA_DIR + "POPPIES" + str(parno) + "/POPPIES{}_filters.dat".format(parno))
+        filterfile = glob.glob(DATA_DIR + str(parno) + "/POPPIES{}_filters.dat".format(parno))
 
     filterlist = asciitable.read(filterfile[0])
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     objectlist = asciitable.read(objectfiles[0],names=['parno','filter','id'])
 
     # Check if .dat spec files exists or not
-    specdatfiles = glob.glob(DATA_DIR + "POPPIES" + str(parno) + "/Spectra/*.dat")
+    specdatfiles = glob.glob(DATA_DIR + str(parno) + "/Spectra/*.dat")
     
     if len(specdatfiles) == 0:
         # utilities.add_header_keyword(parno = parno, path_to_data = DATA_DIR) ## this one is commented out until RADESYS headers are provided in the reduced data
@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
 
     # check if region files exist. If not, run code to create necessary region files
-    regionfiles = glob.glob(DATA_DIR + "/POPPIES" + str(parno) + "/*.reg")
+    regionfiles = glob.glob(DATA_DIR + str(parno) + "/*.reg")
     
     if len(regionfiles) == 0:
         print('\033[94m' + "No region files found, creating those for you now."  + '\033[0m')

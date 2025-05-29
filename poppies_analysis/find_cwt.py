@@ -152,12 +152,12 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
         os.mkdir('linelist')
 
     ## FH updated 12/23/24
-    print('Looking for spectra here: ', str(path_to_data)+'POPPIES'+str(parno)+'/Spectra/*_1D.dat')
+    print('Looking for spectra here: ', str(path_to_data)+str(parno)+'/Spectra/*_1D.dat')
 
     ## Find GRISM R and C files:
-    Rfiles = glob(str(path_to_data)+'POPPIES'+str(parno)+'/Spectra/*_{}_R_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
+    Rfiles = glob(str(path_to_data)+str(parno)+'/Spectra/*_{}_R_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
     Rfiles.sort()
-    Cfiles = glob(str(path_to_data)+'POPPIES'+str(parno)+'/Spectra/*_{}_C_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
+    Cfiles = glob(str(path_to_data)+str(parno)+'/Spectra/*_{}_C_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
     Cfiles.sort()
 
     # M.D.R. - 10/08/2020
@@ -166,12 +166,10 @@ def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
     config_pars = read_config(str(path_to_code)+'/default.config')
     
     # FH - 12/18/24
-    print('Searching for catalogs at: ' + str(path_to_data) + "POPPIES" + str(parno) + "/*_{}_i2d.cat".format(str(filter)))
+    print('Searching for catalogs at: ' + str(path_to_data) + str(parno) + "/*_{}_i2d.cat".format(str(filter)))
     # catalogs = glob(str(path_to_data) +'POPPIES'+str(parno)+'/DATA/DIRECT_GRISM/POPPIES'+str(parno)+'_phot*.fits') # get list of available catalogs
 
-    catalogs = glob(path_to_data + "POPPIES" + str(parno) + "/*_{}_i2d.cat".format(str(filter))) 
-
-    # catalogs =  glob(path_to_data + "POPPIES" + str(parno) + "/DATA/DIRECT_GRISM/*_A_*_i2d.cat") 
+    catalogs = glob(path_to_data + str(parno) + "/*_{}_i2d.cat".format(str(filter))) 
     
     catalogs.sort()
     print('')

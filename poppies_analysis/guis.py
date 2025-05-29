@@ -38,11 +38,11 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
 
     def parse_filename(path_to_data, parno, obid):
         # return path_to_data + f"/POPPIES{parno}/spec2D/POPPIES{parno}_{obid:05d}.2D.fits"
-        f1 = glob(path_to_data + f"/POPPIES{parno}/Spec1D2D/A_{filter}_R_{obid}.V4.fits")  
-        f2 = glob(path_to_data + f"/POPPIES{parno}/Spec1D2D/A_{filter}_C_{obid}.V4.fits") 
+        f1 = glob(path_to_data + f"/{parno}/Spec1D2D/A_{filter}_R_{obid}.V4.fits")  
+        f2 = glob(path_to_data + f"/{parno}/Spec1D2D/A_{filter}_C_{obid}.V4.fits") 
 
-        f3 = glob(path_to_data + f"/POPPIES{parno}/Spec1D2D/B_{filter}_R_{obid}.V4.fits")  
-        f4 = glob(path_to_data + f"/POPPIES{parno}/Spec1D2D/B_{filter}_C_{obid}.V4.fits")         
+        f3 = glob(path_to_data + f"/{parno}/Spec1D2D/B_{filter}_R_{obid}.V4.fits")  
+        f4 = glob(path_to_data + f"/{parno}/Spec1D2D/B_{filter}_C_{obid}.V4.fits")         
         
         return f1,f2,f3,f4
 
@@ -171,7 +171,6 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
 
 
     if grismc_file is not None:
-
         # for a given data file extract the data information that we want to be displayed in ds9
         spec2D_key_DS9 = extract_image_extensions_key(grismc_file)
 
@@ -181,6 +180,8 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
             # get key-values for frame id and extension
             frame_id = (int(spec2D_key_DS9[key]["frame_id"]) - 1) + 3    ## +3 bc new oreintation here
             ext = spec2D_key_DS9[key]["ext"]
+
+            # xpix_vals,ypix_vals = [], []
 
             # # display frame
             if ext is not None:
@@ -207,7 +208,8 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
 
                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
-
+                # xpix_vals.append(xpix),ypix_vals.append(ypix)
+                # print('IM HERE ', xpix,ypix)
 
 
             # else:
@@ -226,8 +228,12 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid mode manual")
     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile mode row")
     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid layout 1 6")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width 1600")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height 1200")
+
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width 1600")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height 1200")
+# #
+    # if (grismc_file) or (grismr_file):
+    #     print('HEYYYYY ', xpix,ypix)
 
     try:  #FH modified 3/6/25
         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
@@ -323,7 +329,7 @@ def showDirect_POPPIES(parno, filter="F444W", path_to_data=""):
     # grism_file_2 = str(grism_file).split('DATA/')[1]
 
 
-    image_files = glob(path_to_data + 'POPPIES'+str(parno)+'/DirectImages/*_{}_i2d.fits'.format(filter))
+    image_files = glob(path_to_data + str(parno)+'/DirectImages/*_{}_i2d.fits'.format(filter))
     
     image_file = image_files[0]
 
@@ -351,8 +357,8 @@ def showDirect_POPPIES(parno, filter="F444W", path_to_data=""):
             if full_path:
                 paths.append(full_path)
             else:
-                print(f"Warning: File {filename} not found; assuming it lives in path_to_data/data/POPPIES#/DirectImages.")
-                full_path = find_file(path_to_data + '/POPPIES'+str(parno)+'/DirectImages/', filename)
+                print(f"Warning: File {filename} not found; assuming it lives in path_to_data/Data/#/DirectImages.")
+                full_path = find_file(path_to_data+str(parno)+'/DirectImages/', filename)
                 paths.append(full_path)
                 print(paths)
                 
@@ -380,8 +386,8 @@ def showDirect_POPPIES(parno, filter="F444W", path_to_data=""):
                 paths.append(full_path)
             else:
                 # KVN: assuming same pathing structure
-                print(f"Warning: File {filename} not found; assuming it lives in path_to_data/data/POPPIES#/DirectImages.")
-                full_path = find_file(path_to_data + '/POPPIES'+str(parno)+'/DirectImages/', filename)
+                print(f"Warning: File {filename} not found; assuming it lives in path_to_data/Data/#/DirectImages.")
+                full_path = find_file(path_to_data +str(parno)+'/DirectImages/', filename)
                 paths.append(full_path)
                 
         region_paths[filter_name] = paths

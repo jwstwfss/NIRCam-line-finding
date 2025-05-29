@@ -125,12 +125,12 @@ def create_regions(parno, path_to_data, filters):
     ## For now, just making separate region files for separate filters
     for filt in filters:
             
-        phot_cat = glob.glob(path_to_data + "POPPIES" + str(parno) + "/*_{}_i2d.cat".format(str(filt))) 
+        phot_cat = glob.glob(path_to_data + str(parno) + "/*_{}_i2d.cat".format(str(filt))) 
 
         cat=asciitable.read(phot_cat[0])
 
         # Direct image region files
-        f = open(path_to_data + "/POPPIES" + str(parno) + "/POPPIES" + str(parno) + 'regions_phot_{}.reg'.format(str(filt)),'a')
+        f = open(path_to_data + "/" + str(parno) + "/POPPIES" + str(parno) + 'regions_phot_{}.reg'.format(str(filt)),'a')
         for i in range(len(cat)):
             f.write("WCS;circle("+str(cat['RA'][i])+','+str(cat['DEC'][i])+',0.5") # color=green text={'+str(cat['NUMBER'][i])+'} font="times 10 bold italic" textangle=30\n')
         f.close()
@@ -210,7 +210,7 @@ def add_header_keyword(parno, path_to_data):
 ## adapting for POPPIES, FH 1/23/25
 def make_spectra_dat_files(parno, path_to_data, create_files_anyway = False):
 
-    main_directory = os.path.join(path_to_data, f"POPPIES{parno:s}")
+    main_directory = os.path.join(path_to_data, f"{parno:s}")
     spec_directory = os.path.join(main_directory, "Spec1D2D")
 
     # os.system(f"mkdir -p {os.path.join(main_directory, 'Spectra'):s}")
@@ -303,7 +303,7 @@ def make_spectra_dat_files(parno, path_to_data, create_files_anyway = False):
 def find_filters(path_to_data,par):
     ''' searches catalogs for list of filters - and orientations '''
     
-    cats = glob.glob(path_to_data + "POPPIES" + str(par) + "/*_i2d.cat")
+    cats = glob.glob(path_to_data + str(par) + "/*_i2d.cat")
 
     filts = []
 
@@ -315,15 +315,15 @@ def find_filters(path_to_data,par):
 
     unique_filts = np.unique(filts)
 
-    outfile = open(path_to_data+"POPPIES" + str(par)+'/POPPIES{}_filters.dat'.format(par), 'w')
+    outfile = open(path_to_data + str(par)+'/POPPIES{}_filters.dat'.format(par), 'w')
 
     outfile.write('filter ' + 'orientation' + '\n')
 
     for i in unique_filts:
 
-        Rfiles = glob.glob(path_to_data + "POPPIES" + str(par) + "/Spec1D2D/*_{}_R_*.fits".format(i))
+        Rfiles = glob.glob(path_to_data + str(par) + "/Spec1D2D/*_{}_R_*.fits".format(i))
 
-        Cfiles = glob.glob(path_to_data + "POPPIES" + str(par) + "/Spec1D2D/*_{}_C_*.fits".format(i))
+        Cfiles = glob.glob(path_to_data + str(par) + "/Spec1D2D/*_{}_C_*.fits".format(i))
 
         if ((len(Rfiles) != 0) and (len(Cfiles) != 0)):
 
@@ -354,7 +354,7 @@ def make_full_list(path_to_data,path_to_out,par,filters,verbose=True):
     # find all the catalogs:
     for filt in filters:
 
-        secats = glob.glob(path_to_data + "POPPIES" + str(par) + "/*_{}_i2d.cat".format(str(filt))) 
+        secats = glob.glob(path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filt))) 
         
         secats.sort()
 
@@ -395,9 +395,9 @@ def make_full_list(path_to_data,path_to_out,par,filters,verbose=True):
 ## FH 2/3/25
 def make_file_structure(path_to_data,par):
 
-    spec1d2dpath = path_to_data + "/POPPIES" + str(par) + "/Spec1D2D/"
-    spectrapath = path_to_data + "/POPPIES" + str(par) + "/Spectra/"
-    directpath = path_to_data + "/POPPIES" + str(par) + "/DirectImages/"
+    spec1d2dpath = path_to_data + str(par) + "/Spec1D2D/"
+    spectrapath = path_to_data + str(par) + "/Spectra/"
+    directpath = path_to_data + str(par) + "/DirectImages/"
 
     spec1d2d = glob.glob(spec1d2dpath)
     
