@@ -144,21 +144,21 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, filter
     return [lam[real_peaks], flux[real_peaks], npix_real, snr_real, cwarray, cont_filter, lam[peaks], flux[peaks]]
 
 
-#### FH updated 5/29/25 - combining two different CWT runs 
+#### FH updated 5/29/25 - combining two different CWT runs and for different file structure 
 # FH 2/10/25 - this version looks at one filter only:
-def loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
+def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W"):
     # no inputs and run from inside the data directory
     # KVN updating this to write the linelist to the 'output' directory... take path to data as input
     if os.path.exists('linelist') == False:
         os.mkdir('linelist')
 
     ## FH updated 12/23/24
-    print('Looking for spectra here: ', str(path_to_data)+str(parno)+'/Spectra/*_1D.dat')
+    print('Looking for spectra here: ', str(path_to_out)+str(parno)+'/Spectra/*_1D.dat')
 
     ## Find GRISM R and C files:
-    Rfiles = glob(str(path_to_data)+str(parno)+'/Spectra/*_{}_R_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
+    Rfiles = glob(str(path_to_out)+str(parno)+'/Spectra/*_{}_R_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
     Rfiles.sort()
-    Cfiles = glob(str(path_to_data)+str(parno)+'/Spectra/*_{}_C_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
+    Cfiles = glob(str(path_to_out)+str(parno)+'/Spectra/*_{}_C_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
     Cfiles.sort()
 
     # FH - 12/18/24

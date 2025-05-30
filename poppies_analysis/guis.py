@@ -20,7 +20,8 @@ from guis_helpers import display_image_in_DS9, display_images_in_DS9
 # https://www.astro.louisville.edu/software/xmccd/archive/xmccd-4.1/xmccd-4.1e/docs/xpa/xpa.pdf
 # http://ds9.si.edu/doc/ref/xpa.html#lock    
 
-### FH updating 1/13/25
+
+## FH updated 5/30/25
 def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "squared"):
     """Display spec2D cutouts in DS9.
 
@@ -38,11 +39,11 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
 
     def parse_filename(path_to_data, parno, obid):
         # return path_to_data + f"/POPPIES{parno}/spec2D/POPPIES{parno}_{obid:05d}.2D.fits"
-        f1 = glob(path_to_data + f"/{parno}/Spec1D2D/A_{filter}_R_{obid}.V4.fits")  
-        f2 = glob(path_to_data + f"/{parno}/Spec1D2D/A_{filter}_C_{obid}.V4.fits") 
+        f1 = glob(path_to_data + f"/{parno}/jw*/A_{filter}_R_{obid}.V4.fits")  
+        f2 = glob(path_to_data + f"/{parno}/jw*/A_{filter}_C_{obid}.V4.fits") 
 
-        f3 = glob(path_to_data + f"/{parno}/Spec1D2D/B_{filter}_R_{obid}.V4.fits")  
-        f4 = glob(path_to_data + f"/{parno}/Spec1D2D/B_{filter}_C_{obid}.V4.fits")         
+        f3 = glob(path_to_data + f"/{parno}/jw*/B_{filter}_R_{obid}.V4.fits")  
+        f4 = glob(path_to_data + f"/{parno}/jw*/B_{filter}_C_{obid}.V4.fits")         
         
         return f1,f2,f3,f4
 
@@ -316,8 +317,8 @@ def find_file(directory, filename):
             return os.path.join(root, filename)
     return None
 
-# FH updated 2/7/25
-def showDirect_POPPIES(parno, filter="F444W", path_to_data=""):
+## FH updated 5/30/25
+def showDirect_POPPIES(parno, filter="F444W", path_to_data="", path_to_out=""):
     """Displays direct images for each of the filters"""
 
     ### KVN's quick fix to images having different names in different fields
@@ -329,11 +330,12 @@ def showDirect_POPPIES(parno, filter="F444W", path_to_data=""):
     # grism_file_2 = str(grism_file).split('DATA/')[1]
 
 
-    image_files = glob(path_to_data + str(parno)+'/DirectImages/*_{}_i2d.fits'.format(filter))
+    image_files = glob(path_to_data + str(parno)+'/*_{}_i2d.fits'.format(filter))
     
     image_file = image_files[0]
 
-    image_file_ext = str(image_file).split('DirectImages/')
+    # image_file_ext = str(image_file).split('DirectImages/')
+    image_file_ext = str(image_file).split(str(parno)+'/')
     image_file_2 = image_file_ext[1]
 
     images = {
@@ -357,8 +359,8 @@ def showDirect_POPPIES(parno, filter="F444W", path_to_data=""):
             if full_path:
                 paths.append(full_path)
             else:
-                print(f"Warning: File {filename} not found; assuming it lives in path_to_data/Data/#/DirectImages.")
-                full_path = find_file(path_to_data+str(parno)+'/DirectImages/', filename)
+                print(f"Warning: File {filename} not found; assuming it lives in path_to_data/#/")
+                full_path = find_file(path_to_data+str(parno)+'/', filename)
                 paths.append(full_path)
                 print(paths)
                 
@@ -380,14 +382,14 @@ def showDirect_POPPIES(parno, filter="F444W", path_to_data=""):
     for filter_name, filenames in region_files.items():
         paths = []
         for filename in filenames:
-            full_path = find_file(path_to_data, filename)
+            full_path = find_file(path_to_out, filename)
             # print(full_path)
             if full_path:
                 paths.append(full_path)
             else:
                 # KVN: assuming same pathing structure
-                print(f"Warning: File {filename} not found; assuming it lives in path_to_data/Data/#/DirectImages.")
-                full_path = find_file(path_to_data +str(parno)+'/DirectImages/', filename)
+                print(f"Warning: File {filename} not found; assuming it lives in path_to_out/#/")
+                full_path = find_file(path_to_out + str(parno)+ '/', filename)
                 paths.append(full_path)
                 
         region_paths[filter_name] = paths

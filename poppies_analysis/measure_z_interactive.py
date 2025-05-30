@@ -1676,8 +1676,8 @@ def inspect_object_all(
     show_dispersed=False,
     stored_fits=False,
     path_to_data=" ",
-    path_to_output=" ",
     path_to_code=" ",
+    path_to_out=" ",
     orientation='',
     comp_fit = False,
     polycont_fit = False,
@@ -1690,14 +1690,14 @@ def inspect_object_all(
     # set up and filenames
     outdir = "POPPIES%s_output_%s" % (par, user)
 
-    if path_to_data == " ":
+    if path_to_out == " ":
         specnameA_C = ("A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = ("A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = ("B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameB_R = ("B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
 
     else:
-        base_path = path_to_data+ str(par)+ "/Spectra/"
+        base_path = path_to_out+ str(par)+ "/Spectra/"
         specnameA_C = (base_path + "A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = (base_path + "A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = (base_path + "B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
@@ -3368,8 +3368,8 @@ def inspect_object_all(
         elif option.strip().lower() == "reload":
             print("Reloading images and 2D spectra")
             # showDirect_POPPIES(par, filter, path_to_data)
-            panDirect_POPPIES(ra, dec)
             showSpec2D_POPPIES(par, obj,  filter, path_to_data)
+            panDirect_POPPIES(ra, dec)
 
     #     # reload direct image region files
     #     elif option.strip().lower() == "dr":
@@ -3590,6 +3590,7 @@ def measure_z_interactive_all(
     linelistfile=" ",
     path_to_data=" ",
     path_to_code=" ",
+    path_to_out=" ",
     show_dispersed=True,
     path_to_stored_fits=" ",
     print_colors=True,
@@ -3678,7 +3679,7 @@ def measure_z_interactive_all(
         print(os.getcwd())
         print("")
 
-    tmp = glob(path_to_data + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
+    tmp = glob(path_to_out + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
     print_prompt(
         "You are about to inspect emission lines identified in parallel field {}".format(parno),
         prompt_type="interim",
@@ -3948,7 +3949,7 @@ def measure_z_interactive_all(
 
         # show direct images of POPPIES data
         # showDirect_PASSAGE(parno=parnos[0], path_to_data=path_to_data)
-        showDirect_POPPIES(parno, filter, path_to_data)
+        showDirect_POPPIES(parno, filter, path_to_data, path_to_out)
 
     # #     if show_dispersed:  # MB
     # #         showDispersed(objid_unique[0], parnos[0], load_image=True, path_to_data  = path_to_data)
@@ -4120,7 +4121,8 @@ def measure_z_interactive_all(
                     show_dispersed=show_dispersed,
                     stored_fits=inpickles,
                     path_to_data=path_to_data, 
-                    path_to_code=path_to_code,)
+                    path_to_code=path_to_code,
+                    path_to_out=path_to_out)
             else:
                 inspect_object_all(
                     user,
@@ -4135,7 +4137,8 @@ def measure_z_interactive_all(
                     show_dispersed=show_dispersed,
                     stored_fits=False,
                     path_to_data=path_to_data, 
-                    path_to_code=path_to_code,)
+                    path_to_code=path_to_code,
+                    path_to_out=path_to_out)
         
                 # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
                 #     inspect_object_all(
@@ -4252,6 +4255,7 @@ def measure_z_interactive_all(
                                 stored_fits=inpickles,
                                 path_to_data=path_to_data, 
                                 path_to_code=path_to_code,
+                                path_to_out=path_to_out
                                 )
                         else:
                             inspect_object_all(
@@ -4268,6 +4272,7 @@ def measure_z_interactive_all(
                                 stored_fits=False,
                                 path_to_data=path_to_data, 
                                 path_to_code=path_to_code,
+                                path_to_out=path_to_out
                                 )
 
                     else:
@@ -4303,6 +4308,7 @@ def measure_z_interactive_all(
 
 ### FH 2/10/25:
 ## This version is the classic one, i.e., for CWT
+## FH modified 5/30/25
 def inspect_object(
     user,
     par,
@@ -4318,7 +4324,7 @@ def inspect_object(
     show_dispersed=False,
     stored_fits=False,
     path_to_data=" ",
-    path_to_output=" ",
+    path_to_out=" ",
     path_to_code=" ",
     orientation="",
     comp_fit = False,
@@ -4332,14 +4338,14 @@ def inspect_object(
     # set up and filenames
     outdir = "POPPIES%s_output_%s" % (par, user)
 
-    if path_to_data == " ":
+    if path_to_out == " ":
         specnameA_C = ("A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = ("A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = ("B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameB_R = ("B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
 
     else:
-        base_path = path_to_data + str(par)+ "/Spectra/"
+        base_path = path_to_out + str(par)+ "/Spectra/"
         specnameA_C = (base_path + "A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
         specnameA_R = (base_path + "A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
         specnameB_C = (base_path + "B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
@@ -5843,8 +5849,8 @@ def inspect_object(
         elif option.strip().lower() == "reload":
             print("Reloading images and 2D spectra")
             # showDirect_POPPIES(par, filter, path_to_data)
-            panDirect_POPPIES(ra, dec)
             showSpec2D_POPPIES(par, obj,  filter, path_to_data)
+            panDirect_POPPIES(ra, dec)
 
         # # reload direct image region files
         # elif option.strip().lower() == "dr":
@@ -6057,6 +6063,7 @@ def measure_z_interactive(
     linelistfile=" ",
     path_to_data=" ",
     path_to_code=" ",
+    path_to_out=" ",
     show_dispersed=True,
     path_to_stored_fits=" ",
     print_colors=True,
@@ -6141,7 +6148,7 @@ def measure_z_interactive(
         print(os.getcwd())
         print("")
 
-    tmp = glob(path_to_data + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
+    tmp = glob(path_to_out + str(par) + "/Spectra/*.dat")  # MDR 2022/05/17 and updated KVN 2024/07/31
     print_prompt(
         "You are about to inspect emission lines identified in parallel field {}".format(parno),
         prompt_type="interim",
@@ -6405,7 +6412,7 @@ def measure_z_interactive(
         # # )
 
         # show direct images of POPPIES data
-        showDirect_POPPIES(parno, filter, path_to_data)
+        showDirect_POPPIES(parno, filter, path_to_data, path_to_out)
 
         #     if show_dispersed:  # MB
         #         showDispersed(objid_unique[0], parnos[0], load_image=True, path_to_data  = path_to_data)
@@ -6577,7 +6584,7 @@ def measure_z_interactive(
                     allobjects,
                     show_dispersed=show_dispersed,
                     stored_fits=inpickles,
-                    path_to_data=path_to_data, path_to_code=path_to_code)
+                    path_to_data=path_to_data, path_to_code=path_to_code, path_to_out=path_to_out)
             else:
                 inspect_object(
                     user,
@@ -6593,7 +6600,7 @@ def measure_z_interactive(
                     allobjects,
                     show_dispersed=show_dispersed,
                     stored_fits=False,
-                    path_to_data=path_to_data, path_to_code=path_to_code)
+                    path_to_data=path_to_data, path_to_code=path_to_code, path_to_out=path_to_out)
                 # if len(glob.glob(path_to_wisp_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
                 #     inspect_object(
                 #         user,
@@ -6727,7 +6734,7 @@ def measure_z_interactive(
                                 allobjects,
                                 show_dispersed=show_dispersed,
                                 stored_fits=inpickles,
-                                path_to_data=path_to_data, path_to_code=path_to_code
+                                path_to_data=path_to_data, path_to_code=path_to_code,path_to_out=path_to_out
                                 )
                         else:
                             inspect_object(
@@ -6744,7 +6751,7 @@ def measure_z_interactive(
                                 allobjects,
                                 show_dispersed=show_dispersed,
                                 stored_fits=False,
-                                path_to_data=path_to_data, path_to_code=path_to_code
+                                path_to_data=path_to_data, path_to_code=path_to_code,path_to_out=path_to_out
                                 )
                             # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
                             #     inspect_object(

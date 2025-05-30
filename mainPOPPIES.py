@@ -17,9 +17,9 @@ os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_spec2
 
 
 ### Please update these directories to match yours:
-CODE_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/line-finding/poppies_analysis"
-OUTPUT_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/Output"
-DATA_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/Data/"
+CODE_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/line-finding/poppies_analysis"   ### This is where the code is
+OUTPUT_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/Output/"  ###This will have both output linelists and data directories such as "Spectra"
+DATA_DIR = "/Users/fhasan/Desktop/Research_STScI/POPPIES/Data/" ###Where data is downloaded - this will not be modified at all
 
 
 #############################################################
@@ -42,17 +42,26 @@ while True:
 
 if __name__ == "__main__":
     
+    ### make folder with field number if one does not exist
+    dirpath = OUTPUT_DIR+str(parno)
+    pardir = glob.glob(dirpath)
+    if len(pardir) == 0:
+        print('Creating Spec1D2D directory')    
+        os.mkdir(dirpath)
+    
+    ## FH updated these 5/29/25:
+
     ## FH 2/3/25: make file structure if one does not exist for the data:
-    utilities.make_file_structure(DATA_DIR,str(parno))
+    utilities.make_file_structure(OUTPUT_DIR,str(parno))
    
-    # FH 2/3/25: check for how many filters there are for this field:
-    filterfile = glob.glob(DATA_DIR + str(parno) + "/POPPIES{}_filters.dat".format(parno))
+    # check for how many filters there are for this field:
+    filterfile = glob.glob(OUTPUT_DIR + str(parno) + "/POPPIES{}_filters.dat".format(parno))
    
     # FH 2/3/25: make list of filters if one does not exist
     if len(filterfile) == 0:
-        utilities.find_filters(DATA_DIR,str(parno))
+        utilities.find_filters(DATA_DIR,OUTPUT_DIR,str(parno))
 
-        filterfile = glob.glob(DATA_DIR + str(parno) + "/POPPIES{}_filters.dat".format(parno))
+        filterfile = glob.glob(OUTPUT_DIR + str(parno) + "/POPPIES{}_filters.dat".format(parno))
 
     filterlist = asciitable.read(filterfile[0])
 
@@ -71,13 +80,13 @@ if __name__ == "__main__":
     objectlist = asciitable.read(objectfiles[0],names=['parno','filter','id'])
 
     # Check if .dat spec files exists or not
-    specdatfiles = glob.glob(DATA_DIR + str(parno) + "/Spectra/*.dat")
+    specdatfiles = glob.glob(OUTPUT_DIR + str(parno) + "/Spectra/*.dat")
     
     if len(specdatfiles) == 0:
-        # utilities.add_header_keyword(parno = parno, path_to_data = DATA_DIR) ## this one is commented out until RADESYS headers are provided in the reduced data
+        # OLD: utilities.add_header_keyword(parno = parno, path_to_data = DATA_DIR) ## this one is commented out until RADESYS headers are provided in the reduced data
 
         try:
-            utilities.make_spectra_dat_files(parno = parno, path_to_data = DATA_DIR)
+            utilities.make_spectra_dat_files(parno = parno, path_to_data = DATA_DIR, path_to_out = OUTPUT_DIR)
 
         except Exception as e:
             print('Error making spec dat files due to error: ', e )
@@ -85,28 +94,29 @@ if __name__ == "__main__":
 
 
     # check if region files exist. If not, run code to create necessary region files
-    regionfiles = glob.glob(DATA_DIR + str(parno) + "/*.reg")
+    regionfiles = glob.glob(OUTPUT_DIR + str(parno) + "/*.reg")
     
     if len(regionfiles) == 0:
         print('\033[94m' + "No region files found, creating those for you now."  + '\033[0m')
-        utilities.create_regions(parno, DATA_DIR, filterlist['filter'])
+        utilities.create_regions(parno, DATA_DIR, OUTPUT_DIR, filterlist['filter'])
 
 
     # move to the directory where you want your outputs.
     os.chdir(OUTPUT_DIR)
 
-    ## FH 2/3/25: ask user if they prefer CWT or full object list:
 
-    # objtypes = input("Please hit ENTER to go through all objects identified by SE, or 'c' for wavelength decomposition \n> ")
+    ## FH 2/3/25: ask user if they prefer CWT or full object list:
 
     objtypes = input("Please hit ENTER or 'c' to perform wavelength decomposition, or 'all' to go through all objects identified by SE \n> ")
 
     if objtypes.strip().lower() == "all":
 
         linelist = objectlist
-    
+        
+        ## updated 5/30/25:
         #run the measure_z_interactive code to go through objects individually:
-        poppies.measure_z_interactive_all(path_to_data=DATA_DIR, path_to_code=CODE_DIR, parno=parno)
+        # poppies.measure_z_interactive_all(path_to_data=DATA_DIR, path_to_code=CODE_DIR, parno=parno)
+        poppies.measure_z_interactive_all(path_to_data=DATA_DIR, path_to_code=CODE_DIR, path_to_out=OUTPUT_DIR, parno=parno)
 
 
     elif (objtypes == "") or (objtypes.strip().lower() == "c"):
@@ -118,10 +128,10 @@ if __name__ == "__main__":
         if len(linelist) == 0:
             print('\033[94m' + "No line list file found, creating the line list for you now." + '\033[0m')
             
-            poppies.loop_field_cwt(path_to_data=DATA_DIR, path_to_code=CODE_DIR, parno=parno)
+            poppies.loop_field_cwt(path_to_data=DATA_DIR, path_to_out=OUTPUT_DIR, path_to_code=CODE_DIR, parno=parno)
 
+        ## updated 5/30/25:
         #run the measure_z_interactive code to go through objects individually:
-        poppies.measure_z_interactive(path_to_data=DATA_DIR, path_to_code=CODE_DIR, parno=parno)
+        poppies.measure_z_interactive(path_to_data=DATA_DIR, path_to_code=CODE_DIR, path_to_out=OUTPUT_DIR, parno=parno)
        
-
 

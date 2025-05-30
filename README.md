@@ -1,4 +1,4 @@
-# Documentation for NIRCAM-line-finding code
+# Documentation for NIRCAM-line-finding code - this version is for new file structure
 
 Farhan Hasan, created 2/13/2025 ([fhasan@stsci.edu](mailto:fhasan@stsci.edu))
 
@@ -53,6 +53,8 @@ e.g., export PATH=/Users/fhasan/Desktop/Software/xpa/bin:$PATH
 
 [See more instructions in *xpa/INSTALL*]
 
+e) Alternatively, you can just download XPA and follow installation instructions from the [SAOImageDS9 site] (https://sites.google.com/cfa.harvard.edu/saoimageds9/download) 
+
 5. Add NIRCAM-line-finding/poppies_analysis to your **$PYTHONPATH**. In your *~/.bash_profile* file, include the following line:
 
 `export PYTHONPATH="<path/to/code>"`
@@ -66,6 +68,9 @@ e.g., export PYTHONPATH= "/Users/fhasan/POPPIES/line-finding/poppies_analysis/"
 [Make sure to activate your stenv, e.g., `conda activate stenv`]
 
 7. Install **DS9** if you haven't already: [https://sites.google.com/cfa.harvard.edu/saoimageds9](https://sites.google.com/cfa.harvard.edu/saoimageds9)
+
+
+You may also consult the installation steps outlined by Anika Kumar at RIT in this [Google Doc] (https://docs.google.com/document/d/1mjbGBk05_j2NcnEHEbcGD3JI44Kfy0NOJMgJp7XFTW0/edit?tab=t.0)
 
 
 Steps for running the line-finding tool after installing are as follows:

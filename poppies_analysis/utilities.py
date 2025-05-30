@@ -114,9 +114,10 @@ def write_obj_region(parno, path_to_data, catalog, regfile_name, xoffset, yoffse
     file.close
 
 
+## Fh modified 5/29/25
 # NOTE - This is for NIRCam  
 #        F.H. started 12/17/24
-def create_regions(parno, path_to_data, filters):
+def create_regions(parno, path_to_data, path_to_out, filters):
 
     # spec_cat =  glob.glob(path_to_data + "/POPPIES" + str(parno) + "/*_A_*_i2d.cat") 
     
@@ -130,7 +131,7 @@ def create_regions(parno, path_to_data, filters):
         cat=asciitable.read(phot_cat[0])
 
         # Direct image region files
-        f = open(path_to_data + "/" + str(parno) + "/POPPIES" + str(parno) + 'regions_phot_{}.reg'.format(str(filt)),'a')
+        f = open(path_to_out + str(parno) + "/POPPIES" + str(parno) + 'regions_phot_{}.reg'.format(str(filt)),'a')
         for i in range(len(cat)):
             f.write("WCS;circle("+str(cat['RA'][i])+','+str(cat['DEC'][i])+',0.5") # color=green text={'+str(cat['NUMBER'][i])+'} font="times 10 bold italic" textangle=30\n')
         f.close()
@@ -186,11 +187,11 @@ def create_regions(parno, path_to_data, filters):
     #         write_obj_region(parno, path_to_data, cat, "F444c_grism.reg", 24.1334945641, 765.438247, w = WCS(f444grism[0][1]), 
     #                         b_width = 127.806, b_length = 10.0)    
 
-
+### Not using for now (5/30/25)
 def add_header_keyword(parno, path_to_data):
 
-    main_directory = os.path.join(path_to_data, f"Par{parno:s}")
-    files = glob.glob(os.path.join(main_directory, 'spec2D/*.fits'))
+    main_directory = os.path.join(path_to_data, f"{parno:s}")
+    files = glob.glob(os.path.join(main_directory, 'jw*/*.fits'))
     test_file = fits.open(files[0])
     header = test_file[2].header
 
@@ -207,24 +208,41 @@ def add_header_keyword(parno, path_to_data):
             hdulist.writeto(j, overwrite='True')
 
 
-## adapting for POPPIES, FH 1/23/25
-def make_spectra_dat_files(parno, path_to_data, create_files_anyway = False):
+## FH updated 5/29/25
+def make_spectra_dat_files(parno, path_to_data, path_to_out, create_files_anyway = False):
 
     main_directory = os.path.join(path_to_data, f"{parno:s}")
-    spec_directory = os.path.join(main_directory, "Spec1D2D")
+    main_directory_out = os.path.join(path_to_out, f"{parno:s}")
+
+    spec_dirs = glob.glob(os.path.join(main_directory, "jw*"))  ##search through all folders starting with "jw"
+
+    spec_directories = []
+
+    for i in spec_dirs:
+        spec_directories.append(i)
+
+    # os.path.join(main_directory, "Spec1D2D")
 
     # os.system(f"mkdir -p {os.path.join(main_directory, 'Spectra'):s}")
 
-    files = sorted(glob.glob(os.path.join(spec_directory, '*.fits')))
+    ### obtain all files in folders starting with "jw"
+    spec_files = []
+    for i in spec_directories:
 
+        files_i = sorted(glob.glob(os.path.join(i, '*.fits')))
 
+        spec_files.append(files_i)
+        # files_1 = sorted(glob.glob(os.path.join(spec_directories[1], '*.fits')))
+
+    files = np.hstack(([i for i in spec_files]))
+
+    # print(files)
+    
     # Check if converted files already exist. If they do not, carry on with the conversion.
     # Otherwise, this step can be skipped.
     # Here, I just check if there are more converted files than objects (there can be 1-3 per object)
     # depending on how many filters are available for each object
-    already_converted_files = glob.glob(main_directory + '/Spectra/*.dat')
-
-    # print(len(files),len(already_converted_files))
+    already_converted_files = glob.glob(main_directory_out + '/Spectra/*.dat')
 
     if (len(files) >= len(already_converted_files)) or create_files_anyway == True:
         # print(len(already_converted_files))
@@ -246,11 +264,6 @@ def make_spectra_dat_files(parno, path_to_data, create_files_anyway = False):
 
                 tb = Table.read(fff[ext], format='fits').to_pandas()
                 t_out = pd.DataFrame({})
-
-                ### !!! IMPORTANT !!!
-                ### VM: This is temporary while we fix this in the pipeline
-                ### The R/C spectra have already been treated for the following operations
-                # if "EXTVER" not in fff[ext].header:
                     
                 t_out['wave'] = tb['WAVELENGTH'] * 10000 #micron to A
                 
@@ -286,11 +299,11 @@ def make_spectra_dat_files(parno, path_to_data, create_files_anyway = False):
                 if t_out['wave'][-1] == 0:
                     t_out.remove_row(-1)
 
-                print('saving ' + str(f) + ' to '+ str(main_directory) + '/Spectra/')
+                print('saving ' + str(f) + ' to '+ str(main_directory_out) + '/Spectra/')
 
                 # for filt in ["115", "150", "200"]:
                         
-                t_out.write(main_directory + '/Spectra/'+os.path.basename(f).replace('.fits', '_1D.dat'), 
+                t_out.write(main_directory_out + '/Spectra/'+os.path.basename(f).replace('.fits', '_1D.dat'), 
                         format='ascii.fixed_width_two_line', overwrite=True) 
 
             except Exception as e:
@@ -299,8 +312,8 @@ def make_spectra_dat_files(parno, path_to_data, create_files_anyway = False):
                 pass
 
 
-## FH 2/3/25
-def find_filters(path_to_data,par):
+## FH modified 5/29/25
+def find_filters(path_to_data,path_to_out,par):
     ''' searches catalogs for list of filters - and orientations '''
     
     cats = glob.glob(path_to_data + str(par) + "/*_i2d.cat")
@@ -315,15 +328,15 @@ def find_filters(path_to_data,par):
 
     unique_filts = np.unique(filts)
 
-    outfile = open(path_to_data + str(par)+'/POPPIES{}_filters.dat'.format(par), 'w')
+    outfile = open(path_to_out + str(par)+'/POPPIES{}_filters.dat'.format(par), 'w')
 
     outfile.write('filter ' + 'orientation' + '\n')
 
     for i in unique_filts:
 
-        Rfiles = glob.glob(path_to_data + str(par) + "/Spec1D2D/*_{}_R_*.fits".format(i))
+        Rfiles = glob.glob(path_to_data + str(par) + "/jw*/*_{}_R_*.fits".format(i))
 
-        Cfiles = glob.glob(path_to_data + str(par) + "/Spec1D2D/*_{}_C_*.fits".format(i))
+        Cfiles = glob.glob(path_to_data + str(par) + "/jw*/*_{}_C_*.fits".format(i))
 
         if ((len(Rfiles) != 0) and (len(Cfiles) != 0)):
 
@@ -377,68 +390,56 @@ def make_full_list(path_to_data,path_to_out,par,filters,verbose=True):
 
         
     outfile.close()
-        # ids_all.append(ids)
-
-    # ids_unique = np.unique(ids)
-
-    # ids_b = cat_b['NUMBER']
-    
-    # filts = [str(filt) for i in ids]
-
-    # # file for full object list:
-    # outfile = open(path_to_out+'/linelist/Par'+str(par) + 'objects_{}.dat'.format(str(filt)), 'w')
-
-    # for id in ids:
-    #     outfile.write(str(par) + '  ' + str(filt) + '  ' + str(id) + '\n')
 
 
-## FH 2/3/25
+## FH updated 5/29/25
 def make_file_structure(path_to_data,par):
 
-    spec1d2dpath = path_to_data + str(par) + "/Spec1D2D/"
+    # spec1d2dpath = path_to_data + str(par) + "/Spec1D2D/"
     spectrapath = path_to_data + str(par) + "/Spectra/"
-    directpath = path_to_data + str(par) + "/DirectImages/"
+    # directpath = path_to_data + str(par) + "/DirectImages/"
 
-    spec1d2d = glob.glob(spec1d2dpath)
+    # spec1d2d = glob.glob(spec1d2dpath)
     
     spectra = glob.glob(spectrapath) 
 
-    direct = glob.glob(directpath)
+    # direct = glob.glob(directpath)
 
-    if len(spec1d2d) == 0:
-        print('Creating Spec1D2D directory')
-        os.mkdir(spec1d2dpath)
+    # if len(spec1d2d) == 0:
+    #     print('Creating Spec1D2D directory')
+    #     os.mkdir(spec1d2dpath)
 
     if len(spectra) == 0:
         print('Creating Spectra directory')
         os.mkdir(spectrapath)
 
-    if len(direct) == 0:
-        print('Creating DirectImage directory')
-        os.mkdir(directpath)
+    # if len(direct) == 0:
+    #     print('Creating DirectImage directory')
+    #     os.mkdir(directpath)
 
-    spec1d2dfiles = glob.glob(path_to_data + str(par) + "/jw*_ext/*.fits")
+    # spec1d2dfiles = glob.glob(path_to_data + str(par) + "/jw*_ext/*.fits")
 
-    if len(spec1d2dfiles) != 0:
-        print('Moving 1D and 2D spec files to correct path')
+    # if len(spec1d2dfiles) != 0:
+    #     print('Moving 1D and 2D spec files to correct path')
 
-        for file in spec1d2dfiles:
+    #     for file in spec1d2dfiles:
 
-            command = "mv {} {} ".format(file,spec1d2dpath)
+    #         command = "mv {} {} ".format(file,spec1d2dpath)
 
-            os.system(command)
+    #         os.system(command)
 
-    directfiles = glob.glob(path_to_data + str(par) + "/*_i2d.fits")
+    # directfiles = glob.glob(path_to_data + str(par) + "/*_i2d.fits")
 
 
-    if len(directfiles) != 0:
-        print('Moving direct image files to correct path')
+    # if len(directfiles) != 0:
+    #     print('Moving direct image files to correct path')
 
-        for file in directfiles:
+    #     for file in directfiles:
 
-            command = "mv {} {} ".format(file,directpath)
+    #         command = "mv {} {} ".format(file,directpath)
 
-            os.system(command)
+    #         os.system(command)
+
 
 ## FH 2/4/25:
 def quick_flux_max(wave,flux,err,wavemin,wavemax):
