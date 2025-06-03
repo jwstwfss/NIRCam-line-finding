@@ -46,7 +46,7 @@ if __name__ == "__main__":
     dirpath = OUTPUT_DIR+str(parno)
     pardir = glob.glob(dirpath)
     if len(pardir) == 0:
-        print('Creating Spec1D2D directory')    
+        print('Creating directory for this field in Output')    
         os.mkdir(dirpath)
     
     ## FH updated these 5/29/25:
