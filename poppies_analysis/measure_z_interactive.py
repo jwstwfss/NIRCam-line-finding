@@ -4451,6 +4451,7 @@ def inspect_object(
     if (tab_R is not None) or (tab_C is not None):
 
         showSpec2D_POPPIES(par, obj, filter, path_to_data)
+        # print("NOTHING TO SEE HERE")
 
     else:
         print("Could not display spec2D as it doesn't exist!")
@@ -4481,6 +4482,9 @@ def inspect_object(
 
     # pan to object in direct frames
     panDirect_POPPIES(ra, dec)
+
+    # showDirect_POPPIES(par, filter, path_to_data, path_to_out, pan_mode=True, ra=ra, dec=dec)
+
     #panDirect_PASSAGE(x_pix, y_pix)
     ### Updated by KVN because this panning needs to be offset for each grism
     ### See new panDispersed_PASSAGE function in guis.py

@@ -1,9 +1,72 @@
+## Updated by Farhan Hasan (fhasan@stsci.edu)
+## 6/5/25
+
+#!/usr/bin/env python3
+"""
+Updated guis_helpers.py functions using SAMP instead of XPA
+Migration from XPA-based DS9 communication to SAMP-based communication
+"""
+
 #### This python script is mostly for DS9 GUIs (as a sort of secondary script)
 
-# from collections import OrderedDict
 import os
+import time
 import numpy as np
+from pathlib import Path
+from astropy.samp import SAMPIntegratedClient
 from astropy.io import fits
+import logging
+from samp_helper import DS9SAMPHelper, get_ds9_samp_helper   ## FH added 6/2/25
+
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+# logging.basicConfig(level=logging.INFO,filemode='w')
+
+# logfile = str('/Users/fhasan/Desktop/Research_STScI/POPPIES/samptests.log')
+
+# # Set log file output
+# handler = logging.FileHandler(logfile,'w')
+# handler.setLevel(logging.INFO)
+
+# # Create a logging format
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+
+# # Add the handlers to the logger
+# logger.addHandler(handler)
+
+
+### SAMP Helper stuff:
+
+# Global SAMP helper instance
+_ds9_samp = None
+
+def get_ds9_samp_helper():
+    """Get or create DS9 SAMP helper instance."""
+    global _ds9_samp
+    if _ds9_samp is None or not _ds9_samp.connected:
+        _ds9_samp = DS9SAMPHelper()
+    return _ds9_samp
+
+def cleanup_ds9_samp():
+    """Clean up SAMP connection when done."""
+    global _ds9_samp
+    if _ds9_samp:
+        _ds9_samp.disconnect()
+        _ds9_samp = None
+
+# Context manager for automatic cleanup
+class DS9SAMPContext:
+    """Context manager for DS9 SAMP operations."""
+    
+    def __enter__(self):
+        return get_ds9_samp_helper()
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        cleanup_ds9_samp()
+
 
 ### FH updated 1/6/25
 def extract_image_extensions_key(filename):
@@ -92,187 +155,512 @@ def extract_image_extensions_key(filename):
     return spec2D_key
 
 
-def display_spec2D_ds9():
-    pass
-
-
-def display_image_in_DS9(frame_number, image_file, region_file, verbose=True):
-    """Display an image in ds9 via the xpa system. Should display an image and
-    region file if given.:
-
-    Parameters
-    ----------
-    frame_number: int
-        frame number to display the image
-    image_file: str
-        image filename or path to display.
-    region_file: str
-        region file or pathj to display
+def display_image_in_DS9(fits_filename, frame=None, zoom='to fit', scale='zscale', 
+                        cmap='grey', lock_scale=False, regions=None):
     """
-    # image_file path
-    # frame number to add image to
-    # add ,region file if ggiven
+    Display a FITS image in DS9 using SAMP instead of XPA.
+    
+    Parameters:
+    -----------
+    fits_filename : str or Path
+        Path to FITS file to display
+    frame : int, optional
+        DS9 frame number (SAMP doesn't directly control frames)
+    zoom : str or float, optional
+        Zoom level ('to fit', 'to width', 'to height', or numeric value)
+    scale : str, optional
+        Image scaling ('linear', 'log', 'sqrt', 'squared', 'asinh', 'sinh', 'histequ', 'zscale', 'zmax')
+    cmap : str, optional
+        Colormap name
+    lock_scale : bool, optional
+        Whether to lock scale across frames
+    regions : str, optional
+        Path to region file to load
+    
+    Returns:
+    --------
+    bool : True if successful, False otherwise
+    
+    Examples:
+    ---------
+    # Basic usage
+    display_image_in_DS9('image.fits')
+    
+    # With custom scaling and zoom
+    display_image_in_DS9('image.fits', zoom=2, scale='log', cmap='heat')
+    
+    # With regions
+    display_image_in_DS9('image.fits', regions='sources.reg')
+    """
     ds9_title = "POPPIES_DIRECT"
     
-    if image_file is None:
-        os.system(f"xpaset -p {ds9_title} frame {frame_number}")
-        return
+    try:
+        # Get SAMP helper
+        samp = get_ds9_samp_helper()
 
-    if verbose:
-        msg = f"Opening frame {frame_number}: {os.path.basename(image_file)} | Region File: {region_file}"
-        print(msg)
+        # Check if file exists
+        fits_path = Path(fits_filename)
 
-    os.system(f"xpaset -p {ds9_title} frame {frame_number}")  # Specify the frame
-    os.system(f"xpaset -p {ds9_title} file {image_file}")
-
-    if region_file:
-        os.system(f"xpaset -p {ds9_title} regions load {region_file}")
-    # os.system(f"xpaset -p {ds9_title} cmap bb")
-    return
-
-
-def display_images_in_DS9(images, region_files, root=None, verbose=True):
-    """Main interface to display multi-images (direct and grism data)
-    in DS9. This will produce a tiled display of the direct images (for now).
-
-    TODO: Some of the logic I think can be improved by for not it works.
-
-    Parameters
-    ----------
-    images: dict
-        dictionary contains the image files in different filters to display.
-    region_files: dict
-        same as the images argument but for regions files to display. Default None
-    root: str
-        the root or base path the set of files. This to be removed
-    verbose:
-        messages to output to use if needed. Default is True.
-
-    Returns
-    -------
-    None
-    """
-
-    #F for i, (filter_name, filter_images) in enumerate(images.items(), start=1):
-    #     for j, image_file in enumerate(filter_images, start=1):
-    #         # print(f"(i, j) | ({i}, {j})")
-    #         row = (j - 1) // 3 + 1  # Calculate row number
-    #         col = (j - 1) % 3 + 1  # Calculate column number
-    #         frame_num = (i - 1) * 3 + (row - 1) * 3 + col
-    frame_num = 0
-    image_dict = {}
-    for i, (filter_name, filter_images) in enumerate(images.items(), start=1):
-        for j, image_file in enumerate(filter_images, start=1):
-            # print(f"(i, j) | ({i}, {j})")
-            # row = (j - 1) // 3 + 1  # Calculate row number
-            # col = (j - 1) % 3 + 1  # Calculate column number
-            # frame_num = (i - 1) * 3 + (row - 1) * 3 + col
-            frame_num += 1
-            image_dict[frame_num] = {}
-
-            # Build full paths to image and region files
-            # this step should be removed doing to much
-            # complete paths should be given already.
-            if root:
-                image_path = os.path.join(root, image_file)
-            else:
-                image_path = image_file
-
-            region_file = region_files[filter_name][j - 1] if region_files else None
-            # print(f"---DEBUG: WHAT IS THE REGION FILE? - {region_file}")
-            # print(f"---DEBUG: WHAT IS THE IMAGE FILE? - {image_file}")
-
-            # add logic to handle missing frames to  keep things symmetric
-            # when displaying
-            # if image_path is None:
-            #     os.system(f"xpaset -p ds9 frame {frame_num}")
-            #     continue
-
-            #F # Check if the image file exists
-            # if not os.path.isfile(image_path):
-            #     if verbose:
-            #         print(f"Error: Image file {image_path} does not exist.")
-            #     continue
-
-                        # Check if the image file exists
-            if not os.path.isfile(image_path):
-                if verbose:
-                    print(f"Error: Image file {image_path} does not exist.")
-                image_dict[frame_num]["img"] = None
-                image_dict[frame_num]["reg"] = None
-                continue
-
-            # Check if the region file exists
-            # print(f"---DEBUG: checking region file - {region_file}")
-            if region_file is None:
-                is_region_file = False
-            else:
-                is_region_file = os.path.isfile(region_file)
-
-            # print(f"---DEBUG: IS REGION FILE - {is_region_file}")
-
-            if region_file and not is_region_file:
-                if verbose:
-                    print(f"Error: Region file {region_file} does not exist.")
-                region_file = None
-
-            # Display the image
-            image_dict[frame_num]["img"] = image_path
-            image_dict[frame_num]["reg"] = region_file
-
-    for frame_num in image_dict:
-        display_image_in_DS9(frame_num,
-                             image_dict[frame_num]["img"],
-                             image_dict[frame_num]["reg"], verbose=verbose)
+        if not fits_path.exists():
+            logger.error(f"FITS file not found: {fits_filename}")
+            return False
         
-            #F # Display the image
-            # display_image_in_DS9(frame_num, image_path, region_file, verbose=verbose)
+        # Load the image
+        image_name = f"{ds9_title}: {fits_path.name}"
+        success = samp.send_image_to_ds9(fits_path, image_name, ds9_target = ds9_title)
+        
+        if not success:
+            return False
+        
+        # Apply display settings
+        # Note: Small delay to ensure image is loaded before applying settings
+        time.sleep(0.5)
+        
+        # Set zoom
+        if zoom:
+            if isinstance(zoom, (int, float)):
+                samp.send_command_to_ds9(f"zoom {zoom}")
+            else:
+                samp.send_command_to_ds9(f"zoom {zoom}")
+        
+        # Set scale
+        if scale:
+            samp.send_command_to_ds9(f"scale {scale}")
+        
+        # Set colormap
+        if cmap:
+            samp.send_command_to_ds9(f"cmap {cmap}")
+        
+        # Lock scale if requested
+        if lock_scale:
+            samp.send_command_to_ds9("scale lock yes")
+        
+        # Load regions if provided
+        if regions and Path(regions).exists():
+            # Note: Region loading via SAMP is not standard, may not work
+            region_path = Path(regions).resolve()
+            region_params = {
+                "url": region_path.as_uri(),
+                "name": f"{ds9_title}: {region_path.name}"
+            }
+            region_message = {
+                "samp.mtype": "ds9.regions.load",
+                # "samp.mtype": "regions",
+                "samp.params": region_params
+            }
+            try:
+                samp.client.notify_all(region_message)
+                logger.info(f"Sent region file: {regions}")
+            except Exception as e:
+                logger.warning(f"Could not load regions via SAMP: {e}")
+                logger.info("Consider loading regions manually in DS9")
+        
+        logger.info(f"Successfully displayed {fits_filename} in DS9")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error displaying image in DS9: {e}")
+        return False
 
+
+def display_images_in_DS9(fits_filenames, tile_mode=True, match_scale=True, 
+                         zoom='to fit', scale='zscale', cmap='grey', 
+                         delay=0.5, regions=None):
+    """
+    Display multiple FITS images in DS9 using SAMP.
+    
+    Parameters:
+    -----------
+    fits_filenames : list
+        List of FITS file paths
+    tile_mode : bool, optional
+        Whether to use tile mode (arrange images in grid)
+    match_scale : bool, optional
+        Whether to match scale/zoom across all images
+    zoom : str or float, optional
+        Zoom level for all images
+    scale : str, optional
+        Image scaling for all images
+    cmap : str, optional
+        Colormap for all images
+    delay : float, optional
+        Delay between loading images (seconds)
+    regions : str or list, optional
+        Region file(s) to load
+    
+    Returns:
+    --------
+    bool : True if all images loaded successfully, False otherwise
+    
+    Examples:
+    ---------
+    # Display multiple images in tile mode
+    files = ['img1.fits', 'img2.fits', 'img3.fits']
+    display_images_in_DS9(files, tile_mode=True, match_scale=True)
+    
+    # Display with custom settings
+    display_images_in_DS9(files, zoom=1.5, scale='log', cmap='heat')
+    """
     ds9_title = "POPPIES_DIRECT"
-    # Go to frame 1
-    os.system(f"xpaset -p {ds9_title} frame 1")
-
-    #F # Configure additional settings
-    # os.system(f"xpaset -p {ds9_title} tile")
-    # # os.system(f"xpaset -p {ds9_title} lock frame wcs")
-    # os.system(f"xpaset -p {ds9_title} lock scale")
-    # # os.system(f"xpaset -p {ds9_title} zoom to fit")
-    # os.system(f"xpaset -p {ds9_title} scale mode zscale")
-    # os.system(f"xpaset -p {ds9_title} lock colorbar")
-    # #os.system(f"xpaset -p {ds9_title} lock scalelimits")
-
-    # Configure additional settings
-    os.system(f"xpaset -p {ds9_title} tile")
-    # os.system(f"xpaset -p {ds9_title} match frame wcs")
-    # os.system(f"xpaset -p {ds9_title} lock scale")
-    # os.system(f"xpaset -p {ds9_title} zoom to fit")
-    os.system(f"xpaset -p {ds9_title} scale mode zscale")
-    os.system(f"xpaset -p {ds9_title} lock colorbar")
-    #os.system(f"xpaset -p {ds9_title} lock scalelimits")
-
-    # Figured out the angle is ~250 for PAR 28. Need to check if this is true for all.
-    ## FH updated 1/24/25:
-    # for framename in range(1,10):
     
-    for framename in range(1,2):
+
+    try:   
+        # Get SAMP helper
+        samp = get_ds9_samp_helper()
+
+        try:
+                
+            #### Identify the correct client ID:
+            labels = samp.identify_client_labels()
+            for i, (ids, labs) in enumerate(labels.items()):
+                for j,name in enumerate(labs):
+                    if name == ds9_title:
+                        cl = j
+
+            clientID = labels["client_id"][cl]
+
+        except Exception as e:
+            print("Client ID not found due to error: ",e)
+            return False
+
+        ####  ####
+
+        # # Set title for first DS9 instance and remember it
+        # samp.set_ds9_title_and_remember(ds9_title, ds9_index=0)
+        
+        # Validate input
+        if not fits_filenames:
+            logger.error("No FITS files provided")
+            return False
+        
+        # Convert to list if single filename
+        if isinstance(fits_filenames, (str, Path)):
+            fits_filenames = [fits_filenames]
+        
+        # Set up DS9 for multiple images
+        if tile_mode:
+            samp.send_command_to_ds9("tile yes",client_id="c1")
+            samp.send_command_to_ds9("tile grid",client_id="c1")
+        
+        if match_scale:
+            samp.send_command_to_ds9("scale lock yes",client_id="c1")
+            samp.send_command_to_ds9("zoom lock yes",client_id="c1")
+        
+        success_count = 0
+        
+        # Load each image
+        for i, (filter_name, filter_images) in enumerate(fits_filenames.items(), start=1):
+            for j, image_file in enumerate(filter_images, start=1):
+
+            # for i, fits_file in enumerate(fits_filenames):
+                try:
+                    fits_path = Path(image_file)
+                    if not fits_path.exists():
+                        logger.warning(f"FITS file not found: {image_file}")
+                        continue
+                    
+                    # Create new frame for each image (DS9-specific command)
+                    if i > 0:  # Don't create frame for first image
+                        samp.send_command_to_ds9("frame new",client_id=clientID)
+                    
+                    # Load the image
+                    image_name = f"{ds9_title} {i+1}: {fits_path.name}"
+                    if samp.send_image_to_ds9(fits_path, image_name,client_id=clientID):
+                        success_count += 1
+                        
+                        # Apply settings to this image
+                        time.sleep(delay)  # Allow time for image to load
+                        
+                        if zoom:
+                            if isinstance(zoom, (int, float)):
+                                samp.send_command_to_ds9(f"zoom {zoom}",client_id=clientID)
+                            else:
+                                samp.send_command_to_ds9(f"zoom {zoom}",client_id=clientID)
+                        
+                        if scale:
+                            samp.send_command_to_ds9(f"scale {scale}",client_id=clientID)
+                        
+                        if cmap:
+                            samp.send_command_to_ds9(f"cmap {cmap}",client_id=clientID)
+                        
+                        logger.info(f"Loaded image {i}/{len(fits_filenames)}: {image_file}")
+                    else:
+                        logger.error(f"Failed to load image: {image_file}")
+                    
+                except Exception as e:
+                    logger.error(f"Error loading {image_file}: {e}")
+                    continue
+        
+            # Load regions if provided
+            if regions:
+                # for i, (filter_name, filter_images) in enumerate(fits_filenames.items(), start=1):
+                #     for j, image_file in enumerate(filter_images, start=1):
+
+                region_file = regions[filter_name][j - 1]
+
+                    # for region_file in regions:
+
+                # for region_file in region_files:
+                if Path(region_file).exists():
+
+                    samp.send_command_to_ds9(f"region {region_file}",client_id=clientID)
+
+                    # Try to load regions (may not work with all DS9 versions)
+                    region_path = Path(region_file).resolve()
+                    region_params = {
+                        "url": region_path.as_uri(),
+                        "name": f"{ds9_title} {i+1}: {region_path.name}"
+                    }
+                    region_message = {
+                        "samp.mtype": "ds9.region.load",
+                        "samp.params": region_params
+                    }
+                    # region_message = {
+                    #     "samp.mtype": "regions",
+                    #     "samp.params": region_params
+                    # }
+
+                    ### commented out for now:
+                    # try:
+                    #     samp.client.notify_all(region_message)
+                    #     logger.info(f"Sent region file: {region_file}")
+                    # except Exception as e:
+                    #     logger.warning(f"Could not load regions via SAMP: {e}")
+
+        # Final tile arrangement if requested
+        if tile_mode and success_count > 1:
+            time.sleep(0.5)  # Allow images to settle
+            samp.send_command_to_ds9("tile",client_id=clientID)
+        
+        # if pan_mode:
+        #     # print("panning to ra={} and dec={}".format(str(ra[0],str(dec[0]))))
+        #     panDirect_POPPIES(samp, ra, dec)
+
+        logger.info(f"Successfully loaded {success_count}/{len(fits_filenames)} images")
+        return success_count == len(fits_filenames)
+
+    except Exception as e:
+        logger.error(f"Error displaying images in DS9: {e}")
+        return False
     
-        os.system(f"xpaset -p {ds9_title} frame " + str(framename))
+
+# ## FH new 6/2/25
+# def panDirect_POPPIES(samp, ra, dec, zoom=4):
+#     # print(ra, dec)
     
-        # FH 2/17/25: RA, Dec in degrees:
-        os.system(f"xpaset -p {ds9_title} wcs sky fk5")
+#     ds9_title = "POPPIES_DIRECT"
 
-        os.system(f"xpaset -p {ds9_title} wcs skyformat degrees")
+#     # samp = get_ds9_samp_helper()
 
-        # os.system(f"xpaset -p {ds9_title} wcs sky ecliptic")
-        os.system(f"xpaset -p {ds9_title} zoom to fit")
+#     ### Identify the correct client ID:
+#     try:             
+#         labels = samp.identify_client_labels()
+#         for i, (ids, labs) in enumerate(labels.items()):
+#             for j,name in enumerate(labs):
+#                 if name == ds9_title:
+#                     cl = j
+
+#         clientID = labels["client_id"][cl]
+
+#         samp.send_command_to_ds9(f"pan to {ra[0]} {dec[0]} wcs degrees", client_id=clientID)
+#         # samp.send_command_to_ds9("frame center", client_id=clientID)
+#         samp.send_command_to_ds9(f"zoom to {zoom}", client_id=clientID)
+
+#     except Exception as e:
+#         print("Client ID not found due to error: ",e)
+
+#     # for fno in [1,4,7]:
+
+#     return
 
 
-    # os.system(f"xpaset -p {ds9_title} frame 3")
-    os.system(f"xpaset -p {ds9_title} match frame image")
+# def display_images_in_DS9(fits_filenames, tile_mode=True, match_scale=True, 
+#                          zoom='to fit', scale='zscale', cmap='grey', 
+#                          delay=0.5, regions=None):
+#     """
+#     Display multiple FITS images in DS9 using SAMP.
+    
+#     Parameters:
+#     -----------
+#     fits_filenames : list
+#         List of FITS file paths
+#     tile_mode : bool, optional
+#         Whether to use tile mode (arrange images in grid)
+#     match_scale : bool, optional
+#         Whether to match scale/zoom across all images
+#     zoom : str or float, optional
+#         Zoom level for all images
+#     scale : str, optional
+#         Image scaling for all images
+#     cmap : str, optional
+#         Colormap for all images
+#     delay : float, optional
+#         Delay between loading images (seconds)
+#     regions : str or list, optional
+#         Region file(s) to load
+    
+#     Returns:
+#     --------
+#     bool : True if all images loaded successfully, False otherwise
+    
+#     Examples:
+#     ---------
+#     # Display multiple images in tile mode
+#     files = ['img1.fits', 'img2.fits', 'img3.fits']
+#     display_images_in_DS9(files, tile_mode=True, match_scale=True)
+    
+#     # Display with custom settings
+#     display_images_in_DS9(files, zoom=1.5, scale='log', cmap='heat')
+#     """
+#     ds9_title = "POPPIES_DIRECT"
+    
 
-    # if I match at open -- does it stay matched going forward?
-    # Go to frame 1
-    # os.system(f"xpaset -p {ds9_title} frame 3")
-    # os.system(f"xpaset -p {ds9_title} match frame wcs")
+#     try:
+#         # Get SAMP helper
+#         samp = get_ds9_samp_helper()
 
-    return
+#         # # Set title for first DS9 instance and remember it
+#         # samp.set_ds9_title_and_remember(ds9_title, ds9_index=0)
+        
+#         # Validate input
+#         if not fits_filenames:
+#             logger.error("No FITS files provided")
+#             return False
+        
+#         # Convert to list if single filename
+#         if isinstance(fits_filenames, (str, Path)):
+#             fits_filenames = [fits_filenames]
+        
+#         # Set up DS9 for multiple images
+#         if tile_mode:
+#             samp.send_command_to_ds9("tile yes", ds9_target=ds9_title)
+#             samp.send_command_to_ds9("tile grid", ds9_target=ds9_title)
+        
+#         if match_scale:
+#             samp.send_command_to_ds9("scale lock yes", ds9_target=ds9_title)
+#             samp.send_command_to_ds9("zoom lock yes", ds9_target=ds9_title)
+        
+#         success_count = 0
+        
+#         # Load each image
+#         for i, (filter_name, filter_images) in enumerate(fits_filenames.items(), start=1):
+#             for j, image_file in enumerate(filter_images, start=1):
+
+#             # for i, fits_file in enumerate(fits_filenames):
+#                 try:
+#                     fits_path = Path(image_file)
+#                     if not fits_path.exists():
+#                         logger.warning(f"FITS file not found: {image_file}")
+#                         continue
+                    
+#                     # Create new frame for each image (DS9-specific command)
+#                     if i > 0:  # Don't create frame for first image
+#                         samp.send_command_to_ds9("frame new", ds9_target=ds9_title)
+                    
+#                     # Load the image
+#                     image_name = f"{ds9_title} {i+1}: {fits_path.name}"
+#                     if samp.send_image_to_ds9(fits_path, image_name, ds9_target = ds9_title):
+#                         success_count += 1
+                        
+#                         # Apply settings to this image
+#                         time.sleep(delay)  # Allow time for image to load
+                        
+#                         if zoom:
+#                             if isinstance(zoom, (int, float)):
+#                                 samp.send_command_to_ds9(f"zoom {zoom}", ds9_target=ds9_title)
+#                             else:
+#                                 samp.send_command_to_ds9(f"zoom {zoom}", ds9_target=ds9_title)
+                        
+#                         if scale:
+#                             samp.send_command_to_ds9(f"scale {scale}", ds9_target=ds9_title)
+                        
+#                         if cmap:
+#                             samp.send_command_to_ds9(f"cmap {cmap}", ds9_target=ds9_title)
+                        
+#                         logger.info(f"Loaded image {i}/{len(fits_filenames)}: {image_file}")
+#                     else:
+#                         logger.error(f"Failed to load image: {image_file}")
+                    
+#                 except Exception as e:
+#                     logger.error(f"Error loading {image_file}: {e}")
+#                     continue
+        
+#             # Load regions if provided
+#             if regions:
+#                 # for i, (filter_name, filter_images) in enumerate(fits_filenames.items(), start=1):
+#                 #     for j, image_file in enumerate(filter_images, start=1):
+
+#                 region_file = regions[filter_name][j - 1]
+
+#                     # for region_file in regions:
+
+#                 # for region_file in region_files:
+#                 if Path(region_file).exists():
+
+#                     samp.send_command_to_ds9(f"region {region_file}", ds9_target=ds9_title)
+
+#                     # Try to load regions (may not work with all DS9 versions)
+#                     region_path = Path(region_file).resolve()
+#                     region_params = {
+#                         "url": region_path.as_uri(),
+#                         "name": f"{ds9_title} {i+1}: {region_path.name}"
+#                     }
+#                     region_message = {
+#                         "samp.mtype": "ds9.region.load",
+#                         "samp.params": region_params
+#                     }
+#                     # region_message = {
+#                     #     "samp.mtype": "regions",
+#                     #     "samp.params": region_params
+#                     # }
+
+#                     ### commented out for now:
+#                     # try:
+#                     #     samp.client.notify_all(region_message)
+#                     #     logger.info(f"Sent region file: {region_file}")
+#                     # except Exception as e:
+#                     #     logger.warning(f"Could not load regions via SAMP: {e}")
+
+#         # Final tile arrangement if requested
+#         if tile_mode and success_count > 1:
+#             time.sleep(0.5)  # Allow images to settle
+#             samp.send_command_to_ds9("tile", ds9_target=ds9_title)
+        
+#         logger.info(f"Successfully loaded {success_count}/{len(fits_filenames)} images")
+#         return success_count == len(fits_filenames)
+        
+#     except Exception as e:
+#         logger.error(f"Error displaying images in DS9: {e}")
+#         return False
+
+# # Example usage
+# if __name__ == "__main__":
+#     # Test the functions
+#     import sys
+    
+#     # Create some dummy FITS files for testing (or use your real files)
+#     test_files = ["test_image1.fits", "test_image2.fits"]
+    
+#     # Test single image display
+#     if len(sys.argv) > 1:
+#         test_files = sys.argv[1:]
+    
+#     print("Testing SAMP-based DS9 display functions...")
+    
+#     # Test single image
+#     if test_files and Path(test_files[0]).exists():
+#         print(f"Displaying single image: {test_files[0]}")
+#         display_image_in_DS9(test_files[0], zoom=2, scale='zscale', cmap='heat')
+        
+#         # Test multiple images
+#         if len(test_files) > 1:
+#             print(f"Displaying {len(test_files)} images in tile mode")
+#             display_images_in_DS9(test_files, tile_mode=True, match_scale=True)
+#     else:
+#         print("No valid FITS files found for testing")
+#         print("Usage: python guis_helpers.py [fits_file1] [fits_file2] ...")
+    
+#     # Clean up
+#     cleanup_ds9_samp()
+
+

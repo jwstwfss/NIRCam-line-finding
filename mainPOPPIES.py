@@ -1,5 +1,6 @@
 ##### This is the main python file for NIRCAM-line-finding #####
-### This version started 1/30/25
+### This version replaces XPA with SAMPHub in Astropy
+## June 5, 2025
 ## Farhan Hasan (fhasan@stsci.edu)
 
 import poppies_analysis as poppies

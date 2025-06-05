@@ -24,6 +24,10 @@ from find_cwt import find_cwt
 from find_cwt  import loop_field_cwt
 from find_cwt import test_obj_cwt
 
+from astropy.samp import SAMPHubServer, SAMPIntegratedClient   ## FH added 6/2/25
+import samp_helper   ## FH added 6/2/25
+
+
 from fitting import (
     emissionline_model,
     model_resid,
@@ -43,7 +47,7 @@ import pickle
 #from measure_stack import *
 #from dustfromstack import *
 #from mle_stack import *
-
+import logging
 
 
 # try:
