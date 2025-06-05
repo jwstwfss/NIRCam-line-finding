@@ -2,7 +2,7 @@
 
 Farhan Hasan, created 2/13/2025 ([fhasan@stsci.edu](mailto:fhasan@stsci.edu))
 
-Last updated 5/29/2025
+This branch (dev) last updated 6/5/2025
 
 This software is used to identify line-emitting objects and measure emission line properties in JWST NIRCam WFSS Grism spectra, based on the pure-parallel survey POPPIES (PID#5398).
 
@@ -31,31 +31,8 @@ Steps for installation are as follows
 	- scipy==1.14.1 (this one is strict)
 	- matplotlib>=3.6, <3.11
 3. Git clone [https://github.com/jwstwfss/NIRCam-line-finding.git](https://github.com/jwstwfss/NIRCam-line-finding.git)
-4. Install **XPA** from: [https://github.com/ericmandel/xpa](https://github.com/ericmandel/xpa)
 
-a) Git clone from the repo
-
-b) Then, cd into the xpa directory
-
-c) `./configure --prefix=<top_level_install_dir>` # site-specific configuration
-
-`make`  # build the software
-
-`make install` # install it
-
-`make clean` # clean up unneeded temp files
-
-d) Add the path to your bash:
-
-`export PATH=<path/to/software>:$PATH`
-
-e.g., export PATH=/Users/fhasan/Desktop/Software/xpa/bin:$PATH
-
-[See more instructions in *xpa/INSTALL*]
-
-e) Alternatively, you can just download XPA and follow installation instructions from the [SAOImageDS9 site] (https://sites.google.com/cfa.harvard.edu/saoimageds9/download) 
-
-5. Add NIRCAM-line-finding/poppies_analysis to your **$PYTHONPATH**. In your *~/.bash_profile* file, include the following line:
+4. Add NIRCAM-line-finding/poppies_analysis to your **$PYTHONPATH**. In your *~/.bash_profile* file, include the following line:
 
 `export PYTHONPATH="<path/to/code>"`
 
@@ -63,14 +40,14 @@ e.g., export PYTHONPATH= "/Users/fhasan/POPPIES/line-finding/poppies_analysis/"
 
 (Alternatively, if you use csh, add to ~/.cshrc: `setenv PYTHONPATH <path/to/code>:${PYTHONPATH}`)
 
-6. Install the ***stenv*** Conda environment: [https://stenv.readthedocs.io/en/latest/](https://stenv.readthedocs.io/en/latest/)
+5. Install the ***stenv*** Conda environment: [https://stenv.readthedocs.io/en/latest/](https://stenv.readthedocs.io/en/latest/)
 
 [Make sure to activate your stenv, e.g., `conda activate stenv`]
 
-7. Install **DS9** if you haven't already: [https://sites.google.com/cfa.harvard.edu/saoimageds9](https://sites.google.com/cfa.harvard.edu/saoimageds9)
+6. Install **DS9** if you haven't already: [https://sites.google.com/cfa.harvard.edu/saoimageds9] (https://sites.google.com/cfa.harvard.edu/saoimageds9)
 
 
-You may also consult the installation steps outlined by Anika Kumar at RIT in this [Google Doc] (https://docs.google.com/document/d/1mjbGBk05_j2NcnEHEbcGD3JI44Kfy0NOJMgJp7XFTW0/edit?tab=t.0)
+You may also consult the installation steps outlined by Anika Kumar at RIT, for the XPA-based verion, in this [Google Doc] (https://docs.google.com/document/d/1mjbGBk05_j2NcnEHEbcGD3JI44Kfy0NOJMgJp7XFTW0/edit?tab=t.0)
 
 
 Steps for running the line-finding tool after installing are as follows:
@@ -209,5 +186,4 @@ You will need the following software and packages:
 - *scipy (1.14.1)*
 - *matplotlib (3.6 - 3.11)*
 - *SAO Image DS9*
-- *XPA* Messaging System
 - *Anaconda*
