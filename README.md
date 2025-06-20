@@ -59,7 +59,7 @@ e) Alternatively, you can just download XPA and follow installation instructions
 
 `export PYTHONPATH="<path/to/code>:$PYTHONPATH"`
 
-e.g., export PYTHONPATH= "/Users/fhasan/POPPIES/line-finding/poppies_analysis/"
+e.g., export PYTHONPATH= "/Users/fhasan/POPPIES/line-finding/poppies_analysis/:$PYTHONPATH"
 
 (Alternatively, if you use csh, add to ~/.cshrc: `setenv PYTHONPATH <path/to/code>:${PYTHONPATH}`)
 
