@@ -87,7 +87,7 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
 
             clientID = labels["client_id"][cl]
             
-            print('spec2d ', clientID)
+            # print('spec2d ', clientID)
 
         except Exception as e:
             print("Client ID not found due to error: ",e)
@@ -139,7 +139,7 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
                     xpix_raw, ypix_raw = spec2D_key_DS9[key]["x_pix"], spec2D_key_DS9[key]["y_pix"]
                     xpix, ypix = int(xpix_raw + (0.2 * xpix_raw)), int(ypix_raw + (2.5*ypix_raw))
 
-                    print(ext,frame_id,grismr_file)
+                    # print(ext,frame_id,grismr_file)
 
                     # Frame operations using SAMP
                     samp.send_command_to_ds9(f"frame {frame_id}", client_id=clientID)
@@ -238,7 +238,7 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
         samp.send_command_to_ds9(f"pan to 100 100 image", client_id=clientID)
 
     except Exception as e:
-        print()
+        print("Could not display spec2D for reason: ", e)
         return False
 
 
@@ -302,7 +302,7 @@ def showDirect_POPPIES(parno, filter="F444W", path_to_data="", path_to_out=""):
                 print(f"Warning: File {filename} not found; assuming it lives in path_to_data/#/")
                 full_path = find_file(path_to_data+str(parno)+'/', filename)
                 paths.append(full_path)
-                print(paths)
+                # print(paths)
                 
         image_paths[filter_name] = paths
 
@@ -604,7 +604,6 @@ def panDirect_POPPIES(ra, dec, zoom=4):
 #                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
 #                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
 #                 # xpix_vals.append(xpix),ypix_vals.append(ypix)
-#                 # print('IM HERE ', xpix,ypix)
 
 
 #             # else:
@@ -626,9 +625,7 @@ def panDirect_POPPIES(ra, dec, zoom=4):
 
 # #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width 1600")
 # #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height 1200")
-# # #
-#     # if (grismc_file) or (grismr_file):
-#     #     print('HEYYYYY ', xpix,ypix)
+
 
 #     try:  #FH modified 3/6/25
 #         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")

@@ -34,9 +34,9 @@ Steps for installation are as follows
 
 4. Add NIRCAM-line-finding/poppies_analysis to your **$PYTHONPATH**. In your *~/.bash_profile* file, include the following line:
 
-`export PYTHONPATH="<path/to/code>"`
+export PYTHONPATH="<path/to/code>:$PYTHONPATH"
 
-e.g., export PYTHONPATH= "/Users/fhasan/POPPIES/line-finding/poppies_analysis/"
+e.g., export PYTHONPATH= "/Users/fhasan/POPPIES/line-finding/poppies_analysis:$PYTHONPATH"
 
 (Alternatively, if you use csh, add to ~/.cshrc: `setenv PYTHONPATH <path/to/code>:${PYTHONPATH}`)
 
