@@ -99,6 +99,8 @@ dz = change the allowable redshift difference between lines
 
 n = skip to next brightest line found in this object
 
+p = skip to previous brightest line found in this object
+
 2gauss = double gaussian profile for the line being fitted
 
 1gauss = option to go back to 1 gaussian fit after selecting 2 gaussian fit
