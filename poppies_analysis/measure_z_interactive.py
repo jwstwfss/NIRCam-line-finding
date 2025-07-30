@@ -6770,59 +6770,49 @@ def measure_z_interactive(
                         wcatalog = np.where(objtable["obj"] == next_obj)
                         objinfo = objtable[wcatalog]
 
-                        if use_stored_fits == True:
-                            ### get pickle files:
-                            inpickles = []
-                            path_pickle1 = (
-                                path_to_stored_fits
-                                + "/POPPIES"
-                                + str(parnos[0])
-                                + "_output_a/fitdata/POPPIES0_"
-                                + str(next_obj)
-                                + "_fitspec.pickle"
-                            )
-                            # path_pickle1 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_mbagley/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle2 = path_to_stored_fits + '/Par'  + str(parnos[0]) +    '_output_marc/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle3 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_claudia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle4 = path_to_stored_fits + '/Par'  + str(parnos[0]) +     '_output_ben/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle5 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_vihang/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle6 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_ivano/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle7 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mbeck/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle8 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_karlenoid/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle9 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mjr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle10 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_sophia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle11 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_marc-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                            # path_pickle12 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_alaina-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                    #### FH updated 7/30/25:
 
-                            ### put new fits first
-                            # if os.path.exists(path_pickle11):
-                            #     inpickles.append(path_pickle11)
-                            # if os.path.exists(path_pickle12):
-                            #     inpickles.append(path_pickle12)
-                            if os.path.exists(path_pickle1):
-                                inpickles.append(path_pickle1)
-                            # if os.path.exists(path_pickle2):
-                            #    inpickles.append(path_pickle2)
-                            # if os.path.exists(path_pickle3):
-                            #    inpickles.append(path_pickle3)
-                            # if os.path.exists(path_pickle4):
-                            #    inpickles.append(path_pickle4)
-                            # if os.path.exists(path_pickle5):
-                            #    inpickles.append(path_pickle5)
-                            # if os.path.exists(path_pickle6):
-                            #    inpickles.append(path_pickle6)
-                            # if os.path.exists(path_pickle7):
-                            #    inpickles.append(path_pickle7)
-                            # if os.path.exists(path_pickle8):
-                            #    inpickles.append(path_pickle8)
-                            # if os.path.exists(path_pickle9):
-                            #    inpickles.append(path_pickle9)
-                            # if os.path.exists(path_pickle10):
-                            #    inpickles.append(path_pickle10)
+                        ### get pickle files:
+                        ### Note from KVN. field is done so all obj should have pickle files?
+                        inpickles = []
+                        path_pickle1 = (
+                            path_to_stored_fits
+                            + "/Par"
+                            + str(parnos[0])
+                            + "_output_"+str(user)+"/fitdata/PASSAGE_"
+                            + str(next_obj)
+                            + "_fitspec.pickle")
 
-                            if len(inpickles) == 0:
-                                use_stored_fits = False
+                        ### put new fits first
+                        # if os.path.exists(path_pickle11):
+                        #     inpickles.append(path_pickle11)
+                        # if os.path.exists(path_pickle12):
+                        #     inpickles.append(path_pickle12)
+                        if os.path.exists(path_pickle1):
+                            inpickles.append(path_pickle1)
+                        # if os.path.exists(path_pickle2):
+                        #    inpickles.append(path_pickle2)
+                        # if os.path.exists(path_pickle3):
+                        #    inpickles.append(path_pickle3)
+                        # if os.path.exists(path_pickle4):
+                        #    inpickles.append(path_pickle4)
+                        # if os.path.exists(path_pickle5):
+                        #    inpickles.append(path_pickle5)
+                        # if os.path.exists(path_pickle6):
+                        #    inpickles.append(path_pickle6)
+                        # if os.path.exists(path_pickle7):
+                        #    inpickles.append(path_pickle7)
+                        # if os.path.exists(path_pickle8):
+                        #    inpickles.append(path_pickle8)
+                        # if os.path.exists(path_pickle9):
+                        #    inpickles.append(path_pickle9)
+                        # if os.path.exists(path_pickle10):
+                        #    inpickles.append(path_pickle10)
 
+                        if len(inpickles) == 0:
+                            use_stored_fits = False
+
+                            
                         if use_stored_fits == True:
                             inspect_object(
                                 user,
