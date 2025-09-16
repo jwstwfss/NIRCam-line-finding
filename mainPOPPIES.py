@@ -12,9 +12,9 @@ import time
 import numpy as np
 
 
-# # Open two ds9 windows:
-# os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_DIRECT &')
-# os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_spec2D &')
+# Open two ds9 windows:
+os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_DIRECT &')
+os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_spec2D &')
 
 
 ### Please update these directories to match yours:
