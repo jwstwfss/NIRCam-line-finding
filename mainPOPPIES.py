@@ -9,11 +9,12 @@ import re
 import glob
 import astropy.io.ascii as asciitable
 import time
+import numpy as np
 
 
-# Open two ds9 windows:
-os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_DIRECT &')
-os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_spec2D &')
+# # Open two ds9 windows:
+# os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_DIRECT &')
+# os.system('/Applications/SAOImageDS9.app/Contents/MacOS/ds9 -title POPPIES_spec2D &')
 
 
 ### Please update these directories to match yours:
@@ -101,9 +102,41 @@ if __name__ == "__main__":
         utilities.create_regions(parno, DATA_DIR, OUTPUT_DIR, filterlist['filter'])
 
 
+    #### FH added 9/11/25:
+
+    # Check if existing redshift catalogs exist or not:
+    existingredshifts = glob.glob(DATA_DIR + "*_matched_redshifts.cat") 
+
+    if len(existingredshifts) > 0:
+
+        try:
+            matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
+
+            #Determine if there are existing redshifts for this POPPIES field:
+            for i in range(len(matched_z_cats)):
+                matched_z_cat = matched_z_cats[i]
+
+                inds_match = np.where(matched_z_cat['FieldName'] == parno)[0]
+
+                if len(inds_match) > 0:
+
+                    print("There are {} sources in this field with existing redshifts".format(int(len(inds_match))))
+
+                    matched_z_cat_field = matched_z_cat[inds_match]
+
+                else:
+
+
+                    print("There are no sources in this field with existing redshifts")
+
+
+        except Exception as e:
+            print('Error reading existing matched redshift catalogs: ', e )
+            pass
+
+
     # move to the directory where you want your outputs.
     os.chdir(OUTPUT_DIR)
-
 
     ## FH 2/3/25: ask user if they prefer CWT or full object list:
 

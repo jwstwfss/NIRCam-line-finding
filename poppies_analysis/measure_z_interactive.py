@@ -55,6 +55,7 @@ import utilities
 from copy import copy
 
 
+
 # Explicitly import readline to make the text entry process easier on OSX
 import readline
 
@@ -1964,6 +1965,40 @@ def inspect_object_all(
 
         return 0
 
+    #### FH added 9/11/25:
+    # Check if existing redshift catalogs exist or not:
+    existingredshifts = glob(path_to_data + "*_matched_redshifts.cat") 
+
+    if len(existingredshifts) > 0:
+
+        try:
+            matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
+
+            #Determine if there are existing redshifts for this POPPIES field:
+            for i in range(len(matched_z_cats)):
+                matched_z_cat = matched_z_cats[i]
+
+                for j in range(len(matched_z_cat)):
+                    # print("FH test ", matched_z_cat['FieldName'][j], par, matched_z_cat['POPPIES_ID'][j], obj, float(matched_z_cat['Z_SPEC'][j]))
+
+                    if (str(matched_z_cat['FieldName'][j]) == par) and (int(matched_z_cat['POPPIES_ID'][j]) == obj): ## if this object is in the matched list
+                        # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
+                        
+                        print_prompt("\nThe object {} has existing redshifts \n".format(int(obj)))
+
+                        if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                            print_prompt("The object {} has spec-z: {} \n".format(int(obj),float(matched_z_cat['Z_SPEC'][j])))
+                            print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} \n ".format(int(obj),float(matched_z_cat['Z_PHOT'][j]),float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j])))
+
+                        else:  ### else at least photo-z exists
+                            print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} \n ".format(int(obj),float(matched_z_cat['Z_PHOT'][j]),float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j])))
+
+
+        except Exception as e:
+            print('Error reading existing matched redshift catalogs: ', e )
+            pass
+
+
     index_of_strongest_line = 0
     lamline = lamlines_found
 
@@ -2054,7 +2089,6 @@ def inspect_object_all(
         "he1_5875": 0,
         "cont": 0,
     }  # MDR 2022/07/22
-
 
     # Skip if previous fit is to be accepted
     done = 0 if rejectPrevFit else 1
@@ -4636,6 +4670,41 @@ def inspect_object(
     s = np.argsort(ston_found)
     # reverse s/n order
 
+    #### FH added 9/11/25:
+    # Check if existing redshift catalogs exist or not:
+    existingredshifts = glob(path_to_data + "*_matched_redshifts.cat") 
+
+    if len(existingredshifts) > 0:
+
+        try:
+            matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
+
+            #Determine if there are existing redshifts for this POPPIES field:
+            for i in range(len(matched_z_cats)):
+                matched_z_cat = matched_z_cats[i]
+
+                for j in range(len(matched_z_cat)):
+                    # print("FH test ", matched_z_cat['FieldName'][j], par, matched_z_cat['POPPIES_ID'][j], obj, float(matched_z_cat['Z_SPEC'][j]))
+
+                    if (str(matched_z_cat['FieldName'][j]) == par) and (int(matched_z_cat['POPPIES_ID'][j]) == obj): ## if this object is in the matched list
+                        # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
+                        
+                        print_prompt("\nThe object {} has existing redshifts \n".format(int(obj)))
+
+                        if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                            print_prompt("The object {} has spec-z: {} \n".format(int(obj),float(matched_z_cat['Z_SPEC'][j])))
+                            print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} \n ".format(int(obj),float(matched_z_cat['Z_PHOT'][j]),float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j])))
+
+                        else:  ### else at least photo-z exists
+                            print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} \n ".format(int(obj),float(matched_z_cat['Z_PHOT'][j]),float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j])))
+
+
+        except Exception as e:
+            print('Error reading existing matched redshift catalogs: ', e )
+            pass
+
+
+
     ston_found = ston_found[s[::-1]]
     lamlines_found = lamlines_found[s[::-1]]
     index_of_strongest_line = 0
@@ -4786,6 +4855,8 @@ def inspect_object(
             masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
             masked_spec_lam2 = np.ma.masked_where(np.ma.getmask(spec_val2), spec_lam2)
             # compress the masked arrays for fitting
+
+
 
             print('Running the fit with the following settings: redshift = ',zguess,', fast_fit = ',fast_fit,', comp_fit = ',comp_fit,', polycont_fit = ',polycont_fit,', lincont_fit = ',lincont_fit)
             fit_inputs = [
@@ -5262,25 +5333,30 @@ def inspect_object(
             # MDR 2022/06/10
             snr_tot_others = np.sum(snr_tot_others)
 
-            # plot the whole darn thing
-            plot_object(
-                zguess,
-                fitresults["redshift"],
-                spdata,
-                config_pars,
-                snr_meas_array,
-                snr_tot_others,
-                full_fitmodel,
-                full_contmodel,
-                broad_fitmodel,
-                lamline,
-                lamlines_found,
-                index_of_strongest_line,
-                contmodel,
-                plottitle,
-                outdir,
-                )
-            
+            try:
+                    
+                # plot the whole darn thing
+                plot_object(
+                    zguess,
+                    fitresults["redshift"],
+                    spdata,
+                    config_pars,
+                    snr_meas_array,
+                    snr_tot_others,
+                    full_fitmodel,
+                    full_contmodel,
+                    broad_fitmodel,
+                    lamline,
+                    lamlines_found,
+                    index_of_strongest_line,
+                    contmodel,
+                    plottitle,
+                    outdir,
+                    )
+                
+            except Exception as e:
+                print('Could not make plots for Obj. {}, Reason: '.format(obj),e)
+                pass
             #        print "    Guess Redshift: z = %f" % (zguess)
             print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
             

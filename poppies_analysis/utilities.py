@@ -187,6 +187,94 @@ def create_regions(parno, path_to_data, path_to_out, filters):
     #         write_obj_region(parno, path_to_data, cat, "F444c_grism.reg", 24.1334945641, 765.438247, w = WCS(f444grism[0][1]), 
     #                         b_width = 127.806, b_length = 10.0)    
 
+### FH added 9/11/25:
+## read existing redshift data from pre-made catalogs where POPPIES sources were matched with other fields
+def read_matched_catalogs(files):
+
+    matched_cats_out = []
+
+    for i in range(len(files)):
+
+        # cat=asciitable.read(files[i], data_start=1,format="csv",delimiter=' ', guess=False,
+        # names=['FieldName', 'POPPIES_ID', 'GOODSN_ID', 'RA', 'DEC', 'Z_SPEC', 'Z_PHOT', 'Z_PHOT_L68' 'Z_PHOT_U68'],
+        # dtype={'FieldName': str, 'POPPIES_ID':int, 'GOODSN_ID':int, 'RA':float, 'DEC':float, 'Z_SPEC':float, 'Z_PHOT':float, 'Z_PHOT_L68':float, 'Z_PHOT_U68':float}) ###open file
+
+        # # Supply correct names explicitly (split the stuck pair!)
+        # names = [
+        #     "FieldName", "POPPIES_ID", "GOODSN_ID",
+        #     "RA", "DEC", "Z_SPEC", "Z_PHOT",
+        #     "Z_PHOT_L68", "Z_PHOT_U68"
+        # ]
+
+        # # Force IDs to be strings (keeps leading zeros), others as float
+        # dtypes = {
+        #     "FieldName": str,
+        #     "POPPIES_ID": str,   # was int; make str to preserve "043" etc.
+        #     "GOODSN_ID": str,    # same reason
+        #     "RA": float,
+        #     "DEC": float,
+        #     "Z_SPEC": float,
+        #     "Z_PHOT": float,
+        #     "Z_PHOT_L68": float,
+        #     "Z_PHOT_U68": float,
+        # }
+
+        # cat=asciitable.read(
+        #     files[i],
+        #     format="basic",          # plain whitespace-delimited
+        #     delimiter=None,          # any whitespace
+        #     names=names,             # use our names (ignore broken header)
+        #     guess=False,             # disable guessing
+        #     fast_reader=False,       # be conservative
+        #     comment="#",             # ignore commented lines
+        #     dtype=dtypes,            # preserve leading zeros
+        # )
+
+        # cat = asciitable.read(files[i],converters={'FieldName': [ascii.convert_numpy(str)]})
+
+        names = [
+            "FieldName", "POPPIES_ID", "GOODSN_ID",
+            "RA", "DEC", "Z_SPEC", "Z_PHOT",
+            "Z_PHOT_L68", "Z_PHOT_U68"
+        ]
+
+        df = pd.read_csv(
+            files[i],
+            comment="#",
+            sep='\s+',  # any whitespace
+            header=0,           
+            names=names,
+            engine="python",
+            dtype={"FieldName": str,
+        "POPPIES_ID": int,   
+        "GOODSN_ID": int}
+       # more tolerant tokenizer
+        )
+
+        # Preserve leading zeros by casting string columns
+        # df["FieldName"]  = df["FieldName"].astype(str)
+        # df["POPPIES_ID"]  = df["POPPIES_ID"].astype(int)
+
+        #assign data types:
+        df = df.astype({
+            "FieldName": str,        # preserve leading zeros
+            "POPPIES_ID": int,       
+            "GOODSN_ID": int,       
+            "RA": float,
+            "DEC": float,
+            "Z_SPEC": float,
+            "Z_PHOT": float,
+            "Z_PHOT_L68": float,
+            "Z_PHOT_U68": float
+        })
+
+        cat = Table.from_pandas(df)
+
+        matched_cats_out.append(cat)
+
+    return matched_cats_out
+    
+
 ### Not using for now (5/30/25)
 def add_header_keyword(parno, path_to_data):
 
