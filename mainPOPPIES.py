@@ -60,6 +60,8 @@ if __name__ == "__main__":
    
     # FH 2/3/25: make list of filters if one does not exist
     if len(filterfile) == 0:
+        print('\033[94m' + "No filter file found, creating it for you now."  + '\033[0m')
+
         utilities.find_filters(DATA_DIR,OUTPUT_DIR,str(parno))
 
         filterfile = glob.glob(OUTPUT_DIR + str(parno) + "/POPPIES{}_filters.dat".format(parno))
@@ -71,6 +73,7 @@ if __name__ == "__main__":
     objectfiles = glob.glob(OUTPUT_DIR + '/linelist/POPPIES'+str(parno) + 'objects.dat')
     
     if len(objectfiles) == 0:
+        print('\033[94m' + "No object file found, creating it for you now."  + '\033[0m')
 
     # for filt in filterlist['filter']:
         
@@ -105,9 +108,12 @@ if __name__ == "__main__":
     #### FH added 9/11/25:
 
     # Check if existing redshift catalogs exist or not:
-    existingredshifts = glob.glob(DATA_DIR + "*_matched_redshifts.cat") 
+    # existingredshifts = glob.glob(DATA_DIR + "*_matched_redshifts.cat") 
+    
+    existingredshifts = glob.glob(CODE_DIR + "/anc_data/*_matched_redshifts.cat") 
 
     if len(existingredshifts) > 0:
+        print("Existing redshifts found")
 
         try:
             matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
@@ -125,7 +131,6 @@ if __name__ == "__main__":
                     matched_z_cat_field = matched_z_cat[inds_match]
 
                 else:
-
 
                     print("There are no sources in this field with existing redshifts")
 

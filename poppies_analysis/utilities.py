@@ -195,43 +195,6 @@ def read_matched_catalogs(files):
 
     for i in range(len(files)):
 
-        # cat=asciitable.read(files[i], data_start=1,format="csv",delimiter=' ', guess=False,
-        # names=['FieldName', 'POPPIES_ID', 'GOODSN_ID', 'RA', 'DEC', 'Z_SPEC', 'Z_PHOT', 'Z_PHOT_L68' 'Z_PHOT_U68'],
-        # dtype={'FieldName': str, 'POPPIES_ID':int, 'GOODSN_ID':int, 'RA':float, 'DEC':float, 'Z_SPEC':float, 'Z_PHOT':float, 'Z_PHOT_L68':float, 'Z_PHOT_U68':float}) ###open file
-
-        # # Supply correct names explicitly (split the stuck pair!)
-        # names = [
-        #     "FieldName", "POPPIES_ID", "GOODSN_ID",
-        #     "RA", "DEC", "Z_SPEC", "Z_PHOT",
-        #     "Z_PHOT_L68", "Z_PHOT_U68"
-        # ]
-
-        # # Force IDs to be strings (keeps leading zeros), others as float
-        # dtypes = {
-        #     "FieldName": str,
-        #     "POPPIES_ID": str,   # was int; make str to preserve "043" etc.
-        #     "GOODSN_ID": str,    # same reason
-        #     "RA": float,
-        #     "DEC": float,
-        #     "Z_SPEC": float,
-        #     "Z_PHOT": float,
-        #     "Z_PHOT_L68": float,
-        #     "Z_PHOT_U68": float,
-        # }
-
-        # cat=asciitable.read(
-        #     files[i],
-        #     format="basic",          # plain whitespace-delimited
-        #     delimiter=None,          # any whitespace
-        #     names=names,             # use our names (ignore broken header)
-        #     guess=False,             # disable guessing
-        #     fast_reader=False,       # be conservative
-        #     comment="#",             # ignore commented lines
-        #     dtype=dtypes,            # preserve leading zeros
-        # )
-
-        # cat = asciitable.read(files[i],converters={'FieldName': [ascii.convert_numpy(str)]})
-
         names = [
             "FieldName", "POPPIES_ID", "GOODSN_ID",
             "RA", "DEC", "Z_SPEC", "Z_PHOT",
@@ -248,7 +211,6 @@ def read_matched_catalogs(files):
             dtype={"FieldName": str,
         "POPPIES_ID": int,   
         "GOODSN_ID": int}
-       # more tolerant tokenizer
         )
 
         # Preserve leading zeros by casting string columns

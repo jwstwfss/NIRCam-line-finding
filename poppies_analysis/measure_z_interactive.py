@@ -1967,7 +1967,7 @@ def inspect_object_all(
 
     #### FH added 9/11/25:
     # Check if existing redshift catalogs exist or not:
-    existingredshifts = glob(path_to_data + "*_matched_redshifts.cat") 
+    existingredshifts = glob(path_to_code + "/anc_data/*_matched_redshifts.cat") 
 
     if len(existingredshifts) > 0:
 
@@ -4672,7 +4672,8 @@ def inspect_object(
 
     #### FH added 9/11/25:
     # Check if existing redshift catalogs exist or not:
-    existingredshifts = glob(path_to_data + "*_matched_redshifts.cat") 
+    # existingredshifts = glob(path_to_data + "*_matched_redshifts.cat") 
+    existingredshifts = glob(path_to_code + "/anc_data/*_matched_redshifts.cat") 
 
     if len(existingredshifts) > 0:
 
