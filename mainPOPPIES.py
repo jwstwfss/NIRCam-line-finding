@@ -113,7 +113,7 @@ if __name__ == "__main__":
     existingredshifts = glob.glob(CODE_DIR + "/anc_data/*_matched_redshifts.cat") 
 
     if len(existingredshifts) > 0:
-        print("Existing redshifts found")
+        print("Existing redshift catalog(s) found")
 
         try:
             matched_z_cats = utilities.read_matched_catalogs(existingredshifts)

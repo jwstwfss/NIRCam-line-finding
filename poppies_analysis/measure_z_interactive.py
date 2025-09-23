@@ -513,6 +513,24 @@ def check_masked_lines(fitresults, snr_meas_array, spdata, flux_strings):
     return fitresults, snr_meas_array
 
 
+# def comment_out_obj(par, obj, catalogname):
+#     if verbose == True:
+#         print("Running comment_out_obj...\n")  # MDR 2022/05/17
+#     # if a row already exists for this object, comment it out
+#     # objstr = '{:<8d}'.format(par) + '{:<6d}'.format(obj)
+#     objstr = "{:<6d}".format(obj)
+#     if os.path.exists(catalogname):
+#         for line in fileinput.input(catalogname, inplace=True):
+#             if objstr in line:
+#                 print(
+#                     "#%s" % line,
+#                 )
+#             else:
+#                 print(
+#                     "%s" % line,
+#                 )
+
+## FH updated 9/22/25
 def comment_out_obj(par, obj, catalogname):
     if verbose == True:
         print("Running comment_out_obj...\n")  # MDR 2022/05/17
@@ -522,14 +540,9 @@ def comment_out_obj(par, obj, catalogname):
     if os.path.exists(catalogname):
         for line in fileinput.input(catalogname, inplace=True):
             if objstr in line:
-                print(
-                    "#%s" % line,
-                )
+                print("#%s" % line.rstrip()) # KVN: need rstrip to remove blank lines from catalog (04/2025)
             else:
-                print(
-                    "%s" % line,
-                )
-
+                print("%s" % line.rstrip())  # KVN: need rstrip to remove blank lines from catalog (04/2025)
 
 def print_prompt(prompt, prompt_type="obj"):
     print(setcolors[prompt_type] + prompt + setcolors["endc"])
@@ -4933,6 +4946,21 @@ def inspect_object(
                     f.write("%i\n" % obj)
                     f.close()
                     return 0
+            
+                #FH catching the case where fit_status was 0 (9/23/25):
+                if fitresults['fit_status'] == 0:
+                    print('Fit did not run for Obj. {} for some reaso: '.format(obj))
+                    zset = 0
+                    # comment = "failed"
+                    done = 1
+                    # FH 3/12/25: write object to done file, incase process gets interrupted
+                    if not os.path.exists(outdir + "/done_%s" % user):
+                        f = open(outdir + "/done_%s" % user, "w")
+                    else:
+                        f = open(outdir + "/done_%s" % user, "a")
+                    f.write("%i\n" % obj)
+                    f.close()
+                    return 0
 
             zfit = fitresults["redshift"]
             fitpars = fitresults["fit_parameters"]
@@ -5230,7 +5258,21 @@ def inspect_object(
                 f.close()
                 return 0
             
-            
+            #FH catching the case where fit_status was 0 (9/23/25):
+            if fitresults['fit_status'] == 0:
+                print('Fit did not run for Obj. {} for some reaso: '.format(obj))
+                zset = 0
+                # comment = "failed"
+                done = 1
+                # FH 3/12/25: write object to done file, incase process gets interrupted
+                if not os.path.exists(outdir + "/done_%s" % user):
+                    f = open(outdir + "/done_%s" % user, "w")
+                else:
+                    f = open(outdir + "/done_%s" % user, "a")
+                f.write("%i\n" % obj)
+                f.close()
+                return 0
+                        
             zfit = fitresults["redshift"]
             fitpars = fitresults["fit_parameters"]
             fitpars_nolines = cp.deepcopy(fitpars)
