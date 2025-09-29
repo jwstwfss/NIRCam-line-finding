@@ -432,7 +432,8 @@ def print_help_message():
         "\tlist = list all the objects in line list\n"
         "\tleft = list all the objects left to inspect\n"
         "\tlen = count number of unique objects in list\n"
-        "\treset = reset interactive options back to default for this object\n\n"
+        "\treset = reset interactive options back to default for this object\n"
+        "\tex = prints out existing redshift(s) for this object, or states it doesn't have one\n\n"
     )
     # Look at the full line list and select which 
     msg += setcolors["heading"] + "\tEMISSION LINE SPECIFIC OPTIONS:\n"
@@ -3501,6 +3502,47 @@ def inspect_object_all(
     #     elif option.strip().lower() == "dr":
     #         reloadReg()
 
+        #### #### 
+        ## FH 9/29/25
+        elif option.strip().lower() == "ex":
+            
+            if len(existingredshifts) > 0:
+
+                try:
+                    matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
+                    count_ex = 0 ### running counter that will be zero for non-existent z
+                    #Determine if there are existing redshifts for this POPPIES field:
+                    for i in range(len(matched_z_cats)):
+                        matched_z_cat = matched_z_cats[i]
+
+                        for j in range(len(matched_z_cat)):
+                            # print("FH test ", matched_z_cat['FieldName'][j], par, matched_z_cat['POPPIES_ID'][j], obj, float(matched_z_cat['Z_SPEC'][j]))
+
+                            if (str(matched_z_cat['FieldName'][j]) == par) and (int(matched_z_cat['POPPIES_ID'][j]) == obj): ## if this object is in the matched list
+                                # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
+                                count_ex += 1
+
+                                print_prompt("\nThe object {} has existing redshifts \n".format(int(obj)))
+
+                                if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                                    print_prompt("The object {} has spec-z: {} \n".format(int(obj),float(matched_z_cat['Z_SPEC'][j])))
+                                    print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} \n ".format(int(obj),float(matched_z_cat['Z_PHOT'][j]),float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j])))
+
+                                else:  ### else at least photo-z exists
+                                    print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} \n ".format(int(obj),float(matched_z_cat['Z_PHOT'][j]),float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j])))
+                    
+                    if count_ex == 0:
+                        print_prompt("\nThe object {} has no existing redshift measurments \n ".format(int(obj)))
+
+
+                except Exception as e:
+                    print('Error reading existing matched redshift catalogs: ', e )
+                    pass
+                
+            else:
+                print('No existing redshift catalogs exist!')
+
+
         # new options dealing with iterating objects
         # can't actually go back or choose another object now,
         # but allow for them now just in case
@@ -6080,6 +6122,45 @@ def inspect_object(
         #     reloadReg()
 
         #### #### 
+        ## FH 9/29/25
+        elif option.strip().lower() == "ex":
+            
+            if len(existingredshifts) > 0:
+
+                try:
+                    matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
+                    count_ex = 0 ### running counter that will be zero for non-existent z
+                    #Determine if there are existing redshifts for this POPPIES field:
+                    for i in range(len(matched_z_cats)):
+                        matched_z_cat = matched_z_cats[i]
+
+                        for j in range(len(matched_z_cat)):
+                            # print("FH test ", matched_z_cat['FieldName'][j], par, matched_z_cat['POPPIES_ID'][j], obj, float(matched_z_cat['Z_SPEC'][j]))
+
+                            if (str(matched_z_cat['FieldName'][j]) == par) and (int(matched_z_cat['POPPIES_ID'][j]) == obj): ## if this object is in the matched list
+                                # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
+                                count_ex += 1
+
+                                print_prompt("\nThe object {} has existing redshifts \n".format(int(obj)))
+
+                                if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                                    print_prompt("The object {} has spec-z: {} \n".format(int(obj),float(matched_z_cat['Z_SPEC'][j])))
+                                    print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} \n ".format(int(obj),float(matched_z_cat['Z_PHOT'][j]),float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j])))
+
+                                else:  ### else at least photo-z exists
+                                    print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} \n ".format(int(obj),float(matched_z_cat['Z_PHOT'][j]),float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j])))
+                    
+                    if count_ex == 0:
+                        print_prompt("\nThe object {} has no existing redshift measurments \n ".format(int(obj)))
+
+
+                except Exception as e:
+                    print('Error reading existing matched redshift catalogs: ', e )
+                    pass
+                
+            else:
+                print('No existing redshift catalogs exist!')
+
 
         ########
 

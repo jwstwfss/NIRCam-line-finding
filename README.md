@@ -114,6 +114,8 @@ left = list all the objects left to inspect
 
 reset = reset interactive options back to default for this object
 
+ex = prints out existing redshift(s) for this object, or states it doesn't have one
+
 **EMISSION LINE SPECIFIC OPTIONS:**
 
 z = enter a different z guess
