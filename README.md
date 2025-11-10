@@ -2,8 +2,8 @@
 
 Farhan Hasan, created 2/13/2025 ([fhasan@stsci.edu](mailto:fhasan@stsci.edu))
 
-Last updated 9/19/2025
-Added ancillary catalogs functionality - using redshifts from Mehta, Rafelski et al. 2024.
+Last updated 11/9/2025
+Added ancillary catalogs functionality - using redshifts from GOODS-N UVCANDELS (Mehta+2024) and JADES (DR4)
 These catalogs are in poppies_analysis/anc_data
 
 This software is used to identify line-emitting objects and measure emission line properties in JWST NIRCam WFSS Grism spectra, based on the pure-parallel survey POPPIES (PID#5398).

@@ -191,46 +191,54 @@ def create_regions(parno, path_to_data, path_to_out, filters):
 ## read existing redshift data from pre-made catalogs where POPPIES sources were matched with other fields
 def read_matched_catalogs(files):
 
+    # Define a converter for the 'col1' column to integer
+    def convert_to_str(value):
+        return str(value)
+
     matched_cats_out = []
 
     for i in range(len(files)):
 
-        names = [
-            "FieldName", "POPPIES_ID", "GOODSN_ID",
-            "RA", "DEC", "Z_SPEC", "Z_PHOT",
-            "Z_PHOT_L68", "Z_PHOT_U68"
-        ]
+        # names = [
+        #     "FieldName", "POPPIES_ID", "GOODSN_ID",
+        #     "RA", "DEC", "Z_SPEC", "Z_PHOT",
+        #     "Z_PHOT_L68", "Z_PHOT_U68"
+        # ]
 
-        df = pd.read_csv(
-            files[i],
-            comment="#",
-            sep='\s+',  # any whitespace
-            header=0,           
-            names=names,
-            engine="python",
-            dtype={"FieldName": str,
-        "POPPIES_ID": int,   
-        "GOODSN_ID": int}
-        )
+        # df = pd.read_csv(
+        #     files[i],
+        #     comment="#",
+        #     sep='\s+',  # any whitespace
+        #     header=0,           
+        #     names=names,
+        #     engine="python",
+        #     dtype={"FieldName": str,
+        # "POPPIES_ID": int,   
+        # "GOODSN_ID": int}
+        # )
 
-        # Preserve leading zeros by casting string columns
-        # df["FieldName"]  = df["FieldName"].astype(str)
-        # df["POPPIES_ID"]  = df["POPPIES_ID"].astype(int)
+        # # Preserve leading zeros by casting string columns
+        # # df["FieldName"]  = df["FieldName"].astype(str)
+        # # df["POPPIES_ID"]  = df["POPPIES_ID"].astype(int)
 
-        #assign data types:
-        df = df.astype({
-            "FieldName": str,        # preserve leading zeros
-            "POPPIES_ID": int,       
-            "GOODSN_ID": int,       
-            "RA": float,
-            "DEC": float,
-            "Z_SPEC": float,
-            "Z_PHOT": float,
-            "Z_PHOT_L68": float,
-            "Z_PHOT_U68": float
-        })
+        # #assign data types:
+        # df = df.astype({
+        #     "FieldName": str,        # preserve leading zeros
+        #     "POPPIES_ID": int,       
+        #     "GOODSN_ID": int,       
+        #     "RA": float,
+        #     "DEC": float,
+        #     "Z_SPEC": float,
+        #     "Z_PHOT": float,
+        #     "Z_PHOT_L68": float,
+        #     "Z_PHOT_U68": float
+        # })
 
-        cat = Table.from_pandas(df)
+        # cat = Table.from_pandas(df)
+
+        ##### FH updated 11/9/25:
+
+        cat = asciitable.read(files[i],delimiter=" ",)
 
         matched_cats_out.append(cat)
 

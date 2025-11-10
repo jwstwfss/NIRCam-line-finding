@@ -122,17 +122,24 @@ if __name__ == "__main__":
             for i in range(len(matched_z_cats)):
                 matched_z_cat = matched_z_cats[i]
 
-                inds_match = np.where(matched_z_cat['FieldName'] == parno)[0]
+                # print(len(matched_z_cat),parno)
+
+                # existing_field_name = str(existingredshifts[i]).strip("_matched_redshifts.cat")
+                existing_field_name = str(existingredshifts[i]).split("anc_data/")[1].split("_matched_redshifts.cat")[0]
+
+                inds_match = np.where(matched_z_cat['FieldName'] == int(parno))[0]
+                
+                # print(len(matched_z_cat),existing_field_name)
 
                 if len(inds_match) > 0:
 
-                    print("There are {} sources in this field with existing redshifts".format(int(len(inds_match))))
+                    print("There are {} sources in this field with existing redshifts from {}".format(int(len(inds_match)), str(existing_field_name)))
 
                     matched_z_cat_field = matched_z_cat[inds_match]
 
                 else:
 
-                    print("There are no sources in this field with existing redshifts")
+                    print("There are no sources in this field with existing redshifts from {}".format(str(existing_field_name)))
 
 
         except Exception as e:
@@ -172,4 +179,3 @@ if __name__ == "__main__":
         #run the measure_z_interactive code to go through objects individually:
         poppies.measure_z_interactive(path_to_data=DATA_DIR, path_to_code=CODE_DIR, path_to_out=OUTPUT_DIR, parno=parno)
        
-
