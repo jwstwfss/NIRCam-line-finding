@@ -3,7 +3,7 @@
 Farhan Hasan, created 2/13/2025 ([fhasan@stsci.edu](mailto:fhasan@stsci.edu))
 
 Last updated 11/9/2025
-Added ancillary catalogs functionality - using redshifts from GOODS-N UVCANDELS (Mehta+2024) and JADES (DR4)
+Added ancillary catalogs functionality - using redshifts from GOODS-N UVCANDELS (Mehta+2024) and JADES (DR4).
 These catalogs are in poppies_analysis/anc_data
 
 This software is used to identify line-emitting objects and measure emission line properties in JWST NIRCam WFSS Grism spectra, based on the pure-parallel survey POPPIES (PID#5398).
@@ -130,7 +130,7 @@ n = skip to next brightest line found in this object
 
 1gauss = option to go back to 1 gaussian fit after selecting 2 gaussian fit
 
-ha, hb, hg, o31, o32, o2, s2, s31, s32, lya, c4, pa, pb, pg, lya, c4 = change strongest emission line
+ha, hb, hg, o31, o32, o2, s2, s31, s32, lya, c4, pa, pb, pg, lya, c4, pah, bra = change strongest emission line
 
 The full list of commands and corresponding lines for the strongest emission line is as follows:
 
@@ -151,6 +151,8 @@ The full list of commands and corresponding lines for the strongest emission lin
 | pg          | Pa-gamma 10941 | 10941.1                   |
 | pb          | Pa-beta 12822  | 12821.6                   |
 | pa          | Pa-alpha 18756 | 18756.1                   |
+| pah         | PAH-3.3 micron | 32890.0                   |
+| bra         | Br-alpha 40523 | 40523.0                   |
 
 **SPECTRUM SPECIFIC OPTIONS:**
 

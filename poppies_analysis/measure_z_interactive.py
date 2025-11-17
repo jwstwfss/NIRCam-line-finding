@@ -93,6 +93,10 @@ m2_2796_vac = 2796.352
 m2_2803_vac = 2803.531
 o2_3727_vac = 3727.092
 o2_3730_vac = 3729.875
+ne3_3869_vac = 3868.760 #added by FH
+hd_4102_vac = 4101.734 #added by FH 6/27/25
+ne3_3968_he_3970_vac = 3970 #blended; just fit as 1 because unresolved, #added by FH 6/27/25
+he1_5875_vac = 5875.624 #added by FH 6/27/25
 hg_4342_vac = 4341.684
 o3_4363_vac = 4364.436
 h2_4686_vac = 4687.020
@@ -108,17 +112,19 @@ s2_6716_vac = 6718.290
 s2_6731_vac = 6732.670
 s3_9069_vac = 9071.100
 s3_9532_vac = 9533.200
+pd_10052_vac = 10052.1 #added by FH 11/10/25
 he_10830_vac = 10832.86
 pg_10941_vac = 10941.1
+fe2_12570_vac = 12570.2 #added by FH 2/28/25
 pb_12822_vac = 12821.6
+fe2_16440_vac = 16440.02 #added by FH 11/10/25
 pa_18756_vac = 18756.1
-fe_12570_vac = 12570.2 #added by FH 2/28/25
 si6_19632_vac = 19632.0  #added by FH 2/28/25
+h2_19570_vac = 19575.59 #added by FH 11/10/25
+h2_21218_vac = 21218.34 #added by FH 11/10/25
 si7_24833_vac = 24833.0  #added by FH 2/28/25
-ne3_3869_vac = 3868.760  ## added by FH 3/4/25
-hd_4102_vac = 4101.734  ## added by FH 6/27/25
-ne3_3968_he_3970_vac = 3970.0 ## added by FH 6/27/25
-he1_5875_vac = 5875.624 ## added by FH 6/27/25
+pah_32890_vac = 32890.0 #added by FH 11/10/25
+bra_40523_vac = 40523.0 #added by FH 11/10/25 - for end of spec fit
 
 
 # Make all catalog header and data write commands loops over the 'flux_strings' variable.
@@ -162,7 +168,15 @@ supported_lines = [
     ne3_3869_vac,
     hd_4102_vac, 
     ne3_3968_he_3970_vac, 
-    he1_5875_vac
+    he1_5875_vac,
+    #added by FH 11/10/25:
+    pd_10052_vac,
+    fe2_12570_vac,
+    fe2_16440_vac,
+    h2_19570_vac,
+    h2_21218_vac,
+    pah_32890_vac,
+    bra_40523_vac,
 ]
 
 # These lines are close to their doublets so are not plotted in ax1.
@@ -206,14 +220,22 @@ supported_lines_strings = [
     "[S III]",
     "[S III]",
     "He I",
-    r"P$\gamma$",
-    r"P$\beta$",
-    r"P$\alpha$",
+    r"Pa$\gamma$",
+    r"Pa$\beta$",
+    r"Pa$\alpha$",
     #FH 6/27/25:
     "[Ne III]",
     r"H$\delta$", 
     r"H$\epsilon$+[Ne III]",
-    "He I"
+    "He I",
+    #FH 11/10/25:
+    r"P$\delta$",
+    "[Fe II]",
+    "[Fe II]",
+    r"H$_{2}$",
+    r"H$_{2}$",
+    "PAH-3.3",
+    r"Br$\alpha$",
 ]
 
 flux_strings_1gauss = [
@@ -248,7 +270,15 @@ flux_strings_1gauss = [
     "ne3_3869",
     "hd_4102",
     "ne3_3968_he_3970",
-    "he1_5875"
+    "he1_5875",
+    #FH 11/10/25:
+    "pd_10052",
+    "fe2_12570",
+    "fe2_16440",
+    "h2_19570",
+    "h2_21218",
+    "pah_32890",
+    "bra_40523",
 ]
 
 flux_strings_2gauss = [
@@ -279,16 +309,26 @@ flux_strings_2gauss = [
     "ne3_3869tot", "ne3_3869nar", "ne3_3869bro",
     "hd_4102tot", "hd_4102nar", "hd_4102bro",
     "ne3_3968_he_3970tot", "ne3_3968_he_3970nar", "ne3_3968_he_3970bro", 
-    "he1_5875tot", "he1_5875nar", "he1_5875bro"
+    "he1_5875tot", "he1_5875nar", "he1_5875bro",
+    #FH 11/10/25:
+    "pd_10052tot", "pd_10052nar", "pd_10052bro",
+    "fe2_12570tot", "fe2_12570nar", "fe2_12570bro",
+    "fe2_16440tot", "fe2_16440nar", "fe2_16440bro",
+    "h2_19570tot", "h2_19570nar", "h2_19570bro",
+    "h2_21218tot", "h2_21218nar", "h2_21218bro",
+    "pah_32890tot", "pah_32890nar", "pah_32890bro",
+    "bra_40523tot", "bra_40523nar", "bra_40523bro",   
 ]
+
 
 contam_flags_string = "la_1216, n5_1238, n5_1242, c4_1548, c4_1550, h2_1640, \
 o3_1660, o3_1666, s3_1883, s3_1892, c3_1907, c3_1909, \
 m2_2796, m2_2803, o2_3727, o2_3730, hg_4342, o3_4363, \
 h2_4686, hb_4863, o3_4959, o3_5007, o1_6300, o1_6363, \
 n2_6550, ha_6565, n2_6585, s2_6716, s2_6731, s3_9069, \
-s3_9532, he10830, pg_10941, pb_12822, pa_18756 \
-ne3_3869, hd_4102, ne3_3968_he_3970, he1_5875, cont"     #FH 6/27/25
+s3_9532, he10830, pg_10941, pb_12822, pa_18756, \
+ne3_3869, hd_4102, ne3_3968_he_3970, he1_5875,  \
+pd_10052, fe2_12570, fe2_16440, h2_19570, h2_21218, pah_32890, bra_40523, cont"     #FH 11/10/25
 
 # colors to help split up terminal output
 # helpmsg = light blue
@@ -445,7 +485,7 @@ def print_help_message():
         "\tp = skip to previous brightest line found in this object\n"
         "\t2gauss = double gaussian profile for the line being fitted\n"
         "\t1gauss = option to go back to 1 gaussian fit after selecting 2 gaussian fit\n"
-        "\tha, hb, hg, o31, o32, o2, s2, s31, s32, lya, c4, pa, pb, pg, lya, c4 = change strongest emission line\n"
+        "\tha, hb, hg, o31, o32, o2, s2, s31, s32, lya, c4, pa, pb, pg, lya, c4, pah, bra = change strongest emission line\n"
         "\tPlease see the README file in the top-level directory for the full list of lines and their corresponding commands\n\n"
     )
     msg += setcolors["heading"] + "\tSPECTRUM SPECIFIC OPTIONS:\n"
@@ -2138,6 +2178,14 @@ def inspect_object_all(
         "hd_4102": 0,
         "ne3_3968_he_3970": 0,
         "he1_5875": 0,
+        ## FH 11/10/25:
+        "pd_10052":0,
+        "fe2_12570":0,
+        "fe2_16440":0, 
+        "h2_19570":0,
+        "h2_21218":0,
+        "pah_32890":0, 
+        "bra_40523":0,
         "cont": 0,
     }  # MDR 2022/07/22
 
@@ -3318,6 +3366,11 @@ def inspect_object_all(
             zguess = (lamline / pb_12822_vac) - 1.0
         elif option.strip().lower() == "pa":
             zguess = (lamline / pa_18756_vac) - 1.0
+        ## FH added 11/14/25:
+        elif option.strip().lower() == "pah":
+            zguess = (lamline / pah_32890_vac) - 1.0
+        elif option.strip().lower() == "bra":
+            zguess = (lamline / bra_40523_vac) - 1.0
 
         # note contamination
         elif option.strip().lower() == "contam":
@@ -4949,6 +5002,14 @@ def inspect_object(
         "hd_4102": 0,
         "ne3_3968_he_3970": 0,
         "he1_5875": 0,
+        ## FH 11/10/25:
+        "pd_10052":0,
+        "fe2_12570":0,
+        "fe2_16440":0, 
+        "h2_19570":0,
+        "h2_21218":0,
+        "pah_32890":0, 
+        "bra_40523":0,
         "cont": 0,
     }  # MDR 2022/07/22
 
@@ -6123,6 +6184,11 @@ def inspect_object(
             zguess = (lamline / pb_12822_vac) - 1.0
         elif option.strip().lower() == "pa":
             zguess = (lamline / pa_18756_vac) - 1.0
+        ## FH added 11/14/25:
+        elif option.strip().lower() == "pah":
+            zguess = (lamline / pah_32890_vac) - 1.0
+        elif option.strip().lower() == "bra":
+            zguess = (lamline / bra_40523_vac) - 1.0
 
         # note contamination
         elif option.strip().lower() == "contam":
@@ -7331,7 +7397,15 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj,
             "ne3_3869", 
             "hd_4102",
             "ne3_3968_he_3970", 
-            "he1_5875"]
+            "he1_5875",
+            ## FH 11/10/25:
+            "pd_10052",
+            "fe2_12570",
+            "fe2_16440", 
+            "h2_19570",
+            "h2_21218",
+            "pah_32890", 
+            "bra_40523"]
 
         for line in result_lines:
             # cat.write("#" + str(results_idx + 0) + " " + line + "_flux  ")
@@ -7644,6 +7718,41 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj,
         + "{:>13.2e}".format(fitresults["he1_5875_ew_obs"])      # new line; Added KVN 06/2025 
         + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added KVN 06/2025
         + "{:>6d}".format(contamflags["he1_5875"])               # new line; Added KVN 06/2025   
+        + "{:>13.2e}".format(fitresults["pd_10052_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["pd_10052_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["pd_10052_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["pd_10052"])               # new line; Added FH 11/10/25  
+        + "{:>13.2e}".format(fitresults["fe2_12570_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["fe2_12570_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["fe2_12570_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["fe2_12570"])               # new line; Added FH 11/10/25  
+        + "{:>13.2e}".format(fitresults["fe2_16440_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["fe2_16440_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["fe2_16440_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["fe2_16440"])                    
+        + "{:>13.2e}".format(fitresults["h2_19570_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["h2_19570_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["h2_19570_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["h2_19570"])    
+        + "{:>13.2e}".format(fitresults["h2_21218_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["h2_21218_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["h2_21218_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["h2_21218"])   
+        + "{:>13.2e}".format(fitresults["pah_32890_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["pah_32890_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["pah_32890_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["pah_32890"])   
+        + "{:>13.2e}".format(fitresults["bra_40523_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["bra_40523_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["bra_40523_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["bra_40523"])          
         + "\n"
     )
 
