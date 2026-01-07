@@ -88,7 +88,9 @@ if __name__ == "__main__":
     
     if len(specdatfiles) == 0:
         # OLD: utilities.add_header_keyword(parno = parno, path_to_data = DATA_DIR) ## this one is commented out until RADESYS headers are provided in the reduced data
-
+        
+        print('\033[94m' + "1D spec dat files found, making them now."  + '\033[0m')
+        
         try:
             utilities.make_spectra_dat_files(parno = parno, path_to_data = DATA_DIR, path_to_out = OUTPUT_DIR)
 

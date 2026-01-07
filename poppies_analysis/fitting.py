@@ -67,6 +67,8 @@ h2_19570_vac = 19575.59 #added by FH 11/10/25
 h2_21218_vac = 21218.34 #added by FH 11/10/25
 si7_24833_vac = 24833.0  #added by FH 2/28/25
 pah_32890_vac = 32890.0 #added by FH 11/10/25
+ali_34200_vac = 34200.0 #added by FH 1/6/26
+pf_37410_vac = 37410.0 #added by FH 1/6/26
 bra_40523_vac = 40523.0 #added by FH 11/10/25 
 
 # Define the index number for each model parameter that will be fit by MPFIT.
@@ -135,7 +137,9 @@ fe2_16440_idx = 56 #added by FH 11/10/25
 h2_19570_idx = 57 #added by FH 11/10/25
 h2_21218_idx = 58 #added by FH 11/10/25
 pah_32890_idx = 59 #added by FH 11/10/25
-bra_40523_idx = 60 #added by FH 11/10/25
+ali_34200_idx = 60 #added by FH 1/6/26
+pf_37410_idx = 61 #added by FH 1/6/26
+bra_40523_idx = 62 #added by FH 11/10/25
 
 # KVN: adding some more parameters -- it is much easier to add parameters to the end 
 # (even though t2_wave_idx and t_wave_idx are both transitions, better t2_wave_idx gets initiated here)
@@ -197,13 +201,17 @@ fe2_16440_broad_idx = t2_wave_idx + 42 #added by FH 11/10/25
 h2_19570_broad_idx = t2_wave_idx + 43 #added by FH 11/10/25
 h2_21218_broad_idx = t2_wave_idx + 44 #added by FH 11/10/25
 pah_32890_broad_idx = t2_wave_idx + 45 #added by FH 11/10/25
-bra_40523_broad_idx = t2_wave_idx + 46 #added by FH 11/10/25
+
+ali_34200_broad_idx = t2_wave_idx + 46 #added by FH 1/6/26
+pf_37410_broad_idx = t2_wave_idx + 47 #added by FH 1/6/26
+
+bra_40523_broad_idx = t2_wave_idx + 48 #added by FH 11/10/25
 
 # These are for the width of the broad gaussian component
 # Here, they are set to be the same but if using data with different resolution, these will be different
 # so keeping the functionality by defining 2 parameters
-fwhm_grism_idx_broad = t2_wave_idx + 47 # fwhm_red
-fwhm_ratio_idx_broad = t2_wave_idx + 48 # fwhm_blue = (ratio_fwhm * fwhm_red)
+fwhm_grism_idx_broad = t2_wave_idx + 49 # fwhm_red
+fwhm_ratio_idx_broad = t2_wave_idx + 50 # fwhm_blue = (ratio_fwhm * fwhm_red)
 
 number_of_param = fwhm_ratio_idx_broad + 1 # + 1 of highest index. taking the last index and adding one
 
@@ -504,7 +512,10 @@ def emissionline_model(pars, x, comps, polycont, lincont):
         h2_21218_amp = pars[h2_21218_idx] #added by FH 11/10/25
         pah_32890_amp = pars[pah_32890_idx] #added by FH 11/10/25
         bra_40523_amp = pars[bra_40523_idx] #added by FH 11/10/25    
-        
+
+        ali_34200_amp = pars[ali_34200_idx] #added by FH 1/6/26
+        pf_37410_amp = pars[pf_37410_idx] #added by FH 1/6/26
+
         # define the observed wavelengths
         la_1216_obs = la_1216_vac * (1 + z + la_1216_dz)
         n5_1238_obs = n5_1238_vac * (1 + z + la_1216_dz)
@@ -558,6 +569,10 @@ def emissionline_model(pars, x, comps, polycont, lincont):
         pah_32890_obs  = pah_32890_vac  * (1 + z)
         bra_40523_obs  = bra_40523_vac  * (1 + z)
 
+        #FH 1/6/26
+        ali_34200_obs  = ali_34200_vac  * (1 + z)
+        pf_37410_obs  = pf_37410_vac  * (1 + z)
+
         # initialize the continuum and emission line models as lists of zeros.
         cont_model = x * 0.
         line_model = x * 0.
@@ -600,6 +615,10 @@ def emissionline_model(pars, x, comps, polycont, lincont):
         add_emission_line_to_model(line_model, h2_21218_obs, h2_21218_amp)
         add_emission_line_to_model(line_model, pah_32890_obs, pah_32890_amp)
         add_emission_line_to_model(line_model, bra_40523_obs, bra_40523_amp)
+
+        #FH 1/6/26:
+        add_emission_line_to_model(line_model, ali_34200_obs, ali_34200_amp)
+        add_emission_line_to_model(line_model, pf_37410_obs, pf_37410_amp)
 
         ############################################################################
         # lyman alpha is highly asymmetric so add a red wing component.
@@ -713,6 +732,10 @@ def emissionline_model(pars, x, comps, polycont, lincont):
         h2_21218_amp = pars[h2_21218_idx];        h2_21218_broad_amp = pars[h2_21218_broad_idx]
         pah_32890_amp = pars[pah_32890_idx];        pah_32890_broad_amp = pars[pah_32890_broad_idx]
         bra_40523_amp = pars[bra_40523_idx];        bra_40523_broad_amp = pars[bra_40523_broad_idx]
+
+        # FH 1/6/26:
+        ali_34200_amp = pars[ali_34200_idx];        ali_34200_broad_amp = pars[ali_34200_broad_idx]
+        pf_37410_amp = pars[pf_37410_idx];        pf_37410_broad_amp = pars[pf_37410_broad_idx]
         
 
         # define the observed wavelengths
@@ -758,7 +781,7 @@ def emissionline_model(pars, x, comps, polycont, lincont):
         ne3_3968_he_3970_obs  = ne3_3968_he_3970_vac  * (1 + z)
         he1_5875_obs  = he1_5875_vac  * (1 + z)    
 
-        #FH 11/10/25
+        #FH 11/10/25:
         pd_10052_obs  = pd_10052_vac  * (1 + z)
         fe2_12570_obs  = fe2_12570_vac  * (1 + z)
         fe2_16440_obs  = fe2_16440_vac  * (1 + z)
@@ -766,6 +789,10 @@ def emissionline_model(pars, x, comps, polycont, lincont):
         h2_21218_obs  = h2_21218_vac  * (1 + z)
         pah_32890_obs  = pah_32890_vac  * (1 + z)
         bra_40523_obs  = bra_40523_vac  * (1 + z)    
+        
+        #FH 1/6/26:
+        ali_34200_obs  = ali_34200_vac  * (1 + z)
+        pf_37410_obs  = pf_37410_vac  * (1 + z)
 
         # initialize the continuum and emission line models as lists of zeros.
         cont_model_double_gauss = x * 0.
@@ -811,6 +838,9 @@ def emissionline_model(pars, x, comps, polycont, lincont):
         add_emission_line_to_model2gauss(line_model_narrow_gauss, pah_32890_obs, pah_32890_amp, pah_32890_broad_amp)
         add_emission_line_to_model2gauss(line_model_narrow_gauss, bra_40523_obs, bra_40523_amp, bra_40523_broad_amp)
 
+        # FH 1/6/26:
+        add_emission_line_to_model2gauss(line_model_narrow_gauss, ali_34200_obs, ali_34200_amp, ali_34200_broad_amp)
+        add_emission_line_to_model2gauss(line_model_narrow_gauss, pf_37410_obs, pf_37410_amp, pf_37410_broad_amp)
 
         # Adding again the special cases, but note that they are updated for 2 gaussians
         ############################################################################
@@ -989,6 +1019,10 @@ def fit_obj(input_list,filter='F444W'):
     pah_32890_obs = pah_32890_vac * (1 + z_in)
     bra_40523_obs = bra_40523_vac * (1 + z_in)
 
+    ## added by FH 1/6/26:
+    ali_34200_obs = ali_34200_vac * (1 + z_in)
+    pf_37410_obs = pf_37410_vac * (1 + z_in)
+
     ############################################################################
     ############################################################################
     '''
@@ -1051,6 +1085,8 @@ def fit_obj(input_list,filter='F444W'):
     mask_emission_lines(h2_21218_obs, h2_21218_obs) # FH added 11/10/25
     mask_emission_lines(pah_32890_obs, pah_32890_obs) # FH added 11/10/25
     mask_emission_lines(bra_40523_obs, bra_40523_obs) # FH added 11/10/25
+    mask_emission_lines(ali_34200_obs, ali_34200_obs) # FH added 1/6/26
+    mask_emission_lines(pf_37410_obs, pf_37410_obs) # FH added 1/6/26
 
     w = np.where(mask_spec == 0.0)
     cont_guess = np.median(flux_spec[w])
@@ -1254,7 +1290,9 @@ def fit_obj(input_list,filter='F444W'):
         'hd_4102', 'ne3_3968_he_3970', 'he1_5875', \
         ## FH added 11/10/25
         'pd_10052', 'fe2_12570', 'fe2_16440', \
-        'h2_19570', 'h2_21218', 'pah_32890', 'bra_40523']
+        'h2_19570', 'h2_21218', 'pah_32890', 'bra_40523', \
+        ## FH added 1/6/26
+        'ali_34200', 'pf_37410']
 
         # fix the lower limits to zero because the gaussian amplitudes must be positive.
         for line in loop_lines:
@@ -1271,7 +1309,9 @@ def fit_obj(input_list,filter='F444W'):
         'pg_10941_broad', 'pb_12822_broad', 'pa_18756_broad', 'ne3_3869_broad', 'hd_4102_broad', 'ne3_3968_he_3970_broad', 'he1_5875_broad', \
         ## FH added 11/10/25
         'pd_10052_broad', 'fe2_12570_broad', 'fe2_16440_broad', \
-        'h2_19570_broad', 'h2_21218_broad', 'pah_32890_broad', 'bra_40523_broad']
+        'h2_19570_broad', 'h2_21218_broad', 'pah_32890_broad', 'bra_40523_broad', \
+        ## FH added 1/6/26
+        'ali_34200_broad', 'pf_37410_broad']
 
         #### KVN: if not fitting double gaussian, set all broad component amplitudes to zero
         if comps_in == False:
@@ -1632,6 +1672,10 @@ def fit_obj(input_list,filter='F444W'):
         pah_32890_obs = pah_32890_vac * (1 + z_out)
         bra_40523_obs = bra_40523_vac * (1 + z_out)
 
+        ## added by FH 1/6/26:
+        ali_34200_obs = ali_34200_vac * (1 + z_out)
+        pf_37410_obs = pf_37410_vac * (1 + z_out)
+
         ########################################################################
         ########################################################################
 
@@ -1778,7 +1822,14 @@ def fit_obj(input_list,filter='F444W'):
 
             bra_40523_flux, bra_40523_err, bra_40523_ew_obs = calculate_emission_line_flux(
                 bra_40523_obs, bra_40523_idx, bra_40523_vac, False, polycont_in, lincont_in)            
+
+            ## FH added 1/6/26:
+            ali_34200_flux, ali_34200_err, ali_34200_ew_obs = calculate_emission_line_flux(
+                ali_34200_obs, ali_34200_idx, ali_34200_vac, False, polycont_in, lincont_in)            
             
+            pf_37410_flux, pf_37410_err, pf_37410_ew_obs = calculate_emission_line_flux(
+                pf_37410_obs, pf_37410_idx, pf_37410_vac, False, polycont_in, lincont_in)            
+                                     
             '''
             Calculate the flux, error, and equivalent width values for halpha and
             [N II] separately, which is required because [N II] is 'tied' to halpha
@@ -1887,6 +1938,12 @@ def fit_obj(input_list,filter='F444W'):
             bra_40523tot_flux, bra_40523tot_err, bra_40523tot_ew_obs, bra_40523nar_flux, bra_40523nar_err, bra_40523nar_ew_obs, bra_40523bro_flux, bra_40523bro_err, bra_40523bro_ew_obs = calculate_emission_line_flux(
                 bra_40523_obs, bra_40523_idx, bra_40523_vac, bra_40523_broad_idx, True, polycont_in, lincont_in)            
 
+            ## FH added 1/6/26:
+            ali_34200tot_flux, ali_34200tot_err, ali_34200tot_ew_obs, ali_34200nar_flux, ali_34200nar_err, ali_34200nar_ew_obs, ali_34200bro_flux, ali_34200bro_err, ali_34200bro_ew_obs = calculate_emission_line_flux(
+                ali_34200_obs, ali_34200_idx, ali_34200_vac, ali_34200_broad_idx, True, polycont_in, lincont_in)            
+                    
+            pf_37410tot_flux, pf_37410tot_err, pf_37410tot_ew_obs, pf_37410nar_flux, pf_37410nar_err, pf_37410nar_ew_obs, pf_37410bro_flux, pf_37410bro_err, pf_37410bro_ew_obs = calculate_emission_line_flux(
+                pf_37410_obs, pf_37410_idx, pf_37410_vac, pf_37410_broad_idx, True, polycont_in, lincont_in)            
 
             '''
             Calculate the flux, error, and equivalent width values for halpha and
@@ -2141,7 +2198,9 @@ def fit_obj(input_list,filter='F444W'):
             "ne3_3869","hd_4102","ne3_3968_he_3970","he1_5875", \
             ### FH added 11/10/25:
             "pd_10052", "fe2_12570", "fe2_16440", \
-            "h2_19570", "h2_21218", "pah_32890", "bra_40523"
+            "h2_19570", "h2_21218", "pah_32890", "bra_40523", \
+            ### FH added 1/6/26:
+            "ali_34200", "pf_37410"  
             ]
 
             for line in result_lines:
@@ -2255,7 +2314,10 @@ def fit_obj(input_list,filter='F444W'):
             "h2_19570tot", "h2_19570nar", "h2_19570bro", \
             "h2_21218tot", "h2_21218nar", "h2_21218bro", \
             "pah_32890tot", "pah_32890nar", "pah_32890bro", \
-            "bra_40523tot", "bra_40523nar", "bra_40523bro"    
+            "bra_40523tot", "bra_40523nar", "bra_40523bro", \
+            ### FH added 1/6/26:
+            "ali_34200tot", "ali_34200nar", "ali_34200bro", \
+            "pf_37410tot", "pf_37410nar", "pf_37410bro"    
             ]
     
             for line in result_lines:
@@ -2384,6 +2446,10 @@ def fit_obj_comb(input_list,filter='F444W'):
     pah_32890_obs = pah_32890_vac * (1 + z_in)
     bra_40523_obs = bra_40523_vac * (1 + z_in)    
 
+    ## added by FH 1/6/26:
+    ali_34200_obs = ali_34200_vac * (1 + z_in)
+    pf_37410_obs = pf_37410_vac * (1 + z_in)
+
     ############################################################################
     ############################################################################
     '''
@@ -2458,6 +2524,8 @@ def fit_obj_comb(input_list,filter='F444W'):
     mask_emission_lines(h2_21218_obs, h2_21218_obs) # FH added 11/10/25
     mask_emission_lines(pah_32890_obs, pah_32890_obs) # FH added 11/10/25
     mask_emission_lines(bra_40523_obs, bra_40523_obs) # FH added 11/10/25
+    mask_emission_lines(ali_34200_obs, ali_34200_obs) # FH added 1/6/26
+    mask_emission_lines(pf_37410_obs, pf_37410_obs) # FH added 1/6/26
 
     w = np.where(mask_spec == 0.0)
     cont_guess = np.median(flux_spec[w])
@@ -2696,8 +2764,9 @@ def fit_obj_comb(input_list,filter='F444W'):
         'hd_4102', 'ne3_3968_he_3970', 'he1_5875'
         ## FH added 11/10/25
         'pd_10052', 'fe2_12570', 'fe2_16440', \
-        'h2_19570', 'h2_21218', 'pah_32890', 'bra_40523']
-
+        'h2_19570', 'h2_21218', 'pah_32890', 'bra_40523', \
+        ## FH added 1/6/26
+        'ali_34200', 'pf_37410']
 
         # fix the lower limits to zero because the gaussian amplitudes must be positive.
         for line in loop_lines:
@@ -2714,8 +2783,10 @@ def fit_obj_comb(input_list,filter='F444W'):
         'pg_10941_broad', 'pb_12822_broad', 'pa_18756_broad', 'ne3_3869_broad', 'hd_4102_broad', 'ne3_3968_he_3970_broad', 'he1_5875_broad', \
         ## FH added 11/10/25
         'pd_10052_broad', 'fe2_12570_broad', 'fe2_16440_broad', \
-        'h2_19570_broad', 'h2_21218_broad', 'pah_32890_broad', 'bra_40523_broad']
-
+        'h2_19570_broad', 'h2_21218_broad', 'pah_32890_broad', 'bra_40523_broad', \
+        ## FH added 16/26
+        'ali_34200_broad','pf_37410_broad'
+]
 
         #### KVN: if not fitting double gaussian, set all broad component amplitudes to zero
         if comps_in == False:
@@ -3079,6 +3150,10 @@ def fit_obj_comb(input_list,filter='F444W'):
         pah_32890_obs = pah_32890_vac * (1 + z_out)
         bra_40523_obs = bra_40523_vac * (1 + z_out)
 
+        ## added by FH 1/6/26:
+        ali_34200_obs = ali_34200_vac * (1 + z_out)
+        pf_37410_obs = pf_37410_vac * (1 + z_out)
+
         ########################################################################
         ########################################################################
 
@@ -3224,7 +3299,14 @@ def fit_obj_comb(input_list,filter='F444W'):
 
             bra_40523_flux, bra_40523_err, bra_40523_ew_obs = calculate_emission_line_flux(
                 bra_40523_obs, bra_40523_idx, bra_40523_vac, False, polycont_in, lincont_in)            
-
+            
+            ## FH added 1/6/26:
+            ali_34200_flux, ali_34200_err, ali_34200_ew_obs = calculate_emission_line_flux(
+                ali_34200_obs, ali_34200_idx, ali_34200_vac, False, polycont_in, lincont_in)            
+            
+            pf_37410_flux, pf_37410_err, pf_37410_ew_obs = calculate_emission_line_flux(
+                pf_37410_obs, pf_37410_idx, pf_37410_vac, False, polycont_in, lincont_in)            
+                  
             '''
             Calculate the flux, error, and equivalent width values for halpha and
             [N II] separately, which is required because [N II] is 'tied' to halpha
@@ -3331,6 +3413,13 @@ def fit_obj_comb(input_list,filter='F444W'):
                     
             bra_40523tot_flux, bra_40523tot_err, bra_40523tot_ew_obs, bra_40523nar_flux, bra_40523nar_err, bra_40523nar_ew_obs, bra_40523bro_flux, bra_40523bro_err, bra_40523bro_ew_obs = calculate_emission_line_flux(
                 bra_40523_obs, bra_40523_idx, bra_40523_vac, bra_40523_broad_idx, True, polycont_in, lincont_in)            
+
+            ## FH added 1/6/26:
+            ali_34200tot_flux, ali_34200tot_err, ali_34200tot_ew_obs, ali_34200nar_flux, ali_34200nar_err, ali_34200nar_ew_obs, ali_34200bro_flux, ali_34200bro_err, ali_34200bro_ew_obs = calculate_emission_line_flux(
+                ali_34200_obs, ali_34200_idx, ali_34200_vac, ali_34200_broad_idx, True, polycont_in, lincont_in)            
+                    
+            pf_37410tot_flux, pf_37410tot_err, pf_37410tot_ew_obs, pf_37410nar_flux, pf_37410nar_err, pf_37410nar_ew_obs, pf_37410bro_flux, pf_37410bro_err, pf_37410bro_ew_obs = calculate_emission_line_flux(
+                pf_37410_obs, pf_37410_idx, pf_37410_vac, pf_37410_broad_idx, True, polycont_in, lincont_in)            
 
             '''
             Calculate the flux, error, and equivalent width values for halpha and
@@ -3583,7 +3672,9 @@ def fit_obj_comb(input_list,filter='F444W'):
             "he1_5875",
             ### FH added 11/10/25:
             "pd_10052", "fe2_12570", "fe2_16440", \
-            "h2_19570", "h2_21218", "pah_32890", "bra_40523"
+            "h2_19570", "h2_21218", "pah_32890", "bra_40523", \
+            ### FH added 1/6/26:
+            "ali_34200", "pf_37410"  
             ]
 
             for line in result_lines:
@@ -3697,7 +3788,11 @@ def fit_obj_comb(input_list,filter='F444W'):
             "h2_19570tot", "h2_19570nar", "h2_19570bro", \
             "h2_21218tot", "h2_21218nar", "h2_21218bro", \
             "pah_32890tot", "pah_32890nar", "pah_32890bro", \
-            "bra_40523tot", "bra_40523nar", "bra_40523bro"  ]
+            "bra_40523tot", "bra_40523nar", "bra_40523bro" , \
+            ### FH added 1/6/26:
+            "ali_34200tot", "ali_34200nar", "ali_34200bro", \
+            "pf_37410tot", "pf_37410nar", "pf_37410bro" 
+            ]
             
             for line in result_lines:
                 fit_results[line+'_flux']   = eval(line+'_flux') * scl

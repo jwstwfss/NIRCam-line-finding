@@ -124,6 +124,8 @@ h2_19570_vac = 19575.59 #added by FH 11/10/25
 h2_21218_vac = 21218.34 #added by FH 11/10/25
 si7_24833_vac = 24833.0  #added by FH 2/28/25
 pah_32890_vac = 32890.0 #added by FH 11/10/25
+ali_34200_vac = 34200.0 #added by FH 1/6/26
+pf_37410_vac = 37410.0 #added by FH 1/6/26
 bra_40523_vac = 40523.0 #added by FH 11/10/25 - for end of spec fit
 
 
@@ -175,8 +177,11 @@ supported_lines = [
     fe2_16440_vac,
     h2_19570_vac,
     h2_21218_vac,
-    pah_32890_vac,
+    pah_32890_vac,  
     bra_40523_vac,
+    #added by FH 1/6/26:
+    ali_34200_vac,
+    pf_37410_vac,
 ]
 
 # These lines are close to their doublets so are not plotted in ax1.
@@ -236,6 +241,8 @@ supported_lines_strings = [
     r"H$_{2}$",
     "PAH-3.3",
     r"Br$\alpha$",
+    "Ali-3.4",
+    r"Pfund$\delta$",
 ]
 
 flux_strings_1gauss = [
@@ -279,6 +286,9 @@ flux_strings_1gauss = [
     "h2_21218",
     "pah_32890",
     "bra_40523",
+    #FH 1/6/26:
+    "ali_34200",
+    "pf_37410",
 ]
 
 flux_strings_2gauss = [
@@ -317,7 +327,10 @@ flux_strings_2gauss = [
     "h2_19570tot", "h2_19570nar", "h2_19570bro",
     "h2_21218tot", "h2_21218nar", "h2_21218bro",
     "pah_32890tot", "pah_32890nar", "pah_32890bro",
-    "bra_40523tot", "bra_40523nar", "bra_40523bro",   
+    "bra_40523tot", "bra_40523nar", "bra_40523bro", 
+    #FH 1/6/26:
+    "ali_34200tot", "ali_34200nar", "ali_34200bro",
+    "pf_37410tot", "pf_37410nar", "pf_37410bro", 
 ]
 
 
@@ -328,7 +341,7 @@ h2_4686, hb_4863, o3_4959, o3_5007, o1_6300, o1_6363, \
 n2_6550, ha_6565, n2_6585, s2_6716, s2_6731, s3_9069, \
 s3_9532, he10830, pg_10941, pb_12822, pa_18756, \
 ne3_3869, hd_4102, ne3_3968_he_3970, he1_5875,  \
-pd_10052, fe2_12570, fe2_16440, h2_19570, h2_21218, pah_32890, bra_40523, cont"     #FH 11/10/25
+pd_10052, fe2_12570, fe2_16440, h2_19570, h2_21218, pah_32890, bra_40523, ali_34200, pf_37410, cont"     #FH 1/6/26
 
 # colors to help split up terminal output
 # helpmsg = light blue
@@ -2186,6 +2199,9 @@ def inspect_object_all(
         "h2_21218":0,
         "pah_32890":0, 
         "bra_40523":0,
+        ## FH 1/6/26:
+        "ali_34200":0, 
+        "pf_37410":0, 
         "cont": 0,
     }  # MDR 2022/07/22
 
@@ -5010,6 +5026,9 @@ def inspect_object(
         "h2_21218":0,
         "pah_32890":0, 
         "bra_40523":0,
+        ## FH 1/6/26:
+        "ali_34200":0, 
+        "pf_37410":0, 
         "cont": 0,
     }  # MDR 2022/07/22
 
@@ -7405,7 +7424,10 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj,
             "h2_19570",
             "h2_21218",
             "pah_32890", 
-            "bra_40523"]
+            "bra_40523",
+            ## FH 1/6/26:
+            "ali_34200", 
+            "pf_37410" ]
 
         for line in result_lines:
             # cat.write("#" + str(results_idx + 0) + " " + line + "_flux  ")
@@ -7752,10 +7774,19 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj,
         + "{:>13.2e}".format(fitresults["bra_40523_error"])       # new line; Added FH 11/10/25
         + "{:>13.2e}".format(fitresults["bra_40523_ew_obs"])      # new line; Added FH 11/10/25
         + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
-        + "{:>6d}".format(contamflags["bra_40523"])          
+        + "{:>6d}".format(contamflags["bra_40523"])  
+        + "{:>13.2e}".format(fitresults["ali_34200_flux"])        # new line; Added FH 1/6/26
+        + "{:>13.2e}".format(fitresults["ali_34200_error"])       # new line; Added FH 1/6/26
+        + "{:>13.2e}".format(fitresults["ali_34200_ew_obs"])      # new line; Added FH 1/6/26
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 1/6/26
+        + "{:>6d}".format(contamflags["ali_34200"])     
+        + "{:>13.2e}".format(fitresults["pf_37410_flux"])        # new line; Added FH 1/6/26
+        + "{:>13.2e}".format(fitresults["pf_37410_error"])       # new line; Added FH 1/6/26
+        + "{:>13.2e}".format(fitresults["pf_37410_ew_obs"])      # new line; Added FH 1/6/26
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 1/6/26
+        + "{:>6d}".format(contamflags["pf_37410"])      
         + "\n"
     )
-
 
     """
     # if a row already exists for this object, comment it out

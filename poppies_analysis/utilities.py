@@ -294,7 +294,6 @@ def make_spectra_dat_files(parno, path_to_data, path_to_out, create_files_anyway
 
     files = np.hstack(([i for i in spec_files]))
 
-    # print(files)
     
     # Check if converted files already exist. If they do not, carry on with the conversion.
     # Otherwise, this step can be skipped.
@@ -376,6 +375,7 @@ def find_filters(path_to_data,path_to_out,par):
     
     cats = glob.glob(path_to_data + str(par) + "/*_i2d.cat")
 
+
     filts = []
 
     for i in cats:
@@ -385,6 +385,8 @@ def find_filters(path_to_data,path_to_out,par):
         filts.append(filt)
 
     unique_filts = np.unique(filts)
+    # print("unique ", unique_filts)
+
 
     outfile = open(path_to_out + str(par)+'/POPPIES{}_filters.dat'.format(par), 'w')
 

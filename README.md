@@ -2,7 +2,7 @@
 
 Farhan Hasan, created 2/13/2025 ([fhasan@stsci.edu](mailto:fhasan@stsci.edu))
 
-Last updated 11/17/2025
+Last updated 1/7/2026
 Added ancillary catalogs functionality - using redshifts from GOODS-N UVCANDELS (Mehta+2024) and JADES (DR4).
 These catalogs are in poppies_analysis/anc_data
 
@@ -11,7 +11,6 @@ This software is used to identify line-emitting objects and measure emission lin
 This code was adapted from the JWST WFSS line-finding code for the PASSAGE survey ([https://github.com/jwstwfss/line-finding](https://github.com/jwstwfss/line-finding)), which itself was adapted from A. Henry's WISP fitting code (with Battisti et al., 2024).
 
 ## How it works
-
 
 A user interactively inspects emission line candidates using 1D and 2D spectra and images.
 
