@@ -85,14 +85,15 @@ if __name__ == "__main__":
     
     if len(specdatfiles) == 0:
         # OLD: utilities.add_header_keyword(parno = parno, path_to_data = DATA_DIR) ## this one is commented out until RADESYS headers are provided in the reduced data
-
+        
+        print('\033[94m' + "1D spec dat files found, making them now."  + '\033[0m')
+        
         try:
             utilities.make_spectra_dat_files(parno = parno, path_to_data = DATA_DIR, path_to_out = OUTPUT_DIR)
 
         except Exception as e:
             print('Error making spec dat files due to error: ', e )
             pass
-
 
     # check if region files exist. If not, run code to create necessary region files
     regionfiles = glob.glob(OUTPUT_DIR + str(parno) + "/*.reg")
@@ -101,6 +102,47 @@ if __name__ == "__main__":
         print('\033[94m' + "No region files found, creating those for you now."  + '\033[0m')
         utilities.create_regions(parno, DATA_DIR, OUTPUT_DIR, filterlist['filter'])
 
+
+    #### FH added 2/9/26:
+
+    # Check if existing redshift catalogs exist or not:
+    # existingredshifts = glob.glob(DATA_DIR + "*_matched_redshifts.cat") 
+    
+    existingredshifts = glob.glob(CODE_DIR + "/anc_data/*_matched_redshifts.cat") 
+
+    if len(existingredshifts) > 0:
+        print("Existing redshift catalog(s) found")
+
+        try:
+            matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
+
+            #Determine if there are existing redshifts for this POPPIES field:
+            for i in range(len(matched_z_cats)):
+                matched_z_cat = matched_z_cats[i]
+
+                # print(len(matched_z_cat),parno)
+
+                # existing_field_name = str(existingredshifts[i]).strip("_matched_redshifts.cat")
+                existing_field_name = str(existingredshifts[i]).split("anc_data/")[1].split("_matched_redshifts.cat")[0]
+
+                inds_match = np.where(matched_z_cat['FieldName'] == int(parno))[0]
+                
+                # print(len(matched_z_cat),existing_field_name)
+
+                if len(inds_match) > 0:
+
+                    print("There are {} sources in this field with existing redshifts from {}".format(int(len(inds_match)), str(existing_field_name)))
+
+                    matched_z_cat_field = matched_z_cat[inds_match]
+
+                else:
+
+                    print("There are no sources in this field with existing redshifts from {}".format(str(existing_field_name)))
+
+
+        except Exception as e:
+            print('Error reading existing matched redshift catalogs: ', e )
+            pass
 
     # move to the directory where you want your outputs.
     os.chdir(OUTPUT_DIR)

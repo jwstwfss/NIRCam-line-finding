@@ -92,6 +92,10 @@ m2_2796_vac = 2796.352
 m2_2803_vac = 2803.531
 o2_3727_vac = 3727.092
 o2_3730_vac = 3729.875
+ne3_3869_vac = 3868.760 #added by FH
+hd_4102_vac = 4101.734 #added by FH 6/27/25
+ne3_3968_he_3970_vac = 3970 #blended; just fit as 1 because unresolved, #added by FH 6/27/25
+he1_5875_vac = 5875.624 #added by FH 6/27/25
 hg_4342_vac = 4341.684
 o3_4363_vac = 4364.436
 h2_4686_vac = 4687.020
@@ -107,17 +111,21 @@ s2_6716_vac = 6718.290
 s2_6731_vac = 6732.670
 s3_9069_vac = 9071.100
 s3_9532_vac = 9533.200
+pd_10052_vac = 10052.1 #added by FH 11/10/25
 he_10830_vac = 10832.86
 pg_10941_vac = 10941.1
+fe2_12570_vac = 12570.2 #added by FH 2/28/25
 pb_12822_vac = 12821.6
+fe2_16440_vac = 16440.02 #added by FH 11/10/25
 pa_18756_vac = 18756.1
-fe_12570_vac = 12570.2 #added by FH 2/28/25
 si6_19632_vac = 19632.0  #added by FH 2/28/25
+h2_19570_vac = 19575.59 #added by FH 11/10/25
+h2_21218_vac = 21218.34 #added by FH 11/10/25
 si7_24833_vac = 24833.0  #added by FH 2/28/25
-ne3_3869_vac = 3868.760  ## added by FH 3/4/25
-hd_4102_vac = 4101.734  ## added by FH 6/27/25
-ne3_3968_he_3970_vac = 3970.0 ## added by FH 6/27/25
-he1_5875_vac = 5875.624 ## added by FH 6/27/25
+pah_32890_vac = 32890.0 #added by FH 11/10/25
+ali_34200_vac = 34200.0 #added by FH 1/6/26
+pf_37410_vac = 37410.0 #added by FH 1/6/26
+bra_40523_vac = 40523.0 #added by FH 11/10/25 - for end of spec fit
 
 
 # Make all catalog header and data write commands loops over the 'flux_strings' variable.
@@ -161,7 +169,18 @@ supported_lines = [
     ne3_3869_vac,
     hd_4102_vac, 
     ne3_3968_he_3970_vac, 
-    he1_5875_vac
+    he1_5875_vac,
+    #added by FH 11/10/25:
+    pd_10052_vac,
+    fe2_12570_vac,
+    fe2_16440_vac,
+    h2_19570_vac,
+    h2_21218_vac,
+    pah_32890_vac,  
+    bra_40523_vac,
+    #added by FH 1/6/26:
+    ali_34200_vac,
+    pf_37410_vac,
 ]
 
 # These lines are close to their doublets so are not plotted in ax1.
@@ -205,14 +224,24 @@ supported_lines_strings = [
     "[S III]",
     "[S III]",
     "He I",
-    r"P$\gamma$",
-    r"P$\beta$",
-    r"P$\alpha$",
+    r"Pa$\gamma$",
+    r"Pa$\beta$",
+    r"Pa$\alpha$",
     #FH 6/27/25:
     "[Ne III]",
     r"H$\delta$", 
     r"H$\epsilon$+[Ne III]",
-    "He I"
+    "He I",
+    #FH 11/10/25:
+    r"P$\delta$",
+    "[Fe II]",
+    "[Fe II]",
+    r"H$_{2}$",
+    r"H$_{2}$",
+    "PAH-3.3",
+    r"Br$\alpha$",
+    "Ali-3.4",
+    r"Pfund$\delta$",
 ]
 
 flux_strings_1gauss = [
@@ -247,7 +276,18 @@ flux_strings_1gauss = [
     "ne3_3869",
     "hd_4102",
     "ne3_3968_he_3970",
-    "he1_5875"
+    "he1_5875",
+    #FH 11/10/25:
+    "pd_10052",
+    "fe2_12570",
+    "fe2_16440",
+    "h2_19570",
+    "h2_21218",
+    "pah_32890",
+    "bra_40523",
+    #FH 1/6/26:
+    "ali_34200",
+    "pf_37410",
 ]
 
 flux_strings_2gauss = [
@@ -278,16 +318,30 @@ flux_strings_2gauss = [
     "ne3_3869tot", "ne3_3869nar", "ne3_3869bro",
     "hd_4102tot", "hd_4102nar", "hd_4102bro",
     "ne3_3968_he_3970tot", "ne3_3968_he_3970nar", "ne3_3968_he_3970bro", 
-    "he1_5875tot", "he1_5875nar", "he1_5875bro"
+    "he1_5875tot", "he1_5875nar", "he1_5875bro",
+    #FH 11/10/25:
+    "pd_10052tot", "pd_10052nar", "pd_10052bro",
+    "fe2_12570tot", "fe2_12570nar", "fe2_12570bro",
+    "fe2_16440tot", "fe2_16440nar", "fe2_16440bro",
+    "h2_19570tot", "h2_19570nar", "h2_19570bro",
+    "h2_21218tot", "h2_21218nar", "h2_21218bro",
+    "pah_32890tot", "pah_32890nar", "pah_32890bro",
+    "bra_40523tot", "bra_40523nar", "bra_40523bro", 
+    #FH 1/6/26:
+    "ali_34200tot", "ali_34200nar", "ali_34200bro",
+    "pf_37410tot", "pf_37410nar", "pf_37410bro", 
 ]
+
 
 contam_flags_string = "la_1216, n5_1238, n5_1242, c4_1548, c4_1550, h2_1640, \
 o3_1660, o3_1666, s3_1883, s3_1892, c3_1907, c3_1909, \
 m2_2796, m2_2803, o2_3727, o2_3730, hg_4342, o3_4363, \
 h2_4686, hb_4863, o3_4959, o3_5007, o1_6300, o1_6363, \
 n2_6550, ha_6565, n2_6585, s2_6716, s2_6731, s3_9069, \
-s3_9532, he10830, pg_10941, pb_12822, pa_18756 \
-ne3_3869, hd_4102, ne3_3968_he_3970, he1_5875, cont"     #FH 6/27/25
+s3_9532, he10830, pg_10941, pb_12822, pa_18756, \
+ne3_3869, hd_4102, ne3_3968_he_3970, he1_5875,  \
+pd_10052, fe2_12570, fe2_16440, h2_19570, h2_21218, pah_32890, bra_40523, ali_34200, pf_37410, cont"     #FH 1/6/26
+
 
 # colors to help split up terminal output
 # helpmsg = light blue
@@ -414,6 +468,7 @@ def get_remaining_objects(full_obj_list, objid_done):
 
 
 ## modified by FH 2/13/24
+
 def print_help_message():
     """
     Just putting this here to keep it out of the way.
@@ -431,7 +486,8 @@ def print_help_message():
         "\tlist = list all the objects in line list\n"
         "\tleft = list all the objects left to inspect\n"
         "\tlen = count number of unique objects in list\n"
-        "\treset = reset interactive options back to default for this object\n\n"
+        "\treset = reset interactive options back to default for this object\n"
+        "\tex = prints out existing redshift(s) for this object, or states it doesn't have one\n\n"
     )
     # Look at the full line list and select which 
     msg += setcolors["heading"] + "\tEMISSION LINE SPECIFIC OPTIONS:\n"
@@ -443,7 +499,7 @@ def print_help_message():
         "\tp = skip to previous brightest line found in this object\n"
         "\t2gauss = double gaussian profile for the line being fitted\n"
         "\t1gauss = option to go back to 1 gaussian fit after selecting 2 gaussian fit\n"
-        "\tha, hb, hg, o31, o32, o2, s2, s31, s32, lya, c4, pa, pb, pg, lya, c4 = change strongest emission line\n"
+        "\tha, hb, hg, o31, o32, o2, s2, s31, s32, lya, c4, pa, pb, pg, lya, c4, pah, bra = change strongest emission line\n"
         "\tPlease see the README file in the top-level directory for the full list of lines and their corresponding commands\n\n"
     )
     msg += setcolors["heading"] + "\tSPECTRUM SPECIFIC OPTIONS:\n"
@@ -487,7 +543,6 @@ def print_help_message():
     print(msg)
 
 
-
 def check_masked_lines(fitresults, snr_meas_array, spdata, flux_strings):
     if verbose == True:
         print("Running check_masked_lines...\n")  # MDR 2022/05/17
@@ -512,6 +567,25 @@ def check_masked_lines(fitresults, snr_meas_array, spdata, flux_strings):
     return fitresults, snr_meas_array
 
 
+# def comment_out_obj(par, obj, catalogname):
+#     if verbose == True:
+#         print("Running comment_out_obj...\n")  # MDR 2022/05/17
+#     # if a row already exists for this object, comment it out
+#     # objstr = '{:<8d}'.format(par) + '{:<6d}'.format(obj)
+#     objstr = "{:<6d}".format(obj)
+#     if os.path.exists(catalogname):
+#         for line in fileinput.input(catalogname, inplace=True):
+#             if objstr in line:
+#                 print(
+#                     "#%s" % line,
+#                 )
+#             else:
+#                 print(
+#                     "%s" % line,
+#                 )
+
+
+## FH updated 2/9/26:
 def comment_out_obj(par, obj, catalogname):
     if verbose == True:
         print("Running comment_out_obj...\n")  # MDR 2022/05/17
@@ -521,13 +595,9 @@ def comment_out_obj(par, obj, catalogname):
     if os.path.exists(catalogname):
         for line in fileinput.input(catalogname, inplace=True):
             if objstr in line:
-                print(
-                    "#%s" % line,
-                )
+                print("#%s" % line.rstrip()) # KVN: need rstrip to remove blank lines from catalog (04/2025)
             else:
-                print(
-                    "%s" % line,
-                )
+                print("%s" % line.rstrip())  # KVN: need rstrip to remove blank lines from catalog (04/2025)
 
 
 def print_prompt(prompt, prompt_type="obj"):
@@ -1964,6 +2034,77 @@ def inspect_object_all(
 
         return 0
 
+
+    #### FH updated 2/9/26:
+    # Check if existing redshift catalogs exist or not:
+    # existingredshifts = glob(path_to_data + "*_matched_redshifts.cat") 
+    existingredshifts = glob(path_to_code + "/anc_data/*_matched_redshifts.cat") 
+
+    if len(existingredshifts) > 0:
+
+        try:
+            matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
+
+            #Determine if there are existing redshifts for this POPPIES field:
+            for i in range(len(matched_z_cats)):
+                matched_z_cat = matched_z_cats[i]
+                existing_field_name = str(existingredshifts[i]).split("anc_data/")[1].split("_matched_redshifts.cat")[0]
+
+                for j in range(len(matched_z_cat)):
+                    
+                    if (matched_z_cat['FieldName'][j] == int(par)) and (int(matched_z_cat['POPPIES_ID'][j]) == int(obj)): ## if this object is in the matched list
+
+                        # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
+                        
+                        # print("FH test ", str(matched_z_cat['FieldName'][j]), int(par), int(matched_z_cat['POPPIES_ID'][j]), int(obj))
+
+                        z_spec, z_phot = float(matched_z_cat['Z_SPEC'][j]), float(matched_z_cat['Z_PHOT'][j])
+
+                        print_prompt("\nThe object {} has existing redshifts in {} \n".format(int(obj), str(existing_field_name)))
+
+                        if existing_field_name == "goodsn-candels":
+                                
+                            if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+
+                            else:  ### else at least photo-z exists
+                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+
+
+                        elif existing_field_name == "goodsn-jades":
+                                
+                            if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                
+                                z_spec_flag = matched_z_cat['Z_SPEC_FLAG'][j]
+                                
+                                ### from JADES DR4 catalogs:
+                                if str(z_spec_flag) == "A":
+                                    flag_desc = "highly robust, S/N>5 emission lines in R~1000 data"
+
+                                elif str(z_spec_flag) == "B":
+                                    flag_desc = "highly robust, S/N>5 emission lines in Prism/Clear"
+
+                                elif str(z_spec_flag) == "C":
+                                    flag_desc = "secure, visually identified from spectral breaks and/or low S/N emission lines"
+
+                                elif str(z_spec_flag) == "D":
+                                    flag_desc = "tentative redshifts"
+
+                                print_prompt("The spec-z flag is: {} -- {} \n".format(str(z_spec_flag),str(flag_desc)))
+
+                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+
+                            else:  ### else at least photo-z exists
+                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+
+
+        except Exception as e:
+            print('Error reading existing matched redshift catalogs: ', e )
+            pass
+
+
     index_of_strongest_line = 0
     lamline = lamlines_found
 
@@ -2052,6 +2193,16 @@ def inspect_object_all(
         "hd_4102": 0,
         "ne3_3968_he_3970": 0,
         "he1_5875": 0,
+        ## FH 2/9/26:
+        "pd_10052":0,
+        "fe2_12570":0,
+        "fe2_16440":0, 
+        "h2_19570":0,
+        "h2_21218":0,
+        "pah_32890":0, 
+        "bra_40523":0,
+        "ali_34200":0, 
+        "pf_37410":0, 
         "cont": 0,
     }  # MDR 2022/07/22
 
@@ -2212,7 +2363,7 @@ def inspect_object_all(
                 f.write("%i\n" % obj)
                 f.close()
                 return 0
- 
+
             zfit = fitresults["redshift"]
             fitpars = fitresults["fit_parameters"]
             # fitpars_nolines = cp.deepcopy(fitpars)
@@ -3233,6 +3384,11 @@ def inspect_object_all(
             zguess = (lamline / pb_12822_vac) - 1.0
         elif option.strip().lower() == "pa":
             zguess = (lamline / pa_18756_vac) - 1.0
+        ## FH added 2/9/26:
+        elif option.strip().lower() == "pah":
+            zguess = (lamline / pah_32890_vac) - 1.0
+        elif option.strip().lower() == "bra":
+            zguess = (lamline / bra_40523_vac) - 1.0
 
         # note contamination
         elif option.strip().lower() == "contam":
@@ -3453,6 +3609,77 @@ def inspect_object_all(
     #     # reload direct image region files
     #     elif option.strip().lower() == "dr":
     #         reloadReg()
+
+        #### #### 
+        ## FH updated 2/9/26
+        elif option.strip().lower() == "ex":
+                        
+            if len(existingredshifts) > 0:
+
+                try:
+                    matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
+
+                    #Determine if there are existing redshifts for this POPPIES field:
+                    for i in range(len(matched_z_cats)):
+                        matched_z_cat = matched_z_cats[i]
+                        existing_field_name = str(existingredshifts[i]).split("anc_data/")[1].split("_matched_redshifts.cat")[0]
+
+                        for j in range(len(matched_z_cat)):
+                            
+                            if (matched_z_cat['FieldName'][j] == int(par)) and (int(matched_z_cat['POPPIES_ID'][j]) == int(obj)): ## if this object is in the matched list
+
+                                # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
+                                
+                                # print("FH test ", str(matched_z_cat['FieldName'][j]), int(par), int(matched_z_cat['POPPIES_ID'][j]), int(obj))
+
+                                z_spec, z_phot = float(matched_z_cat['Z_SPEC'][j]), float(matched_z_cat['Z_PHOT'][j])
+
+                                print_prompt("\nThe object {} has existing redshifts in {} \n".format(int(obj), str(existing_field_name)))
+
+                                if existing_field_name == "goodsn-candels":
+                                        
+                                    if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+
+                                    else:  ### else at least photo-z exists
+                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+
+
+                                elif existing_field_name == "goodsn-jades":
+                                        
+                                    if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                        
+                                        z_spec_flag = matched_z_cat['Z_SPEC_FLAG'][j]
+                                        
+                                        ### from JADES DR4 catalogs:
+                                        if str(z_spec_flag) == "A":
+                                            flag_desc = "highly robust, S/N>5 emission lines in R~1000 data"
+
+                                        elif str(z_spec_flag) == "B":
+                                            flag_desc = "highly robust, S/N>5 emission lines in Prism/Clear"
+
+                                        elif str(z_spec_flag) == "C":
+                                            flag_desc = "secure, visually identified from spectral breaks and/or low S/N emission lines"
+
+                                        elif str(z_spec_flag) == "D":
+                                            flag_desc = "tentative redshifts"
+
+                                        print_prompt("The spec-z flag is: {} -- {} \n".format(str(z_spec_flag),str(flag_desc)))
+
+                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+
+                                    else:  ### else at least photo-z exists
+                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+
+
+                except Exception as e:
+                    print('Error reading existing matched redshift catalogs: ', e )
+                    pass
+
+            else:
+                print('No existing redshift catalogs found!')
 
         # new options dealing with iterating objects
         # can't actually go back or choose another object now,
@@ -4676,6 +4903,76 @@ def inspect_object(
     s = np.argsort(ston_found)
     # reverse s/n order
 
+    #### FH updated 2/9/26:
+    # Check if existing redshift catalogs exist or not:
+    # existingredshifts = glob(path_to_data + "*_matched_redshifts.cat") 
+    existingredshifts = glob(path_to_code + "/anc_data/*_matched_redshifts.cat") 
+
+    if len(existingredshifts) > 0:
+
+        try:
+            matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
+
+            #Determine if there are existing redshifts for this POPPIES field:
+            for i in range(len(matched_z_cats)):
+                matched_z_cat = matched_z_cats[i]
+                existing_field_name = str(existingredshifts[i]).split("anc_data/")[1].split("_matched_redshifts.cat")[0]
+
+                for j in range(len(matched_z_cat)):
+                    
+                    if (matched_z_cat['FieldName'][j] == int(par)) and (int(matched_z_cat['POPPIES_ID'][j]) == int(obj)): ## if this object is in the matched list
+
+                        # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
+                        
+                        # print("FH test ", str(matched_z_cat['FieldName'][j]), int(par), int(matched_z_cat['POPPIES_ID'][j]), int(obj))
+
+                        z_spec, z_phot = float(matched_z_cat['Z_SPEC'][j]), float(matched_z_cat['Z_PHOT'][j])
+
+                        print_prompt("\nThe object {} has existing redshifts in {} \n".format(int(obj), str(existing_field_name)))
+
+                        if existing_field_name == "goodsn-candels":
+                                
+                            if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+
+                            else:  ### else at least photo-z exists
+                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+
+
+                        elif existing_field_name == "goodsn-jades":
+                                
+                            if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                
+                                z_spec_flag = matched_z_cat['Z_SPEC_FLAG'][j]
+                                
+                                ### from JADES DR4 catalogs:
+                                if str(z_spec_flag) == "A":
+                                    flag_desc = "highly robust, S/N>5 emission lines in R~1000 data"
+
+                                elif str(z_spec_flag) == "B":
+                                    flag_desc = "highly robust, S/N>5 emission lines in Prism/Clear"
+
+                                elif str(z_spec_flag) == "C":
+                                    flag_desc = "secure, visually identified from spectral breaks and/or low S/N emission lines"
+
+                                elif str(z_spec_flag) == "D":
+                                    flag_desc = "tentative redshifts"
+
+                                print_prompt("The spec-z flag is: {} -- {} \n".format(str(z_spec_flag),str(flag_desc)))
+
+                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+
+                            else:  ### else at least photo-z exists
+                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+
+
+        except Exception as e:
+            print('Error reading existing matched redshift catalogs: ', e )
+            pass
+
+
     ston_found = ston_found[s[::-1]]
     lamlines_found = lamlines_found[s[::-1]]
     index_of_strongest_line = 0
@@ -4761,6 +5058,16 @@ def inspect_object(
         "hd_4102": 0,
         "ne3_3968_he_3970": 0,
         "he1_5875": 0,
+        ## FH 2/9/26:
+        "pd_10052":0,
+        "fe2_12570":0,
+        "fe2_16440":0, 
+        "h2_19570":0,
+        "h2_21218":0,
+        "pah_32890":0, 
+        "bra_40523":0,
+        "ali_34200":0, 
+        "pf_37410":0, 
         "cont": 0,
     }  # MDR 2022/07/22
 
@@ -4901,6 +5208,21 @@ def inspect_object(
                     f.write("%i\n" % obj)
                     f.close()
                     return 0
+                
+                #FH catching the case where fit_status was 0 (2/9/26):
+                if fitresults['fit_status'] == 0:
+                    print('Fit did not run for Obj. {} for some reaso: '.format(obj))
+                    zset = 0
+                    # comment = "failed"
+                    done = 1
+                    # FH 3/12/25: write object to done file, incase process gets interrupted
+                    if not os.path.exists(outdir + "/done_%s" % user):
+                        f = open(outdir + "/done_%s" % user, "w")
+                    else:
+                        f = open(outdir + "/done_%s" % user, "a")
+                    f.write("%i\n" % obj)
+                    f.close()
+                    return 0            
 
             zfit = fitresults["redshift"]
             fitpars = fitresults["fit_parameters"]
@@ -5197,7 +5519,21 @@ def inspect_object(
                 f.write("%i\n" % obj)
                 f.close()
                 return 0
-            
+
+            #FH catching the case where fit_status was 0 (2/9/26):
+            if fitresults['fit_status'] == 0:
+                print('Fit did not run for Obj. {} for some reaso: '.format(obj))
+                zset = 0
+                # comment = "failed"
+                done = 1
+                # FH 3/12/25: write object to done file, incase process gets interrupted
+                if not os.path.exists(outdir + "/done_%s" % user):
+                    f = open(outdir + "/done_%s" % user, "w")
+                else:
+                    f = open(outdir + "/done_%s" % user, "a")
+                f.write("%i\n" % obj)
+                f.close()
+                return 0       
             
             zfit = fitresults["redshift"]
             fitpars = fitresults["fit_parameters"]
@@ -5899,6 +6235,11 @@ def inspect_object(
             zguess = (lamline / pb_12822_vac) - 1.0
         elif option.strip().lower() == "pa":
             zguess = (lamline / pa_18756_vac) - 1.0
+        ## FH added 2/9/26:
+        elif option.strip().lower() == "pah":
+            zguess = (lamline / pah_32890_vac) - 1.0
+        elif option.strip().lower() == "bra":
+            zguess = (lamline / bra_40523_vac) - 1.0
 
         # note contamination
         elif option.strip().lower() == "contam":
@@ -6001,6 +6342,75 @@ def inspect_object(
         #     reloadReg()
 
         #### #### 
+        ## FH updated 2/9/26
+        elif option.strip().lower() == "ex":
+                        
+            if len(existingredshifts) > 0:
+
+                try:
+                    matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
+
+                    #Determine if there are existing redshifts for this POPPIES field:
+                    for i in range(len(matched_z_cats)):
+                        matched_z_cat = matched_z_cats[i]
+                        existing_field_name = str(existingredshifts[i]).split("anc_data/")[1].split("_matched_redshifts.cat")[0]
+
+                        for j in range(len(matched_z_cat)):
+                            
+                            if (matched_z_cat['FieldName'][j] == int(par)) and (int(matched_z_cat['POPPIES_ID'][j]) == int(obj)): ## if this object is in the matched list
+
+                                # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
+                                
+                                # print("FH test ", str(matched_z_cat['FieldName'][j]), int(par), int(matched_z_cat['POPPIES_ID'][j]), int(obj))
+
+                                z_spec, z_phot = float(matched_z_cat['Z_SPEC'][j]), float(matched_z_cat['Z_PHOT'][j])
+
+                                print_prompt("\nThe object {} has existing redshifts in {} \n".format(int(obj), str(existing_field_name)))
+
+                                if existing_field_name == "goodsn-candels":
+                                        
+                                    if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+
+                                    else:  ### else at least photo-z exists
+                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+
+
+                                elif existing_field_name == "goodsn-jades":
+                                        
+                                    if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
+                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                        
+                                        z_spec_flag = matched_z_cat['Z_SPEC_FLAG'][j]
+                                        
+                                        ### from JADES DR4 catalogs:
+                                        if str(z_spec_flag) == "A":
+                                            flag_desc = "highly robust, S/N>5 emission lines in R~1000 data"
+
+                                        elif str(z_spec_flag) == "B":
+                                            flag_desc = "highly robust, S/N>5 emission lines in Prism/Clear"
+
+                                        elif str(z_spec_flag) == "C":
+                                            flag_desc = "secure, visually identified from spectral breaks and/or low S/N emission lines"
+
+                                        elif str(z_spec_flag) == "D":
+                                            flag_desc = "tentative redshifts"
+
+                                        print_prompt("The spec-z flag is: {} -- {} \n".format(str(z_spec_flag),str(flag_desc)))
+
+                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+
+                                    else:  ### else at least photo-z exists
+                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+
+
+                except Exception as e:
+                    print('Error reading existing matched redshift catalogs: ', e )
+                    pass
+
+            else:
+                print('No existing redshift catalogs found!')
 
         ########
 
@@ -7038,7 +7448,18 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj,
             "ne3_3869", 
             "hd_4102",
             "ne3_3968_he_3970", 
-            "he1_5875"]
+            "he1_5875",
+            ## FH 11/10/25:
+            "pd_10052",
+            "fe2_12570",
+            "fe2_16440", 
+            "h2_19570",
+            "h2_21218",
+            "pah_32890", 
+            "bra_40523",
+            ## FH 1/6/26:
+            "ali_34200", 
+            "pf_37410" ]
 
         for line in result_lines:
             # cat.write("#" + str(results_idx + 0) + " " + line + "_flux  ")
@@ -7351,9 +7772,53 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj,
         + "{:>13.2e}".format(fitresults["he1_5875_ew_obs"])      # new line; Added KVN 06/2025 
         + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added KVN 06/2025
         + "{:>6d}".format(contamflags["he1_5875"])               # new line; Added KVN 06/2025   
+        + "{:>13.2e}".format(fitresults["pd_10052_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["pd_10052_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["pd_10052_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["pd_10052"])               # new line; Added FH 11/10/25  
+        + "{:>13.2e}".format(fitresults["fe2_12570_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["fe2_12570_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["fe2_12570_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["fe2_12570"])               # new line; Added FH 11/10/25  
+        + "{:>13.2e}".format(fitresults["fe2_16440_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["fe2_16440_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["fe2_16440_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["fe2_16440"])                    
+        + "{:>13.2e}".format(fitresults["h2_19570_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["h2_19570_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["h2_19570_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["h2_19570"])    
+        + "{:>13.2e}".format(fitresults["h2_21218_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["h2_21218_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["h2_21218_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["h2_21218"])   
+        + "{:>13.2e}".format(fitresults["pah_32890_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["pah_32890_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["pah_32890_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["pah_32890"])   
+        + "{:>13.2e}".format(fitresults["bra_40523_flux"])        # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["bra_40523_error"])       # new line; Added FH 11/10/25
+        + "{:>13.2e}".format(fitresults["bra_40523_ew_obs"])      # new line; Added FH 11/10/25
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 11/10/25
+        + "{:>6d}".format(contamflags["bra_40523"])  
+        + "{:>13.2e}".format(fitresults["ali_34200_flux"])        # new line; Added FH 1/6/26
+        + "{:>13.2e}".format(fitresults["ali_34200_error"])       # new line; Added FH 1/6/26
+        + "{:>13.2e}".format(fitresults["ali_34200_ew_obs"])      # new line; Added FH 1/6/26
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 1/6/26
+        + "{:>6d}".format(contamflags["ali_34200"])     
+        + "{:>13.2e}".format(fitresults["pf_37410_flux"])        # new line; Added FH 1/6/26
+        + "{:>13.2e}".format(fitresults["pf_37410_error"])       # new line; Added FH 1/6/26
+        + "{:>13.2e}".format(fitresults["pf_37410_ew_obs"])      # new line; Added FH 1/6/26
+        + "{:>7.2f}".format(ratio)   # ratio = 0 ; added KVN 12/24       # new line; Added FH 1/6/26
+        + "{:>6d}".format(contamflags["pf_37410"])      
         + "\n"
     )
-
 
     """
     # if a row already exists for this object, comment it out
@@ -7368,6 +7833,7 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj,
     cat = open(catalogname, "a")
     cat.write(outstr)
     cat.close()
+
 
 
 # # # parnos, objid are scalar not array.
