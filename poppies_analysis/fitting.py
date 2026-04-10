@@ -931,9 +931,9 @@ def model_resid_comb(pars, fjac=None, lam1=None, flux1=None, err1=None, lam2=Non
     return [status, np.concatenate([resid1, resid2])]
 
 
-## FH updated 11/10/25
+## FH updated 4/6/26
 ## FH 2/4/25 - this is the version for POPPIES:
-def fit_obj(input_list,filter='F444W'):
+def fit_obj(input_list,filters):
     ''' This version is for both cwt and full object list'''
     print('\nRunning fit_obj...\n')
 
@@ -954,11 +954,15 @@ def fit_obj(input_list,filter='F444W'):
     disp_red    = config_pars['dispersion_red']
     disp_blue   = config_pars['dispersion_blue']
     node_wave   = config_pars['node_wave']
+
+    # node_wave = [item for sublist in node_wave for item in sublist] ### FH added 4/6/26 to flatten the list of lists into a single list of node wavelengths.
+
     dz          = config_pars['delta_z'] # this is the maximum shift from the line list redshift/best estimate.
     #based on filter:
-    transition_wave1 = config_pars['lambda_min_{}'.format(filter)]
-    transition_wave2 = config_pars['lambda_max_{}'.format(filter)]
+    transition_wave1 = config_pars['lambda_max_{}'.format(filters[0])]
+    transition_wave2 = config_pars['lambda_max_{}'.format(filters[-1])]
     nnodes      = len(node_wave)
+    # print('node wave 1: ', node_wave)
 
     # the fluxes are divided by a scale factor for easier handling by mpfit.
     scl        = 1.0e-25
@@ -1090,7 +1094,7 @@ def fit_obj(input_list,filter='F444W'):
 
     w = np.where(mask_spec == 0.0)
     cont_guess = np.median(flux_spec[w])
-
+    
     ############################################################################
     ############################################################################
 
@@ -1118,11 +1122,13 @@ def fit_obj(input_list,filter='F444W'):
     pguess_cont[fwhm_ratio_idx_broad] = 5 # Making the broad component wider (?)
     pguess_cont[fwhm_grism_idx_broad] = fwhm_guess # fwhm_red.
 
-
     # pass the continuum guess y-values into the pguess_cont list.
     pguess_cont[first_node_index : first_node_index + nnodes] = cont_guess
 
+    # print("pguess : ", len(pguess_cont), first_node_index, nnodes, node_wave, cont_guess)
+    # print('node wave 2: ', node_wave)
     # pass the continuum guess x-values into the pguess_cont list.
+    # pguess_cont[first_node_index + nnodes : first_node_index + 2 * nnodes] = [10000,11100,12000]
     pguess_cont[first_node_index + nnodes : first_node_index + 2 * nnodes] = node_wave
 
     # the lines are not fit but set the ratio parameters to unity to avoid division by zero.
@@ -1146,7 +1152,7 @@ def fit_obj(input_list,filter='F444W'):
 
     # initialize the wavelength, flux, and error function arguments.
     fa_cont = {'lam':lam_spec[w], 'flux':flux_spec[w], 'err':error_spec[w]}
-
+    
     # call mpfit for the continuum-only fit model.
     out = mpfit(model_resid, pguess_cont, functkw = fa_cont, parinfo = parinfo_cont, quiet = True)
 
@@ -2346,9 +2352,9 @@ def fit_obj(input_list,filter='F444W'):
     return fit_results
 
 
-## FH updated 11/10/25
+## FH updated 4/6/26
 ## FH 2/19/25 - Combined version, with R+C spectra
-def fit_obj_comb(input_list,filter='F444W'):
+def fit_obj_comb(input_list,filters):
     ''' This version is for both cwt and full object list'''
     print('\nRunning fit_obj_comb...\n')
 
@@ -2379,8 +2385,8 @@ def fit_obj_comb(input_list,filter='F444W'):
     node_wave   = config_pars['node_wave']
     dz          = config_pars['delta_z'] # this is the maximum shift from the line list redshift/best estimate.
     #based on filter:
-    transition_wave1 = config_pars['lambda_min_{}'.format(filter)]
-    transition_wave2 = config_pars['lambda_max_{}'.format(filter)]
+    transition_wave1 = config_pars['lambda_max_{}'.format(filters[0])]
+    transition_wave2 = config_pars['lambda_max_{}'.format(filters[-1])]
     nnodes      = len(node_wave)
 
     # the fluxes are divided by a scale factor for easier handling by mpfit.

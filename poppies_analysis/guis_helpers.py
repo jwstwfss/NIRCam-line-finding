@@ -5,34 +5,13 @@ import os
 import numpy as np
 from astropy.io import fits
 
-### FH updated 1/6/25
+### FH updated 4/7/26 - version with just COUNT and CCOUNT
 def extract_image_extensions_key(filename):
 
     # frame number ids
     frame_ids = np.arange(2, 7)
 
     filter_orientations = [
-        # ("F115W,199.0", "SCI"),
-        # ("F115W,199.0", "CONTAM"),
-        # ("F115W,290.0", "SCI"),
-        # ("F115W,290.0", "CONTAM"),
-        # ("F115W", "COMB"),
-        # ("F150W,199.0", "SCI"),
-        # ("F150W,199.0", "CONTAM"),
-        # ("F150W,290.0", "SCI"),
-        # ("F150W,290.0", "CONTAM"),
-        # ("F150W", "COMB"),
-        # ("F200W,199.0", "SCI"),
-        # ("F200W,199.0", "CONTAM"),
-        # ("F200W,290.0", "SCI"),
-        # ("F200W,290.0", "CONTAM"),
-        # ("F200W", "COMB"),
-        # ("2D_COUNT"),
-        # ("2D_CCOUNT"),
-        # ("2D_MCOUNT"),
-        # ("2D_ERR"),
-        # ("2D_TCOUNT"),
-        # ("2D_WAVE")
         ("2D_COUNT"),
         ("2D_CCOUNT"),
         ("2D_MCOUNT"),
@@ -51,7 +30,7 @@ def extract_image_extensions_key(filename):
     with fits.open(filename) as hdu:
         n_ext = len(hdu)
 
-        extlist = [2,5,6]
+        extlist = [2,5]
 
         # loop over extensions to search for to identify which extension belongs to
         # which frame id in spec2D_key
@@ -131,6 +110,7 @@ def display_image_in_DS9(frame_number, image_file, region_file, verbose=True):
     return
 
 
+## FH updated 4/7/26 - multi-filter version
 def display_images_in_DS9(images, region_files, root=None, verbose=True):
     """Main interface to display multi-images (direct and grism data)
     in DS9. This will produce a tiled display of the direct images (for now).
@@ -161,64 +141,69 @@ def display_images_in_DS9(images, region_files, root=None, verbose=True):
     #         frame_num = (i - 1) * 3 + (row - 1) * 3 + col
     frame_num = 0
     image_dict = {}
-    for i, (filter_name, filter_images) in enumerate(images.items(), start=1):
-        for j, image_file in enumerate(filter_images, start=1):
+    for i, (filter_name, filter_image) in enumerate(images.items(), start=1):
+        
+        # print("filt, im: ", filter_name, filter_images)
+
+        # for j, image_file in enumerate(filter_images, start=1):
             # print(f"(i, j) | ({i}, {j})")
             # row = (j - 1) // 3 + 1  # Calculate row number
             # col = (j - 1) % 3 + 1  # Calculate column number
             # frame_num = (i - 1) * 3 + (row - 1) * 3 + col
-            frame_num += 1
-            image_dict[frame_num] = {}
 
-            # Build full paths to image and region files
-            # this step should be removed doing to much
-            # complete paths should be given already.
-            if root:
-                image_path = os.path.join(root, image_file)
-            else:
-                image_path = image_file
+        frame_num += 1
+        image_dict[frame_num] = {}
 
-            region_file = region_files[filter_name][j - 1] if region_files else None
-            # print(f"---DEBUG: WHAT IS THE REGION FILE? - {region_file}")
-            # print(f"---DEBUG: WHAT IS THE IMAGE FILE? - {image_file}")
+        # Build full paths to image and region files
+        # this step should be removed doing to much
+        # complete paths should be given already.
+        if root:
+            image_path = os.path.join(root, filter_image)
+        else:
+            image_path = filter_image
 
-            # add logic to handle missing frames to  keep things symmetric
-            # when displaying
-            # if image_path is None:
-            #     os.system(f"xpaset -p ds9 frame {frame_num}")
-            #     continue
+        region_file = region_files[filter_name] if region_files else None
+        # print(f"---DEBUG: WHAT IS THE REGION FILE? - {region_file}")
+        # print(f"---DEBUG: WHAT IS THE IMAGE FILE? - {image_file}")
 
-            #F # Check if the image file exists
-            # if not os.path.isfile(image_path):
-            #     if verbose:
-            #         print(f"Error: Image file {image_path} does not exist.")
-            #     continue
+        # add logic to handle missing frames to  keep things symmetric
+        # when displaying
+        # if image_path is None:
+        #     os.system(f"xpaset -p ds9 frame {frame_num}")
+        #     continue
 
-                        # Check if the image file exists
-            if not os.path.isfile(image_path):
-                if verbose:
-                    print(f"Error: Image file {image_path} does not exist.")
-                image_dict[frame_num]["img"] = None
-                image_dict[frame_num]["reg"] = None
-                continue
+        #F # Check if the image file exists
+        # if not os.path.isfile(image_path):
+        #     if verbose:
+        #         print(f"Error: Image file {image_path} does not exist.")
+        #     continue
 
-            # Check if the region file exists
-            # print(f"---DEBUG: checking region file - {region_file}")
-            if region_file is None:
-                is_region_file = False
-            else:
-                is_region_file = os.path.isfile(region_file)
+                    # Check if the image file exists
 
-            # print(f"---DEBUG: IS REGION FILE - {is_region_file}")
+        if not os.path.isfile(filter_image):
+            if verbose:
+                print(f"Error: Image file {filter_image} does not exist.")
+            image_dict[frame_num]["img"] = None
+            image_dict[frame_num]["reg"] = None
+            continue
 
-            if region_file and not is_region_file:
-                if verbose:
-                    print(f"Error: Region file {region_file} does not exist.")
-                region_file = None
+        # Check if the region file exists
+        # print(f"---DEBUG: checking region file - {region_file}")
+        if region_file is None:
+            is_region_file = False
+        else:
+            is_region_file = os.path.isfile(region_file)
 
-            # Display the image
-            image_dict[frame_num]["img"] = image_path
-            image_dict[frame_num]["reg"] = region_file
+        # print(f"---DEBUG: IS REGION FILE - {is_region_file}")
+
+        if region_file and not is_region_file:
+            if verbose:
+                print(f"Error: Region file {region_file} does not exist.")
+            region_file = None
+
+        # Display the image
+        image_dict[frame_num]["img"] = filter_image
+        image_dict[frame_num]["reg"] = region_file
 
     for frame_num in image_dict:
         display_image_in_DS9(frame_num,
@@ -232,7 +217,7 @@ def display_images_in_DS9(images, region_files, root=None, verbose=True):
     # Go to frame 1
     os.system(f"xpaset -p {ds9_title} frame 1")
 
-    #F # Configure additional settings
+    # Configure additional settings
     # os.system(f"xpaset -p {ds9_title} tile")
     # # os.system(f"xpaset -p {ds9_title} lock frame wcs")
     # os.system(f"xpaset -p {ds9_title} lock scale")
@@ -242,9 +227,16 @@ def display_images_in_DS9(images, region_files, root=None, verbose=True):
     # #os.system(f"xpaset -p {ds9_title} lock scalelimits")
 
     # Configure additional settings
+    # os.system(f"xpaset -p {ds9_title} tile")
+
+    # formating display into grid
     os.system(f"xpaset -p {ds9_title} tile")
+    # os.system(f"xpaset -p {ds9_title} tile grid mode manual")
+    # os.system(f"xpaset -p {ds9_title} tile mode row")
+    # os.system(f"xpaset -p {ds9_title} tile grid layout 1 {len(images)}")
+
     # os.system(f"xpaset -p {ds9_title} match frame wcs")
-    # os.system(f"xpaset -p {ds9_title} lock scale")
+    os.system(f"xpaset -p {ds9_title} lock scale")
     # os.system(f"xpaset -p {ds9_title} zoom to fit")
     os.system(f"xpaset -p {ds9_title} scale mode zscale")
     os.system(f"xpaset -p {ds9_title} lock colorbar")
@@ -254,7 +246,9 @@ def display_images_in_DS9(images, region_files, root=None, verbose=True):
     ## FH updated 1/24/25:
     # for framename in range(1,10):
     
-    for framename in range(1,2):
+    for framename in range(1,len(images)+1):
+
+        # print("In frame ", framename)
     
         os.system(f"xpaset -p {ds9_title} frame " + str(framename))
     
@@ -267,7 +261,7 @@ def display_images_in_DS9(images, region_files, root=None, verbose=True):
         os.system(f"xpaset -p {ds9_title} zoom to fit")
 
 
-    # os.system(f"xpaset -p {ds9_title} frame 3")
+    os.system(f"xpaset -p {ds9_title} frame {len(images)}")
     os.system(f"xpaset -p {ds9_title} match frame image")
 
     # if I match at open -- does it stay matched going forward?
@@ -276,3 +270,89 @@ def display_images_in_DS9(images, region_files, root=None, verbose=True):
     # os.system(f"xpaset -p {ds9_title} match frame wcs")
 
     return
+
+## OLD
+# def extract_image_extensions_key(filename):
+
+#     # frame number ids
+#     frame_ids = np.arange(2, 7)
+
+#     filter_orientations = [
+#         # ("F115W,199.0", "SCI"),
+#         # ("F115W,199.0", "CONTAM"),
+#         # ("F115W,290.0", "SCI"),
+#         # ("F115W,290.0", "CONTAM"),
+#         # ("F115W", "COMB"),
+#         # ("F150W,199.0", "SCI"),
+#         # ("F150W,199.0", "CONTAM"),
+#         # ("F150W,290.0", "SCI"),
+#         # ("F150W,290.0", "CONTAM"),
+#         # ("F150W", "COMB"),
+#         # ("F200W,199.0", "SCI"),
+#         # ("F200W,199.0", "CONTAM"),
+#         # ("F200W,290.0", "SCI"),
+#         # ("F200W,290.0", "CONTAM"),
+#         # ("F200W", "COMB"),
+#         # ("2D_COUNT"),
+#         # ("2D_CCOUNT"),
+#         # ("2D_MCOUNT"),
+#         # ("2D_ERR"),
+#         # ("2D_TCOUNT"),
+#         # ("2D_WAVE")
+#         ("2D_COUNT"),
+#         ("2D_CCOUNT"),
+#         ("2D_MCOUNT"),
+#         ("2D_ERR"),
+#         ("2D_TCOUNT"),
+#         ("2D_WAVE")        
+#         ]
+    
+#     # filter + orientation of COUNT, CCOUNT, and MCOUNT images and their associated
+#     # frame number use to plot in DS9.
+#     spec2D_key = {
+#         key: {"frame_id": val, "ext": None, "x_pix": None, "y_pix": None}
+#         for key, val in zip(filter_orientations, frame_ids)
+#     }
+
+#     with fits.open(filename) as hdu:
+#         n_ext = len(hdu)
+
+#         extlist = [2,5,6]
+
+#         # loop over extensions to search for to identify which extension belongs to
+#         # which frame id in spec2D_key
+        
+#         ext_out = 0 # running counter for frame no.
+
+#         for ext in range(2, n_ext-1):
+
+#             # extract header information - if one of the extensions we care about
+#             if ext in extlist:
+#                 ext_out += 1
+#                 header = hdu[ext].header
+
+#                 # check if name is in desired reference names
+#                 # if header["EXTNAME"] in ["2D_COUNT"]:
+
+#                 extname = header["EXTNAME"]
+
+#                 naxis1, naxis2 = header["NAXIS1"], header["NAXIS2"]
+
+#                 # extver = header["EXTVER"].split(",")
+#                 # extver = "F444W"
+
+#                 # if extver is on the filter name w/out orientation
+#                 # its the combined sci images images so label COMB
+#                 # if len(extver) == 1:
+#                 #     extname = "COMB"
+
+#                 # update the master key to be associated with the correct
+#                 # extension
+#                 # spec2D_key[(header["EXTVER"], extname)]["ext"] = ext
+#                 spec2D_key[(extname)]["ext"] = ext
+
+#                 ## width and height:
+#                 spec2D_key[(extname)]["x_pix"] = naxis1
+#                 spec2D_key[(extname)]["y_pix"] = naxis2
+
+#     return spec2D_key

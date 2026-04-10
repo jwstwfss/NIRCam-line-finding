@@ -23,8 +23,8 @@ def is_number(s):
         return False
 
 
-# FH 2/4/25:
-def read_config(config, availgrism='F444W'): 
+# FH updated 4/2/26
+def read_config(config, availgrism): 
     ''' availgrism is the filter(s) '''
     configfile = open(config, 'r')  
     config_pars = {} 
@@ -34,19 +34,40 @@ def read_config(config, availgrism='F444W'):
             
             if name == 'node_wave': 
                 tmpnode = [float(s) for s in line.split()[1::]]
-                nodelam = [x for x in tmpnode if 
-                ((x >= config_pars['lambda_min_{}'.format(availgrism)]) and 
-                (x <= config_pars['lambda_max_{}'.format(availgrism)]))]
 
+                nodelams = []
+
+                for filt in availgrism:
+                    nodelams_filt = [x for x in tmpnode if 
+                    ((x >= config_pars['lambda_min_{}'.format(filt)]) and 
+                    (x <= config_pars['lambda_max_{}'.format(filt)]))]
+
+                    for l in nodelams_filt:  
+                        nodelams.append(l)
+                    
                 # if availgrism == 'F277W':
                 #     nodelam = [x for x in tmpnode if x <= config_pars['transition_wave']]
                 # elif availgrism.lower() == 'g141':
                 #     nodelam = [x for x in tmpnode if x > config_pars['transition_wave']]
                 # else:
                 #     nodelam = tmpnode
+    
+                # if len(availgrism) >= 2:
+                #     nodelams_1 = [x for x in tmpnode if 
+                #     ((x >= config_pars['lambda_min_{}'.format(availgrism[1])]) and 
+                #     (x <= config_pars['lambda_max_{}'.format(availgrism[1])]))]
+                
+                # elif len(availgrism) == 3:
+                #     nodelams_2 = [x for x in tmpnode if 
+                #     ((x >= config_pars['lambda_min_{}'.format(availgrism[2])]) and 
+                #     (x <= config_pars['lambda_max_{}'.format(availgrism[2])]))]
+                                
+
+                # else:
+                #     nodelams = nodelams_0
 
                 config_pars.setdefault('node_wave', []) 
-                for l in nodelam:  
+                for l in nodelams:  
                     config_pars['node_wave'].append(l)
 
             elif name == 'mask_region1':
@@ -100,6 +121,82 @@ def read_config(config, availgrism='F444W'):
     return config_pars    
 
 
+# def read_config_OLD(config, availgrism='F444W'): 
+#     ''' availgrism is the filter(s) '''
+#     configfile = open(config, 'r')  
+#     config_pars = {} 
+#     for line in configfile:
+#         if ( (line[0] != '#') & (len(line)>1)): 
+#             name = line.split()[0] 
+            
+#             if name == 'node_wave': 
+#                 tmpnode = [float(s) for s in line.split()[1::]]
+#                 nodelam = [x for x in tmpnode if 
+#                 ((x >= config_pars['lambda_min_{}'.format(availgrism)]) and 
+#                 (x <= config_pars['lambda_max_{}'.format(availgrism)]))]
+
+#                 # if availgrism == 'F277W':
+#                 #     nodelam = [x for x in tmpnode if x <= config_pars['transition_wave']]
+#                 # elif availgrism.lower() == 'g141':
+#                 #     nodelam = [x for x in tmpnode if x > config_pars['transition_wave']]
+#                 # else:
+#                 #     nodelam = tmpnode
+
+#                 config_pars.setdefault('node_wave', []) 
+#                 for l in nodelam:  
+#                     config_pars['node_wave'].append(l)
+
+#             elif name == 'mask_region1':
+
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region1', []) 
+#                 config_pars['mask_region1'].append(masklam[0]) 
+#                 config_pars['mask_region1'].append(masklam[1]) 
+#             elif name == 'mask_region2': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region2', []) 
+#                 config_pars['mask_region2'].append(masklam[0]) 
+#                 config_pars['mask_region2'].append(masklam[1])
+#             elif name == 'mask_region3': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region3', []) 
+#                 config_pars['mask_region3'].append(masklam[0]) 
+#                 config_pars['mask_region3'].append(masklam[1])  
+#             elif name == 'mask_region4': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region4', []) 
+#                 config_pars['mask_region4'].append(masklam[0]) 
+#                 config_pars['mask_region4'].append(masklam[1])  
+#             elif name == 'mask_region5': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region5', []) 
+#                 config_pars['mask_region5'].append(masklam[0]) 
+#                 config_pars['mask_region5'].append(masklam[1])  
+#             elif name == 'mask_region6': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region6', []) 
+#                 config_pars['mask_region6'].append(masklam[0]) 
+#                 config_pars['mask_region6'].append(masklam[1])  
+#             elif name == 'mask_region7': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region7', []) 
+#                 config_pars['mask_region7'].append(masklam[0]) 
+#                 config_pars['mask_region7'].append(masklam[1])  
+#             elif name == 'mask_region8': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region8', []) 
+#                 config_pars['mask_region8'].append(masklam[0]) 
+#                 config_pars['mask_region8'].append(masklam[1])  
+#             else:  
+#                 val  = line.split()[1] 
+#                 if is_number(val) == True:  val = float(val)
+#                 if val == 'True': val = True
+#                 if val == 'False': val = False 
+#                 config_pars[line.split()[0]] = val 
+#     configfile.close()
+#     return config_pars    
+
+
 
 # Creates .reg files for direct and dispersed images
 # Written by Mason Huberty and adapted by KVN to work as part of the line finding software
@@ -135,6 +232,22 @@ def create_regions(parno, path_to_data, path_to_out, filters):
         for i in range(len(cat)):
             f.write("WCS;circle("+str(cat['RA'][i])+','+str(cat['DEC'][i])+',0.5") # color=green text={'+str(cat['NUMBER'][i])+'} font="times 10 bold italic" textangle=30\n')
         f.close()
+
+    ### combined:
+    phot_cat_comb = glob.glob(path_to_data + str(parno) + "/*_comb.cat") 
+
+    if len(phot_cat_comb) > 0:
+        cat=asciitable.read(phot_cat_comb[0])
+        print("combined catalog \n", cat)
+
+        # print(cat[0])
+
+        # Direct image region files
+        f = open(path_to_out + str(parno) + "/POPPIES" + str(parno) + 'regions_phot_comb.reg','a')
+        for i in range(len(cat)):
+            f.write("WCS;circle("+str(cat['ALPHA_J2000'][i])+','+str(cat['DELTA_J2000'][i])+',0.5") # color=green text={'+str(int(cat['NUMBER'][i]))+'} font="times 10 bold italic" textangle=30\n')
+        f.close()
+
 
     #This and subsequent are for the first order beams. Offsets taken from the config files
     # KVN :  Adding code to first check if the paths exist. Only create region file if filter/orientation is available 
@@ -411,6 +524,7 @@ def find_filters(path_to_data,path_to_out,par):
             outfile.write(str(i) + '  ' + 'C' + '\n')
 
 
+## FH updated 4/10/26 - multi-filter version
 ## FH 1/30/25
 def make_full_list(path_to_data,path_to_out,par,filters,verbose=True):
     ''' makes full object list from se cats'''
@@ -424,31 +538,49 @@ def make_full_list(path_to_data,path_to_out,par,filters,verbose=True):
     # file for full object list:
     outfile = open(path_to_out+'/linelist/POPPIES'+str(par) + 'objects.dat', 'w')
 
-    # find all the catalogs:
-    for filt in filters:
+    secats = glob.glob(path_to_data + str(par) + "/*_comb.cat") 
 
+    if len(secats) == 0:
+
+    # if len(filters) == 1:
+        filt = filters[0]
         secats = glob.glob(path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filt))) 
         
         secats.sort()
 
-        for j in secats:
+        # for j in secats:
 
-            y = str(j).split('_i2d.cat')[0].split('_F')[-1]
-            filt = str('F')+str(y)
+        y = str(secats[0]).split('_i2d.cat')[0].split('_F')[-1]
+        filt = str('F')+str(y)
 
-            cat = asciitable.read(j)
+        cat = asciitable.read(secats[0])
 
-            if verbose == True:
-                print("I found the following photometric catalogs...\n") 
-                print(j)  
+        if verbose == True:
+            print("I found the following photometric catalogs...\n") 
+            print(secats[0])  
 
-            ids = cat['NUMBER']
+        ids = cat['NUMBER']
 
-            for id in ids:
-                # print(filt,id)
-                outfile.write(str(f'{par:03}') + '  ' + str(filt) + '  ' + str(id) + '\n')
+        for id in ids:
+            # print(filt,id)
+            outfile.write(str(f'{par:03}') + '  ' + str(filt) + '  ' + str(int(id)) + '\n')
 
-        
+    else:
+
+        secats.sort()
+
+        cat = asciitable.read(secats[0])
+
+        if verbose == True:
+            print("I found the following combined photometric catalogs...\n") 
+            print(secats[0])  
+
+        ids = cat['NUMBER']
+
+        for id in ids:
+            # print(filt,id)
+            outfile.write(str(f'{par:03}') + '  ' + 'comb' + '  ' + str(int(id)) + '\n')
+
     outfile.close()
 
 
@@ -514,24 +646,30 @@ def quick_flux_max(wave,flux,err,wavemin,wavemax):
     snsorted = np.sort(sn) #sort S/N array
     
     id = -1
-    maxind = np.where(sn == snsorted[id])[0][0]  #Max S/N index
 
-    #iterate towards smaller S/N if needed until we reach a wavelength that is within filter limits
-    while (wave[maxind] < wavemin+minwave_offset) or (wave[maxind] > wavemax-minwave_offset):
-        id += -1
-        try:
-            maxind = np.where(sn == snsorted[id])[0][0]
+    try:
+        # print("testing ", sn, snsorted)
+        maxind = np.where(sn == snsorted[id])[0][0]  #Max S/N index
+            
+        #iterate towards smaller S/N if needed until we reach a wavelength that is within filter limits
+        while (wave[maxind] < wavemin+minwave_offset) or (wave[maxind] > wavemax-minwave_offset):
+            id += -1
+            try:
+                maxind = np.where(sn == snsorted[id])[0][0]
 
-        except Exception as e: #fail-safe to prevent crashing
-            print("Max. S/N didn't work: \n", e)
-            maxind = 0
+            except Exception as e: #fail-safe to prevent crashing
+                print("Max. S/N didn't work: \n", e)
+                maxind = 0
 
+        wave_maxind = wave[maxind]
+        sn_maxind = sn[maxind]
 
-    wave_maxind = wave[maxind]
-    sn_maxind = sn[maxind]
+    except Exception as e: #fail-safe to prevent crashing
+        print("Max. S/N didn't work: \n", e)
+        maxind = 0   
+        wave_maxind, sn_maxind = 0, 0
 
     return wave_maxind, sn_maxind
-
 
 
 # # NOTE - The x & y offset values are specific for NIRISS. 

@@ -1,5 +1,5 @@
 ##### This is the main python file for NIRCAM-line-finding #####
-### This version started 1/30/25
+### This is the multi-filter version - started 4/2/2026
 ## Farhan Hasan (fhasan@stsci.edu)
 
 import poppies_analysis as poppies
@@ -75,13 +75,21 @@ if __name__ == "__main__":
     if len(objectfiles) == 0:
         print('\033[94m' + "No object file found, creating it for you now."  + '\033[0m')
 
-    # for filt in filterlist['filter']:
-        
+        # for filt in filterlist['filter']:
+            
         utilities.make_full_list(DATA_DIR,OUTPUT_DIR,str(parno),filterlist['filter'])
 
-        objectfiles = glob.glob(OUTPUT_DIR + '/linelist/POPPIES'+str(parno) + 'objects.dat')
+    objectfiles = glob.glob(OUTPUT_DIR + '/linelist/POPPIES'+str(parno) + 'objects.dat')
 
     objectlist = asciitable.read(objectfiles[0],names=['parno','filter','id'])
+
+    # print(objectlist_initial)
+
+    # ## FH 4/10/26 - unique objects only 
+    # inds_objects_unique = np.unique(objectlist_initial['id'])
+    # objectlist = objectlist_initial[inds_objects_unique]
+
+    # print(objectlist)
 
     # Check if .dat spec files exists or not
     specdatfiles = glob.glob(OUTPUT_DIR + str(parno) + "/Spectra/*.dat")
@@ -148,13 +156,13 @@ if __name__ == "__main__":
             print('Error reading existing matched redshift catalogs: ', e )
             pass
 
-
     # move to the directory where you want your outputs.
     os.chdir(OUTPUT_DIR)
 
     ## FH 2/3/25: ask user if they prefer CWT or full object list:
-
-    objtypes = input("Please hit ENTER or 'c' to perform wavelength decomposition, or 'all' to go through all objects identified by SE \n> ")
+    ## FH updated 4/9/26:
+    # objtypes = input("Please hit ENTER or 'c' to perform wavelength decomposition, or 'all' to go through all objects identified by SE \n> ")
+    objtypes = input("Please type 'all' to go through all objects identified by SE, otherwise hit ENTER or type ANYTHING ELSE to perform wavelength decomposition\n> ")
 
     if objtypes.strip().lower() == "all":
 
@@ -163,10 +171,11 @@ if __name__ == "__main__":
         ## updated 5/30/25:
         #run the measure_z_interactive code to go through objects individually:
         # poppies.measure_z_interactive_all(path_to_data=DATA_DIR, path_to_code=CODE_DIR, parno=parno)
-        poppies.measure_z_interactive_all(path_to_data=DATA_DIR, path_to_code=CODE_DIR, path_to_out=OUTPUT_DIR, parno=parno)
+        poppies.measure_z_interactive_all(path_to_data=DATA_DIR, path_to_code=CODE_DIR, path_to_out=OUTPUT_DIR, filters=filterlist['filter'],parno=parno)
 
 
-    elif (objtypes == "") or (objtypes.strip().lower() == "c"):
+    # elif (objtypes == "") or (objtypes.strip().lower() == "c"):
+    elif (objtypes == "") or (objtypes.strip().lower() != "all"):
 
         # check if line list exists. If not, run code to create the linelist
         print(OUTPUT_DIR + "/linelist/POPPIES"+str(parno)+"lines.dat")
@@ -175,9 +184,9 @@ if __name__ == "__main__":
         if len(linelist) == 0:
             print('\033[94m' + "No line list file found, creating the line list for you now." + '\033[0m')
             
-            poppies.loop_field_cwt(path_to_data=DATA_DIR, path_to_out=OUTPUT_DIR, path_to_code=CODE_DIR, parno=parno)
+            poppies.loop_field_cwt(path_to_data=DATA_DIR, path_to_out=OUTPUT_DIR, path_to_code=CODE_DIR, parno=parno, filters=filterlist['filter'])
 
         ## updated 5/30/25:
         #run the measure_z_interactive code to go through objects individually:
-        poppies.measure_z_interactive(path_to_data=DATA_DIR, path_to_code=CODE_DIR, path_to_out=OUTPUT_DIR, parno=parno)
+        poppies.measure_z_interactive(path_to_data=DATA_DIR, path_to_code=CODE_DIR, path_to_out=OUTPUT_DIR, filters=filterlist['filter'], parno=parno)
        

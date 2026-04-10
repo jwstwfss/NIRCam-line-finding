@@ -10,7 +10,7 @@ from array import array
 from glob import glob
 import pandas as pd
 from ast import literal_eval
-
+import time
 
 # POPPIES gui helpers
 from guis_helpers import extract_image_extensions_key
@@ -21,8 +21,8 @@ from guis_helpers import display_image_in_DS9, display_images_in_DS9
 # http://ds9.si.edu/doc/ref/xpa.html#lock    
 
 
-## FH updated 5/30/25
-def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "squared"):
+## FH updated 4/7/26 - version with just COUNT and CCOUNT
+def showSpec2D_POPPIES(parno, obid, filters, path_to_data = "", zsc = "squared"):
     """Display spec2D cutouts in DS9.
 
     This can handle missed data in a given filter since there is a key
@@ -31,274 +31,345 @@ def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "
     that the data is missing and that display layout is preserved.
     """
 
-    # try:
-    #     secats = glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/DIRECT_GRISM/POPPIES*phot*.fits")  # MDR 2022/05/17
-    # except:
-    #     secats = glob(path_to_data + "/POPPIES" + str(parno) + "/Products/POPPIES*phot*.fits")  # KVN allowing for different path structure (?)
-
-
-    def parse_filename(path_to_data, parno, obid):
+    filters_numbers = {filter: i for i, filter in enumerate(filters)}
+    
+    def parse_filename(path_to_data, parno, filter,obid):
         # return path_to_data + f"/POPPIES{parno}/spec2D/POPPIES{parno}_{obid:05d}.2D.fits"
-        f1 = glob(path_to_data + f"/{parno}/jw*/A_{filter}_R_{obid}.V4.fits")  
-        f2 = glob(path_to_data + f"/{parno}/jw*/A_{filter}_C_{obid}.V4.fits") 
+        fR = glob(path_to_data + f"{parno}/jw*/*_{filter}_R_{obid}.V4.fits")  
+        fC = glob(path_to_data + f"{parno}/jw*/*_{filter}_C_{obid}.V4.fits") 
 
-        f3 = glob(path_to_data + f"/{parno}/jw*/B_{filter}_R_{obid}.V4.fits")  
-        f4 = glob(path_to_data + f"/{parno}/jw*/B_{filter}_C_{obid}.V4.fits")         
+        # f3 = glob(path_to_data + f"/{parno}/jw*/B_*_R_{obid}.V4.fits")  
+        # f4 = glob(path_to_data + f"/{parno}/jw*/B_*_C_{obid}.V4.fits")         
         
-        return f1,f2,f3,f4
+        return fR,fC
 
+    spec2D_files_r,spec2D_files_c = {},{}
+    
+    for filter in filters:
+        spec2d_files = parse_filename(path_to_data, parno, filter, obid)
+        spec2D_file_r, spec2D_file_c = spec2d_files[0], spec2d_files[1]
 
-    spec2D_files = parse_filename(path_to_data, parno, obid)
+        if len(spec2D_file_r) > 0:
+            spec2D_files_r[filter] = spec2D_file_r[0]
+
+        if len(spec2D_file_c) > 0:
+            spec2D_files_c[filter] = spec2D_file_c[0]
+
+    # print("spec2d files: ", spec2D_files_r, spec2D_files_c)
 
     #check if given grism 1d files exist or not:
-    if len(spec2D_files[0]) > 0:
-        grismr_file = spec2D_files[0][0]
-
-    elif len(spec2D_files[2]) > 0: 
-        grismr_file = spec2D_files[2][0]
+    if len(spec2D_files_r) > 0:
+        grismr_files = spec2D_files_r
+        # grismr_files.sort()
 
     else:
-        grismr_file = None
+        grismr_files = None
 
-    if len(spec2D_files[1]) > 0:
-        grismc_file = spec2D_files[1][0]
-
-    elif len(spec2D_files[3]) > 0: 
-        grismc_file = spec2D_files[3][0]
+    if len(spec2D_files_c) > 0: 
+        grismc_files = spec2D_files_c
+        # grismc_files.sort()
 
     else:
-        grismc_file = None
+        grismc_files = None
 
-    ### first for GRISM-R:
-    # spec2D_file = parse_filename(path_to_data, parno, obid)[0][0]
+    # print("grismr files: ", grismr_files)
+    # print("grismc files: ", grismc_files)
+
+    # if len(spec2D_files[1]) > 0:
+    #     grismc_file = spec2D_files[1][0]
+
+    # elif len(spec2D_files[3]) > 0: 
+    #     grismc_file = spec2D_files[3][0]
+
+    # else:
+    #     grismc_file = None
 
     SPEC2D_TITLE_DS9 = "POPPIES_spec2D"
 
+    # # for fno in np.arange(1,(len(filters)*4) + 1,1):
+    # for fno in np.arange(1,13,1):
+    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " + str(fno))
+    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame new")
+    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear")
 
-    if grismr_file is not None:
-            
-        # for a given data file extract the data information that we want to be displayed in ds9
-        spec2D_key_DS9 = extract_image_extensions_key(grismr_file)
+    ### formating display into grid
+    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile")
+    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile mode grid")
+    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid mode manual")
 
 
-        # display in ds9 instance of a given "title"
+    ## possible extra frames to prevent ds9 from being stupid and panning to the void
+    if (grismc_files is None) and grismr_files is not None:
+        iter_arr = np.arange(1,(4*len(filters)) + 1, 1)
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid layout 2 {str(len(filters)*2)}")
 
-        # now display the results.
-        for key, _ in spec2D_key_DS9.items():
+    elif (grismc_files is not None) and grismr_files is None:
+        iter_arr = np.arange((4*len(filters)), 0, -1)
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid layout 2 {str(len(filters)*2)}")
 
-            # get key-values for frame id and extension
-            frame_id = int(spec2D_key_DS9[key]["frame_id"]) - 1    ## -1 bc first extension is 1D spec
-            ext = spec2D_key_DS9[key]["ext"]
-
-            # # display frame
-            if ext is not None:
-                
-                #width and height of 2D spec trace
-                xpix_raw, ypix_raw = spec2D_key_DS9[key]["x_pix"], spec2D_key_DS9[key]["y_pix"]
-
-                xpix,ypix = int(xpix_raw + (0.2 * xpix_raw)), int(ypix_raw + (2*ypix_raw))
-
-                # frame id
-                command = f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}"
-
-                os.system(command)
-
-                command = f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh"
-
-                os.system(command)
-
-                command = f"xpaset -p {SPEC2D_TITLE_DS9} fits {grismr_file}[{ext}]"
-
-                os.system(command)
-
-                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
-                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
-                
-        # else:
-        #     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame clear"
-        #     os.system(command)
-    
     else:
-        for frame_id in [1,2,3]:
+        iter_arr = np.arange(1,(6*len(filters)) + 1, 1)
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid layout 2 {str(len(filters)*2 + 1)}")
+
+
+
+
+    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear all")
+
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame new")
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
+    
+    ### first for GRISM-R:
+    # spec2D_file = parse_filename(path_to_data, parno, obid)[0][0]
+
+    if grismr_files is not None:
+        # frame_min = 0
+        for ind_r, (filter, grismr_file) in enumerate(grismr_files.items()):
+            filt_no = filters_numbers[filter]
+            # for a given data file extract the data information that we want to be displayed in ds9
+            spec2D_key_DS9 = extract_image_extensions_key(grismr_file)
+
+            # print("spec2d full ", spec2D_key_DS9 )
+            # display in ds9 instance of a given "title"
+
+            # frame_min = filt_no * 3
+
+            frame_min = (2 * filt_no)
+
+            # now display the results.
+            for key, _ in spec2D_key_DS9.items():
+
+                # get key-values for frame id and extension
+                frame_id_0 = int(spec2D_key_DS9[key]["frame_id"]) - 1    ## -1 bc first extension is 1D spec
+
+                # frame_min = filt_no * (len(filters)-1) 
+
+                # if frame_id_0 == 1:
+                #     frame_id = frame_id_0 + filt_no    ## +frame_min to get correct frame number for filter 
+
+                # elif frame_id_0 == 2:
+                #     frame_id = frame_id_0 + (filt_no*len(filters))   ## +frame_min to get correct frame number for filter 
+
+                # frame_id = (2*frame_id_0) + frame_min   ## +frame_min to get correct frame number for filter
+                
+                frame_id = frame_id_0 + frame_min   ## +frame_min to get correct frame number for filter
+
+                ext = spec2D_key_DS9[key]["ext"]
+                
+                # print(frame_id, frame_id_0, frame_min, filt_no)
+
+                # print(frame_id, ext, key)
+
+                # # display frame
+                if ext is not None:
+                    # print("frame displayed: ", frame_id, frame_id_0)
+
+                    #width and height of 2D spec trace
+                    xpix_raw, ypix_raw = spec2D_key_DS9[key]["x_pix"], spec2D_key_DS9[key]["y_pix"]
+
+                    xpix,ypix = int(xpix_raw + (0.05 * xpix_raw)), int(ypix_raw + (1.5*ypix_raw))
+
+                    # frame id
+                    command = f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}"
+
+                    os.system(command)
+
+                    # command = f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh"
+
+                    # os.system(command)
+
+                    command = f"xpaset -p {SPEC2D_TITLE_DS9} fits {grismr_file}[{ext}]"
+
+                    os.system(command)
+
+                    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+                    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")   
+                    
+                    # FH 2/17/25: display wavelength beside alpha
+                    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs fk5")
+                    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs skyformat degrees")
+
+                    # # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} pan 0 0 image")
+
+                    # # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom to fit")
+                    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")   
+
+                    # frame_min += len(filters)
+                 
+            # else:
+            #     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame clear"
+            #     os.system(command)
+        
+    else:
+        for ind_r, filter in enumerate(filters):
+
+            filt_no = filters_numbers[filter]
+
             # frame id
-            os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}")
-            os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear")
+            frame_min = (2 * filt_no)
 
-    # # formating display into grid
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile")
-    # # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid mode manual")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile mode row")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid layout 1 6")
+            for i in [1,2]:
+                  
+                # frame_id = (2*i) + frame_min   ## +frame_min to get correct frame number for filter
+                frame_id = i + frame_min   ## +frame_min to get correct frame number for filter
 
-    # # config display properties
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 1")
-    # os.system("xpaset -p {SPEC2D_TITLE_DS9} lock frame physical")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock colorbar")
+                print(frame_id, i)
 
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode user")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scale yes")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scalelimits yes")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap grey")
+                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}")
+                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear")
 
 
-    # for fno in [1,2,3]:
-    #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh")
-
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " +str(fno))
-    #     # OLD: 39.5 and 32.5 are just 1/2 cutout length & 1/2 cutout width. Will need to be changed for NIRCam
-    #     # The length is set to the length of the cutout -8 (for 4 pix on each end)
-    #     # For NIRCam F444W, image size is 1408 x 200
-    #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9}"+" region command {box 710 105 100 10# color=green} ")        
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
-
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode zscale")
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode 99.5")
-
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale squared")
-    #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scale")
-    #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scalelimits yes")
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap heat")
-
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
-        # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1.5")
-
-        # command = f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh"
-
-        # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh")
-
-    ### Now for GRISM-C:
+    ## Now for GRISM-C:
     # spec2D_file = parse_filename(path_to_data, parno, obid)[1][0]
 
+    if grismc_files is not None:
+        
+        for ind_c, (filter, grismc_file) in enumerate(grismc_files.items()):
+            filt_no = filters_numbers[filter]
 
-    if grismc_file is not None:
-        # for a given data file extract the data information that we want to be displayed in ds9
-        spec2D_key_DS9 = extract_image_extensions_key(grismc_file)
+            # for a given data file extract the data information that we want to be displayed in ds9
+            spec2D_key_DS9 = extract_image_extensions_key(grismc_file)
 
-        # now display the results.
-        for key, _ in spec2D_key_DS9.items():
+            frame_min = (2 * filt_no) + (2*len(filters))
 
-            # get key-values for frame id and extension
-            frame_id = (int(spec2D_key_DS9[key]["frame_id"]) - 1) + 3    ## +3 bc new oreintation here
-            ext = spec2D_key_DS9[key]["ext"]
+            # display in ds9 instance of a given "title"
 
-            # xpix_vals,ypix_vals = [], []
+            # now display the results.
+            for key, _ in spec2D_key_DS9.items():
 
-            # # display frame
-            if ext is not None:
+                # get key-values for frame id and extension
+                frame_id_0 = (int(spec2D_key_DS9[key]["frame_id"]) - 1) 
                 
-                # print('GC ', frame_id)
+                # frame_id = (2*frame_id_0) + frame_min   ## +frame_min to get correct frame number for filter
+                frame_id = frame_id_0 + frame_min   ## +frame_min to get correct frame number for filter
+                
+                ext = spec2D_key_DS9[key]["ext"]
 
-                #width and height of 2D spec trace
-                xpix_raw, ypix_raw = spec2D_key_DS9[key]["x_pix"], spec2D_key_DS9[key]["y_pix"]
+                # # display frame
+                if ext is not None:
+                    # print("frame displayed: ", frame_id, frame_id_0)
 
-                xpix,ypix = int(xpix_raw + (0.2 * xpix_raw)), int(ypix_raw + (2*ypix_raw))
+                    #width and height of 2D spec trace
+                    xpix_raw, ypix_raw = spec2D_key_DS9[key]["x_pix"], spec2D_key_DS9[key]["y_pix"]
 
-                # frame id
-                command = f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}"
+                    xpix,ypix = int(xpix_raw + (0.05 * xpix_raw)), int(ypix_raw + (1.5*ypix_raw))
 
-                os.system(command)
+                    # frame id
+                    command = f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}"
 
-                command = f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh"
+                    os.system(command)
 
-                os.system(command)
+                    # command = f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh"
 
-                command = f"xpaset -p {SPEC2D_TITLE_DS9} fits {grismc_file}[{ext}]"
+                    # os.system(command)
 
-                os.system(command)
+                    command = f"xpaset -p {SPEC2D_TITLE_DS9} fits {grismc_file}[{ext}]"
 
-                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
-                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
-                # xpix_vals.append(xpix),ypix_vals.append(ypix)
-                # print('IM HERE ', xpix,ypix)
+                    os.system(command)
 
+                    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+                    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")   
+                    
+                    # FH 2/17/25: display wavelength beside alpha
+                    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs fk5")
+                    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs skyformat degrees")
+
+                    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom to fit")
+                    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
 
             # else:
             #     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame clear"
             #     os.system(command)
-
-
+        
     else:
-        for frame_id in [4,5,6]:
+        for ind_c, filter in enumerate(filters):
+
+            filt_no = filters_numbers[filter]
+
             # frame id
-            os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}")
-            os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear")
+            frame_min = (2 * filt_no) + (2*len(filters))
 
-    # formating display into grid
-    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile")
-    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid mode manual")
-    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile mode row")
-    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid layout 1 6")
+            for i in [1,2]:
+                  
+                frame_id = i + frame_min   ## +frame_min to get correct frame number for filter
+                # print(frame_id, i, frame_min, filt_no)
+                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}")
+                os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear")
 
-#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width 1600")
-#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height 1200")
-# #
-    # if (grismc_file) or (grismr_file):
-    #     print('HEYYYYY ', xpix,ypix)
+    # try:  #FH modified 3/6/25
+    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
+    # except Exception as e:
+    #     print('Could not correctly display spec2D, Reason: ', e)
+    #     pass
 
-    try:  #FH modified 3/6/25
-        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
-        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
-    except Exception as e:
-        print('Could not correctly display spec2D, Reason: ', e)
-        pass
+    #####
 
-    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode zscale")
-    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode 99.5")
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile yes")
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 1")
+
+    # # Force the pan to the literal center of the image data
+    # # (Assuming xpix_raw/ypix_raw are the dimensions of the spec)
+    # xcen = xpix_raw / 2.0
+    # ycen = ypix_raw / 2.0
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} pan to {xcen} {ycen} physical")
+
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom to 1")
+
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame {((4 * len(filters))+ 1)}")
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} match frame physical")
+
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} match frames physical")
+    
+    ###
+
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame all zoom 1")
+
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
+
+    #####################
+
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode zscale")
+    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 1")
     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale {zsc}")
-
-    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap heat")
+    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode 99")
 
     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock colorbar")
     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scale")
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scalelimits")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap heat")
+    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap mpl_viridis") ## FH upated 4/7/26
 
-    os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
-
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 7")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
-
-    # # for fno in np.arange(6,0,-1):
-
-    for fno in np.arange(1,8,1):
+    for fno in iter_arr:
 
         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " + str(fno))
-        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+        
+        # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom to fit")
+        # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+
+        # FH 2/17/25: display wavelength beside alpha
+        # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs fk5")
+        # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs skyformat degrees")
+
+        # xcen = xpix_raw / 2.0
+        # ycen = ypix_raw / 2.0
+        # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} pan to {xcen} {ycen} physical")
 
         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
-        
-        # FH 2/17/25: display wavelength beside alpha
-        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs fk5")
+        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+        # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh")
 
-        os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs skyformat degrees")
-
-
-    #     # For NIRCam F444W, image size is 1408 x 200
-    #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9}"+" region command {box 710 105 100 10# color=green} ")        
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
-
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode zscale")
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode 99.5")
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale {zsc}")
-
-    #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap heat")
-
-        # ## Need a 180 degree rotation for R-spectra:
-        # if fno in [1,2,3]:
-        #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} rotate 180")
-
-        # if fno==7:
-        #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
-
-
-
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 7")
-    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
-
-    # # Go to the first frame:    
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} pan to center physical")
     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 1")
+    # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} pan to center physical")
+
+
+    # # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame all")
+    # # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+
+    #####################
 
 
 def find_file(directory, filename):
@@ -317,8 +388,8 @@ def find_file(directory, filename):
             return os.path.join(root, filename)
     return None
 
-## FH updated 5/30/25
-def showDirect_POPPIES(parno, filter="F444W", path_to_data="", path_to_out=""):
+## FH updated 4/7/26
+def showDirect_POPPIES(parno, path_to_data="", path_to_out=""):
     """Displays direct images for each of the filters"""
 
     ### KVN's quick fix to images having different names in different fields
@@ -329,100 +400,784 @@ def showDirect_POPPIES(parno, filter="F444W", path_to_data="", path_to_out=""):
     # grism_file = str(grism_file[0]).split(path_to_data)[1]
     # grism_file_2 = str(grism_file).split('DATA/')[1]
 
+    image_files = glob(path_to_data + str(parno)+'/*_*_i2d.fits')
+    # image_files = glob(path_to_data + str(parno)+'/*_{}_i2d.fits')
+    image_files.sort(reverse=True)
+   
+    # image_files = image_files_filt + image_files_comb
 
-    image_files = glob(path_to_data + str(parno)+'/*_{}_i2d.fits'.format(filter))
+    # print("image files: ", image_files)
     
-    image_file = image_files[0]
-
-    # image_file_ext = str(image_file).split('DirectImages/')
-    image_file_ext = str(image_file).split(str(parno)+'/')
-    image_file_2 = image_file_ext[1]
-
-    images = {
-        f"{filter}": [
-            f"{image_file_2}"
-            # f"POPPIES{parno}_{grism_file_ext}_f115w-gr150c_drz_sci.fits",
-            # f"POPPIES{parno}_{grism_file_ext}_f115w-gr150r_drz_sci.fits",
-        ]
-    }
-
-
-    #### KVN assuming some path structure because this doesn't work for me...
-    ## FH updated 1/6/25
-    # find the full paths of the direct images
     image_paths = {}
-    for filter_name, filenames in images.items():
-        paths = []
-        for filename in filenames:
-            full_path = find_file(path_to_data, filename)
-            # print(full_path)
-            if full_path:
-                paths.append(full_path)
-            else:
-                print(f"Warning: File {filename} not found; assuming it lives in path_to_data/#/")
-                full_path = find_file(path_to_data+str(parno)+'/', filename)
-                paths.append(full_path)
-                print(paths)
-                
-        image_paths[filter_name] = paths
-
-    
-    # specify the region files to show along with images, if any.
-    # region_files = {
-    #     "f115w": [f"POPPIES{parno}regions_phot.reg", f"POPPIES{parno}F115c_grism.reg", f"POPPIES{parno}F115r_grism.reg"],
-    #     "f150w": [f"POPPIES{parno}regions_phot.reg", f"POPPIES{parno}F150c_grism.reg", f"POPPIES{parno}F150r_grism.reg"],
-    #     "f200w": [f"POPPIES{parno}regions_phot.reg", f"POPPIES{parno}F200c_grism.reg", f"POPPIES{parno}F200r_grism.reg"],
-    # }
-    region_files = {
-        f"{filter}": [f"POPPIES{parno}regions_phot_{filter}.reg"]
-    }
-
-    # find the full paths of the region files
     region_paths = {}
-    for filter_name, filenames in region_files.items():
-        paths = []
-        for filename in filenames:
-            full_path = find_file(path_to_out, filename)
-            # print(full_path)
-            if full_path:
-                paths.append(full_path)
+
+    # for image_file,filter in zip(image_files, filters):
+    for i in range(len(image_files)):
+
+        image_file = image_files[i]
+        filter_name = image_file.split(parno+"/")[1].split('_i2d')[0].split('_')[1]
+
+        print(filter_name, image_file)
+
+        # image_file_ext = str(image_file).split('DirectImages/')
+        image_file_ext = str(image_file).split(str(parno)+'/')
+        image_file_name = image_file_ext[1]
+
+        image_path = find_file(path_to_data, image_file_name)
+
+        if image_path:
+            image_paths[filter_name] = image_path
+        else:
+            print(f"Warning: File {image_file_name} not found; assuming it lives in path_to_data/#/")
+            image_path = find_file(path_to_data+str(parno)+'/', image_file_name)
+            image_paths[filter_name] = image_path
+            # print(image_paths)
+
+
+        region_file_name = f"POPPIES{parno}regions_phot_{filter_name}.reg"
+        region_path = find_file(path_to_out, region_file_name)
+
+        if region_path:
+            region_paths[filter_name] = region_path
+        else:
+            print(f"Warning: File {region_file_name} not found; assuming it lives in path_to_data/#/")
+            region_path = find_file(path_to_out+str(parno)+'/', region_file_name)
+            region_paths[filter_name] = region_path
+            # print(image_paths)
+
+
+        # images[f"{filter}"] = f"{image_file_name}"
+                # f"POPPIES{parno}_{grism_file_ext}_f115w-gr150c_drz_sci.fits",
+                # f"POPPIES{parno}_{grism_file_ext}_f115w-gr150r_drz_sci.fits",
+    
+    ## for combined detection image:
+
+    image_files_comb = glob(path_to_data + str(parno)+'/*_comb.fits')
+
+    if len(image_files_comb) > 0:
+
+        for i in range(len(image_files_comb)):
+
+            image_file = image_files_comb[i]
+            filter_name = 'comb'
+
+            print(filter_name, image_file)
+
+            # image_file_ext = str(image_file).split('DirectImages/')
+            image_file_ext = str(image_file).split(str(parno)+'/')
+            image_file_name = image_file_ext[1]
+
+            image_path = find_file(path_to_data, image_file_name)
+
+            if image_path:
+                image_paths[filter_name] = image_path
             else:
-                # KVN: assuming same pathing structure
-                print(f"Warning: File {filename} not found; assuming it lives in path_to_out/#/")
-                full_path = find_file(path_to_out + str(parno)+ '/', filename)
-                paths.append(full_path)
+                print(f"Warning: File {image_file_name} not found; assuming it lives in path_to_data/#/")
+                image_path = find_file(path_to_data+str(parno)+'/', image_file_name)
+                image_paths[filter_name] = image_path
+                # print(image_paths)
+
+            region_file_name = f"POPPIES{parno}regions_phot_{filter_name}.reg"
+            region_path = find_file(path_to_out, region_file_name)
+
+            if region_path:
+                region_paths[filter_name] = region_path
+            else:
+                print(f"Warning: File {region_file_name} not found; assuming it lives in path_to_data/#/")
+                region_path = find_file(path_to_out+str(parno)+'/', region_file_name)
+                region_paths[filter_name] = region_path
+                # print(image_paths)
+
+    # #### KVN assuming some path structure because this doesn't work for me...
+    # ## FH updated 1/6/25
+    # # find the full paths of the direct images
+    # for filter_name, filenames in images.items():
+    #     print(filter_name, filenames)
+    #     paths = []
+    #     for filename in filenames:
+    #         full_path = find_file(path_to_data, filename)
+    #         if full_path:
+    #             paths.append(full_path)
+    #         else:
+    #             print(f"Warning: File {filename} not found; assuming it lives in path_to_data/#/")
+    #             full_path = find_file(path_to_data+str(parno)+'/', filename)
+    #             paths.append(full_path)
+    #             print(paths)
                 
-        region_paths[filter_name] = paths
+    #     image_paths[filter_name] = paths
+    
+    #     # specify the region files to show along with images, if any.
+    #     # region_files = {
+    #     #     "f115w": [f"POPPIES{parno}regions_phot.reg", f"POPPIES{parno}F115c_grism.reg", f"POPPIES{parno}F115r_grism.reg"],
+    #     #     "f150w": [f"POPPIES{parno}regions_phot.reg", f"POPPIES{parno}F150c_grism.reg", f"POPPIES{parno}F150r_grism.reg"],
+    #     #     "f200w": [f"POPPIES{parno}regions_phot.reg", f"POPPIES{parno}F200c_grism.reg", f"POPPIES{parno}F200r_grism.reg"],
+    #     # }
+        
+    #     region_files = {
+    #         f"{filter_name}": [f"POPPIES{parno}regions_phot_{filter_name}.reg"]
+    #     }
+
+    #     # find the full paths of the region files
+    #     region_paths = {}
+    #     for filter_name, filenames in region_files.items():
+    #         paths = []
+    #         for filename in filenames:
+    #             full_path = find_file(path_to_out, filename)
+    #             # print(full_path)
+    #             if full_path:
+    #                 paths.append(full_path)
+    #             else:
+    #                 # KVN: assuming same pathing structure
+    #                 print(f"Warning: File {filename} not found; assuming it lives in path_to_out/#/")
+    #                 full_path = find_file(path_to_out + str(parno)+ '/', filename)
+    #                 paths.append(full_path)
+                    
+    #         region_paths[filter_name] = paths
+    
+    # print("paths to images: ", image_paths)
+    # print("paths to regions: ", region_paths)
 
     display_images_in_DS9(image_paths, region_files=region_paths)
 
     return
 
 
-## FH updated 1/24/25
-def panDirect_POPPIES(ra, dec):
+## FH updated 4/7/26
+def panDirect_POPPIES(ra, dec, filters):
     # print(ra, dec)
 
     ds9_title = "POPPIES_DIRECT"
     # for fno in [1,4,7]:
 
-    ## will do loop when more filters are added
-    # for fno in [1]:
-    cmd = f"xpaset -p {ds9_title} frame 1"  # + str(fno)
-    os.system(cmd)
-    cmd = f"xpaset -p {ds9_title} pan to {ra[0]} {dec[0]} wcs degrees"
-    os.system(cmd)
+    #     # Pan to coords in frame
+#     if grism == "F115W":
+#         fno = "4"
+#     elif grism == "F150W":
+#         fno = "5"
+#     elif grism == "F200W":
+#         fno = "6"
+#     cmd = "xpaset -p ds9 frame " + fno
+#     os.system(cmd)
+#     cmd = "xpaset -p ds9 pan to " + ra + " " + dec  # +' fk5'
+#     os.system(cmd)
 
+    ## Loop to create frames
+
+    if len(filters) > 1:
+        frame_nums = len(filters) + 1
+
+    else:
+        frame_nums = len(filters)
+
+    for fno in range(frame_nums):
+        # print("frame ", fno)
+        cmd = f"xpaset -p {ds9_title} frame {fno+1}"  # + str(fno)
+        os.system(cmd)
+
+        cmd = f"xpaset -p {ds9_title} pan to {ra[0]} {dec[0]} wcs degrees"
+        os.system(cmd)
     # # zoom
     # cmd = f"xpaset -p {ds9_title} zoom 2"
     # os.system(cmd)
 
     # os.system(f"xpaset -p {ds9_title} zoom in")
-    os.system(f"xpaset -p {ds9_title} zoom to 4")
+        os.system(f"xpaset -p {ds9_title} zoom to 4")
 
 
 
 # ###### NOT USING THESE FOR NOW ###########
+
+## Version with COUNT, CCOUNT, and MCOUNT:
+# def showSpec2D_POPPIES(parno, obid, filters, path_to_data = "", zsc = "squared"):
+#     """Display spec2D cutouts in DS9.
+
+#     This can handle missed data in a given filter since there is a key
+#     to check against given the nature of how the spec2D files are setup.
+#     Frames will be made for missing data but will show nothing to indicate
+#     that the data is missing and that display layout is preserved.
+#     """
+
+#     # try:
+#     #     secats = glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/DIRECT_GRISM/POPPIES*phot*.fits")  # MDR 2022/05/17
+#     # except:
+#     #     secats = glob(path_to_data + "/POPPIES" + str(parno) + "/Products/POPPIES*phot*.fits")  # KVN allowing for different path structure (?)
+
+
+#     # def parse_filename(path_to_data, parno, obid):
+#     #     # return path_to_data + f"/POPPIES{parno}/spec2D/POPPIES{parno}_{obid:05d}.2D.fits"
+#     #     f1 = glob(path_to_data + f"/{parno}/jw*/A_{filter}_R_{obid}.V4.fits")  
+#     #     f2 = glob(path_to_data + f"/{parno}/jw*/A_{filter}_C_{obid}.V4.fits") 
+
+#     #     f3 = glob(path_to_data + f"/{parno}/jw*/B_{filter}_R_{obid}.V4.fits")  
+#     #     f4 = glob(path_to_data + f"/{parno}/jw*/B_{filter}_C_{obid}.V4.fits")         
+        
+#     #     return f1,f2,f3,f4
+
+#     def parse_filename(path_to_data, parno, filter,obid):
+#         # return path_to_data + f"/POPPIES{parno}/spec2D/POPPIES{parno}_{obid:05d}.2D.fits"
+#         fR = glob(path_to_data + f"{parno}/jw*/*_{filter}_R_{obid}.V4.fits")  
+#         fC = glob(path_to_data + f"{parno}/jw*/*_{filter}_C_{obid}.V4.fits") 
+
+#         # f3 = glob(path_to_data + f"/{parno}/jw*/B_*_R_{obid}.V4.fits")  
+#         # f4 = glob(path_to_data + f"/{parno}/jw*/B_*_C_{obid}.V4.fits")         
+        
+#         return fR,fC
+
+#     spec2D_files_r,spec2D_files_c = {},{}
+    
+#     for filter in filters:
+#         spec2d_files = parse_filename(path_to_data, parno, filter, obid)
+#         spec2D_file_r, spec2D_file_c = spec2d_files[0], spec2d_files[1]
+
+#         if len(spec2D_file_r) > 0:
+#             spec2D_files_r[filter] = spec2D_file_r[0]
+
+#         if len(spec2D_file_c) > 0:
+#             spec2D_files_c[filter] = spec2D_file_c[0]
+
+#     # print("spec2d files: ", spec2D_files_r, spec2D_files_c)
+
+#     #check if given grism 1d files exist or not:
+#     if len(spec2D_files_r) > 0:
+#         grismr_files = spec2D_files_r
+#         # grismr_files.sort()
+
+#     else:
+#         grismr_files = None
+
+#     if len(spec2D_files_c) > 0: 
+#         grismc_files = spec2D_files_c
+#         # grismc_files.sort()
+
+#     else:
+#         grismc_files = None
+
+#     # print("grismr files: ", grismr_files)
+#     # print("grismc files: ", grismc_files)
+
+#     # if len(spec2D_files[1]) > 0:
+#     #     grismc_file = spec2D_files[1][0]
+
+#     # elif len(spec2D_files[3]) > 0: 
+#     #     grismc_file = spec2D_files[3][0]
+
+#     # else:
+#     #     grismc_file = None
+
+#     SPEC2D_TITLE_DS9 = "POPPIES_spec2D"
+
+#     ### first for GRISM-R:
+#     # spec2D_file = parse_filename(path_to_data, parno, obid)[0][0]
+
+#     # empty_frameno_r, empty_frameno_c = 0, 0
+
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid layout 1 6")
+
+
+#     ### formating display into grid
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile mode grid")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid mode manual")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid layout {len(filters)} 6")
+
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear all")
+
+#     if grismr_files is not None:
+        
+#         for ind_r, (filter, grismr_file) in enumerate(grismr_files.items()):
+            
+#             frame_min = ind_r * len(filters) * 2
+#             # for a given data file extract the data information that we want to be displayed in ds9
+#             spec2D_key_DS9 = extract_image_extensions_key(grismr_file)
+
+#             # display in ds9 instance of a given "title"
+
+#             # now display the results.
+#             for key, _ in spec2D_key_DS9.items():
+
+#                 # get key-values for frame id and extension
+#                 frame_id_0 = int(spec2D_key_DS9[key]["frame_id"]) - 1    ## -1 bc first extension is 1D spec
+#                 frame_id = frame_id_0 + frame_min    ## +frame_min to get correct frame number for filter
+#                 ext = spec2D_key_DS9[key]["ext"]
+
+#                 # print(frame_id, ext, key)
+
+#                 # # display frame
+#                 if ext is not None:
+                    
+#                     #width and height of 2D spec trace
+#                     xpix_raw, ypix_raw = spec2D_key_DS9[key]["x_pix"], spec2D_key_DS9[key]["y_pix"]
+
+#                     xpix,ypix = int(xpix_raw + (0.25 * xpix_raw)), int(ypix_raw + (1.5*ypix_raw))
+
+#                     # frame id
+#                     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}"
+
+#                     os.system(command)
+
+#                     # command = f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh"
+
+#                     # os.system(command)
+
+#                     command = f"xpaset -p {SPEC2D_TITLE_DS9} fits {grismr_file}[{ext}]"
+
+#                     os.system(command)
+
+#                     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+#                     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")   
+                    
+#                     # FH 2/17/25: display wavelength beside alpha
+#                     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs fk5")
+#                     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs skyformat degrees")
+
+#                     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom to fit")
+#                     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")                    
+#             # else:
+#             #     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame clear"
+#             #     os.system(command)
+        
+#     else:
+#         for frame_id in range(len(filters)):
+#             # frame id
+#             empty_frameno_r = frame_id * len(filters) * 2
+
+#             for i in [1,2,3]:
+                  
+#                 frame_no = i + empty_frameno_r
+#                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_no}")
+#                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear")
+
+
+#     ### Now for GRISM-C:
+#     # spec2D_file = parse_filename(path_to_data, parno, obid)[1][0]
+
+#     if grismc_files is not None:
+        
+#         for ind_c, (filter, grismc_file) in enumerate(grismc_files.items()):
+            
+#             frame_min = ind_c * len(filters) * 2
+#             # for a given data file extract the data information that we want to be displayed in ds9
+#             spec2D_key_DS9 = extract_image_extensions_key(grismc_file)
+
+#             # display in ds9 instance of a given "title"
+
+#             # now display the results.
+#             for key, _ in spec2D_key_DS9.items():
+
+#                 # get key-values for frame id and extension
+#                 frame_id_0 = int(spec2D_key_DS9[key]["frame_id"]) - 1    ## -1 bc first extension is 1D spec
+#                 frame_id = frame_id_0 + frame_min    ## +frame_min to get correct frame number for filter
+#                 ext = spec2D_key_DS9[key]["ext"]
+
+#                 # # display frame
+#                 if ext is not None:
+                    
+#                     #width and height of 2D spec trace
+#                     xpix_raw, ypix_raw = spec2D_key_DS9[key]["x_pix"], spec2D_key_DS9[key]["y_pix"]
+
+#                     xpix,ypix = int(xpix_raw + (0.25 * xpix_raw)), int(ypix_raw + (1.5*ypix_raw))
+
+#                     # frame id
+#                     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}"
+
+#                     os.system(command)
+
+#                     # command = f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh"
+
+#                     # os.system(command)
+
+#                     command = f"xpaset -p {SPEC2D_TITLE_DS9} fits {grismr_file}[{ext}]"
+
+#                     os.system(command)
+
+#                     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+#                     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")   
+                    
+#                     # FH 2/17/25: display wavelength beside alpha
+#                     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs fk5")
+#                     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs skyformat degrees")
+
+#                     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom to fit")
+#                     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+
+#             # else:
+#             #     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame clear"
+#             #     os.system(command)
+        
+#     else:
+#         for frame_id in range(len(filters)):
+#             # frame id
+#             empty_frameno_c = frame_id * len(filters) * 2
+
+#             for i in [4,5,6]:
+                  
+#                 frame_no = i + empty_frameno_c
+#                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_no}")
+#                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear")
+
+
+# #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width 1600")
+# #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height 1200")
+# # #
+#     # if (grismc_file) or (grismr_file):
+#     #     print('HEYYYYY ', xpix,ypix)
+
+#     # try:  #FH modified 3/6/25
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
+#     # except Exception as e:
+#     #     print('Could not correctly display spec2D, Reason: ', e)
+#     #     pass
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode zscale")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale {zsc}")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode 99")
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap heat")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap mpl_viridis") ## FH upated 4/7/26
+
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock colorbar")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scale")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scalelimits")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 7")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
+
+#     # # for fno in np.arange(6,0,-1):
+
+#     # for fno in np.arange(1,(len(filters)*6) + 1,1):
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " + str(fno))
+        
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 0.5")
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom to fit")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+
+#         # FH 2/17/25: display wavelength beside alpha
+#         # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs fk5")
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs skyformat degrees")
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame new")
+        
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 0.5")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center all")
+
+#     #     # For NIRCam F444W, image size is 1408 x 200
+#     #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9}"+" region command {box 710 105 100 10# color=green} ")        
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode zscale")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode 99.5")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale {zsc}")
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap heat")
+
+#         # ## Need a 180 degree rotation for R-spectra:
+#         # if fno in [1,2,3]:
+#         #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} rotate 180")
+
+#         # if fno==7:
+#         #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 7")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
+
+#     # # Go to the first frame:    
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 1")
+
+
+
+# ## FH updated 5/30/25
+# def showSpec2D_POPPIES(parno, obid, filter = "F444W", path_to_data = "", zsc = "squared"):
+#     """Display spec2D cutouts in DS9.
+
+#     This can handle missed data in a given filter since there is a key
+#     to check against given the nature of how the spec2D files are setup.
+#     Frames will be made for missing data but will show nothing to indicate
+#     that the data is missing and that display layout is preserved.
+#     """
+
+#     # try:
+#     #     secats = glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/DIRECT_GRISM/POPPIES*phot*.fits")  # MDR 2022/05/17
+#     # except:
+#     #     secats = glob(path_to_data + "/POPPIES" + str(parno) + "/Products/POPPIES*phot*.fits")  # KVN allowing for different path structure (?)
+
+
+#     def parse_filename(path_to_data, parno, obid):
+#         # return path_to_data + f"/POPPIES{parno}/spec2D/POPPIES{parno}_{obid:05d}.2D.fits"
+#         f1 = glob(path_to_data + f"/{parno}/jw*/A_{filter}_R_{obid}.V4.fits")  
+#         f2 = glob(path_to_data + f"/{parno}/jw*/A_{filter}_C_{obid}.V4.fits") 
+
+#         f3 = glob(path_to_data + f"/{parno}/jw*/B_{filter}_R_{obid}.V4.fits")  
+#         f4 = glob(path_to_data + f"/{parno}/jw*/B_{filter}_C_{obid}.V4.fits")         
+        
+#         return f1,f2,f3,f4
+
+
+#     spec2D_files = parse_filename(path_to_data, parno, obid)
+
+#     #check if given grism 1d files exist or not:
+#     if len(spec2D_files[0]) > 0:
+#         grismr_file = spec2D_files[0][0]
+
+#     elif len(spec2D_files[2]) > 0: 
+#         grismr_file = spec2D_files[2][0]
+
+#     else:
+#         grismr_file = None
+
+#     if len(spec2D_files[1]) > 0:
+#         grismc_file = spec2D_files[1][0]
+
+#     elif len(spec2D_files[3]) > 0: 
+#         grismc_file = spec2D_files[3][0]
+
+#     else:
+#         grismc_file = None
+
+#     ### first for GRISM-R:
+#     # spec2D_file = parse_filename(path_to_data, parno, obid)[0][0]
+
+#     SPEC2D_TITLE_DS9 = "POPPIES_spec2D"
+
+
+#     if grismr_file is not None:
+            
+#         # for a given data file extract the data information that we want to be displayed in ds9
+#         spec2D_key_DS9 = extract_image_extensions_key(grismr_file)
+
+
+#         # display in ds9 instance of a given "title"
+
+#         # now display the results.
+#         for key, _ in spec2D_key_DS9.items():
+
+#             # get key-values for frame id and extension
+#             frame_id = int(spec2D_key_DS9[key]["frame_id"]) - 1    ## -1 bc first extension is 1D spec
+#             ext = spec2D_key_DS9[key]["ext"]
+
+#             # # display frame
+#             if ext is not None:
+                
+#                 #width and height of 2D spec trace
+#                 xpix_raw, ypix_raw = spec2D_key_DS9[key]["x_pix"], spec2D_key_DS9[key]["y_pix"]
+
+#                 xpix,ypix = int(xpix_raw + (0.2 * xpix_raw)), int(ypix_raw + (2*ypix_raw))
+
+#                 # frame id
+#                 command = f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}"
+
+#                 os.system(command)
+
+#                 command = f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh"
+
+#                 os.system(command)
+
+#                 command = f"xpaset -p {SPEC2D_TITLE_DS9} fits {grismr_file}[{ext}]"
+
+#                 os.system(command)
+
+#                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+#                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+                
+#         # else:
+#         #     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame clear"
+#         #     os.system(command)
+    
+#     else:
+#         for frame_id in [1,2,3]:
+#             # frame id
+#             os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}")
+#             os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear")
+
+#     # # formating display into grid
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile")
+#     # # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid mode manual")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile mode row")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid layout 1 6")
+
+#     # # config display properties
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 1")
+#     # os.system("xpaset -p {SPEC2D_TITLE_DS9} lock frame physical")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock colorbar")
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode user")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scale yes")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scalelimits yes")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap grey")
+
+
+#     # for fno in [1,2,3]:
+#     #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh")
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " +str(fno))
+#     #     # OLD: 39.5 and 32.5 are just 1/2 cutout length & 1/2 cutout width. Will need to be changed for NIRCam
+#     #     # The length is set to the length of the cutout -8 (for 4 pix on each end)
+#     #     # For NIRCam F444W, image size is 1408 x 200
+#     #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9}"+" region command {box 710 105 100 10# color=green} ")        
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode zscale")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode 99.5")
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale squared")
+#     #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scale")
+#     #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scalelimits yes")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap heat")
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+#         # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1.5")
+
+#         # command = f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh"
+
+#         # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh")
+
+#     ### Now for GRISM-C:
+#     # spec2D_file = parse_filename(path_to_data, parno, obid)[1][0]
+
+
+#     if grismc_file is not None:
+#         # for a given data file extract the data information that we want to be displayed in ds9
+#         spec2D_key_DS9 = extract_image_extensions_key(grismc_file)
+
+#         # now display the results.
+#         for key, _ in spec2D_key_DS9.items():
+
+#             # get key-values for frame id and extension
+#             frame_id = (int(spec2D_key_DS9[key]["frame_id"]) - 1) + 3    ## +3 bc new oreintation here
+#             ext = spec2D_key_DS9[key]["ext"]
+
+#             # xpix_vals,ypix_vals = [], []
+
+#             # # display frame
+#             if ext is not None:
+                
+#                 # print('GC ', frame_id)
+
+#                 #width and height of 2D spec trace
+#                 xpix_raw, ypix_raw = spec2D_key_DS9[key]["x_pix"], spec2D_key_DS9[key]["y_pix"]
+
+#                 xpix,ypix = int(xpix_raw + (0.2 * xpix_raw)), int(ypix_raw + (2*ypix_raw))
+
+#                 # frame id
+#                 command = f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}"
+
+#                 os.system(command)
+
+#                 command = f"xpaset -p {SPEC2D_TITLE_DS9} frame refresh"
+
+#                 os.system(command)
+
+#                 command = f"xpaset -p {SPEC2D_TITLE_DS9} fits {grismc_file}[{ext}]"
+
+#                 os.system(command)
+
+#                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+#                 os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+#                 # xpix_vals.append(xpix),ypix_vals.append(ypix)
+#                 # print('IM HERE ', xpix,ypix)
+
+
+#             # else:
+#             #     command = f"xpaset -p {SPEC2D_TITLE_DS9} frame clear"
+#             #     os.system(command)
+
+
+#     else:
+#         for frame_id in [4,5,6]:
+#             # frame id
+#             os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame {frame_id}")
+#             os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame clear")
+
+#     # formating display into grid
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid mode manual")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile mode row")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} tile grid layout 1 6")
+
+# #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width 1600")
+# #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height 1200")
+# # #
+#     # if (grismc_file) or (grismr_file):
+#     #     print('HEYYYYY ', xpix,ypix)
+
+#     try:  #FH modified 3/6/25
+#         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+#         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
+#     except Exception as e:
+#         print('Could not correctly display spec2D, Reason: ', e)
+#         pass
+
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode zscale")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode 99.5")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale {zsc}")
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap heat")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap mpl_viridis") ## FH upated 4/7/26
+
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock colorbar")
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scale")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} lock scalelimits")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+
+#     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 7")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
+
+#     # # for fno in np.arange(6,0,-1):
+
+#     for fno in np.arange(1,8,1):
+
+#         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame " + str(fno))
+#         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame center")
+
+#         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} zoom 1")
+        
+#         # FH 2/17/25: display wavelength beside alpha
+#         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs fk5")
+
+#         os.system(f"xpaset -p {SPEC2D_TITLE_DS9} wcs skyformat degrees")
+
+
+#     #     # For NIRCam F444W, image size is 1408 x 200
+#     #     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9}"+" region command {box 710 105 100 10# color=green} ")        
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} width {xpix}")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} height {ypix}")
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode zscale")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale mode 99.5")
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} scale {zsc}")
+
+#     #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} cmap heat")
+
+#         # ## Need a 180 degree rotation for R-spectra:
+#         # if fno in [1,2,3]:
+#         #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} rotate 180")
+
+#         # if fno==7:
+#         #     os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
+
+
+
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 7")
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame delete")
+
+#     # # Go to the first frame:    
+#     # os.system(f"xpaset -p {SPEC2D_TITLE_DS9} frame 1")
+
+
 # # written by KVN June 2024
 # # First pull info from region file
 # def getRegionFileInfo(parno, filt, path_to_data):

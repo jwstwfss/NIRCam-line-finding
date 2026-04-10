@@ -9,7 +9,7 @@ from astropy.io import ascii as asc
 
 
 ## FH 2/10/25 - one filter version:
-def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, filter="F444W", plotflag = True):
+def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, filter, plotflag = True):
 
     cont_medfilt = int(config_pars['cont_medfilt']) # window for median filter
     max_width = config_pars['maxwidth'] * fwhm_est_pix
@@ -145,8 +145,9 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, filter
 
 
 #### FH updated 5/29/25 - combining two different CWT runs and for different file structure 
-# FH 2/10/25 - this version looks at one filter only:
-def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W"):
+## FH updated 4/6/26 - multi-filter version
+
+def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filters):
     # no inputs and run from inside the data directory
     # KVN updating this to write the linelist to the 'output' directory... take path to data as input
     if os.path.exists('linelist') == False:
@@ -156,18 +157,22 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
     print('Looking for spectra here: ', str(path_to_out)+str(parno)+'/Spectra/*_1D.dat')
 
     ## Find GRISM R and C files:
-    Rfiles = glob(str(path_to_out)+str(parno)+'/Spectra/*_{}_R_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
+    Rfiles = glob(str(path_to_out)+str(parno)+'/Spectra/*_R_*_1D.dat') # looking for spectra for POPPIES
     Rfiles.sort()
-    Cfiles = glob(str(path_to_out)+str(parno)+'/Spectra/*_{}_C_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
+    Cfiles = glob(str(path_to_out)+str(parno)+'/Spectra/*_C_*_1D.dat') # looking for spectra for POPPIES
     Cfiles.sort()
 
     # FH - 12/18/24
-    print('Searching for catalogs at: ' + str(path_to_data) + str(parno) + "/*_{}_i2d.cat".format(str(filter)))
+    print('Searching for catalogs at: ' + str(path_to_data) + str(parno) + "/")
     # catalogs = glob(str(path_to_data) +'POPPIES'+str(parno)+'/DATA/DIRECT_GRISM/POPPIES'+str(parno)+'_phot*.fits') # get list of available catalogs
 
-    catalogs = glob(path_to_data + str(parno) + "/*_{}_i2d.cat".format(str(filter))) 
+    catalogs = glob(path_to_data + str(parno) + "/*_comb.cat") 
     
+    if len(catalogs) == 0:
+        catalogs = glob(path_to_data + str(parno) + "/*_i2d.cat") ## for single-filter fields
+
     catalogs.sort()
+
     print('')
     print('I found the following catalogs: ' + str(catalogs))
     cat = asc.read(catalogs[0])
@@ -183,7 +188,7 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
     # M.D.R. - 10/08/2020
     print('')
     print('Searching for default.config at: ' + str(path_to_code))
-    config_pars = read_config(str(path_to_code)+'/default.config')
+    config_pars = read_config(str(path_to_code)+'/default.config',filters)
         
     outfile = open('linelist/temp_R_0', 'w')
 
@@ -193,25 +198,29 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
     # config_pars['lambda_min_{}'.format(filter)] = 32000. # FH 12/23/24
 
     print('')
-    print('Analyzing grism files...')
+    print('Analyzing grism-R files...')
 
     for filename in Rfiles:
-        print('running CWT for ' + filter + ' for object in file ', filename)
+        # print('running CWT for ' + filter + ' for object in file ', filename)
+        # print('running CWT for object in file ', filename)
+
         # get spectral data
         try:
             spdata = asc.read(filename, names = ['wave', 'flux', 'error', 'contam', 'zeroth'])
         # trimmed_spec = trim_spec(spdata, None, None, config_pars)
         except Exception as e:
-            print('Skipping object {} as spectrum not found'.format(filename))
+            print('Skipping object as spectrum not found for {}'.format(filename))
             break
 
+        filter = filename.split('Spectra/')[1].split("_")[1].split("_R")[0]
+        beam = int(filename.split('R_')[1].split('.')[0])
 
-        trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
-
+        # trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+        
+        trimmed_spec = trim_spec(spdata,  None, None, config_pars, filters)
         # print('TRIMMED SPEC ',trimmed_spec)
         # look up the object in the se catalog and grab the a_image
         # beam = float(filename.split('_')[3].split('.')[0])
-        beam = int(filename.split('R_')[1].split('.')[0])
 
         parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
         # print('Par Number: ', parno)
@@ -261,23 +270,25 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
     outfile = open('linelist/temp_C_0', 'w')
 
     print('')
-    print('Analyzing grism files...')
+    print('Analyzing grism-C files...')
 
     for filename in Cfiles:
-        print('running CWT for ' + filter + ' for object in file ', filename)
+        # print('running CWT for object in file ', filename)
         # get spectral data
         try:
             spdata = asc.read(filename, names = ['wave', 'flux', 'error', 'contam', 'zeroth'])
         # trimmed_spec = trim_spec(spdata, None, None, config_pars)
         except Exception as e:
-            print('Skipping object {} as spectrum not found'.format(filename))
+            print('Skipping object as spectrum not found for {}'.format(filename))
             break
 
-        trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+        # trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+        trimmed_spec = trim_spec(spdata,  None, None, config_pars, filters)
 
         # print('TRIMMED SPEC ',trimmed_spec)
         # look up the object in the se catalog and grab the a_image
         # beam = float(filename.split('_')[3].split('.')[0])
+        filter = filename.split('Spectra/')[1].split("_")[1].split("_C")[0]
         beam = int(filename.split('C_')[1].split('.')[0])
 
         parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
@@ -355,7 +366,7 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
     elif (tab_C is not None) and (tab_R is None):
         tab = tab_C
 
-    # # print(tab)
+    # print("table:\n" , tab)
 
     par = tab['col1']
     filt = tab['col2']
@@ -375,7 +386,7 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
     beams_unique_0 = np.unique(beam)
 
     # start writing new file showing uniquely identified objects:
-    print('NUMBER OF UNIQUE OBJECTS: ', len(beams_unique_0))
+    # print('NUMBER OF UNIQUE OBJECTS - FIRST CWT PASS: ', len(beams_unique_0))
 
     # ## Unique IDs list output into a text file:
     # with open('linelist/unique.dat','w') as f:
@@ -384,8 +395,9 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
 
     outfile_0 = open('linelist/POPPIES'+str(parno) + 'lines_0.dat', 'w')  #modified for 1st set of config params
 
+    ## for filter 1:
     for b in beams_unique_0:
-        w = (beam == b) & (filt == filter)
+        w = (beam == b) & (filt == filters[0])
         waves_obj = wave[w]
         npix_obj = npix[w]
         snr_obj = snr[w]
@@ -398,8 +410,47 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
         snr_final_filt = snr_uniq[s]
 
         for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
-            outfile_0.write(str(parno) + '  ' + str(filter) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
- 
+            outfile_0.write(str(parno) + '  ' + str(filters[0]) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+
+    ## for filter 2 (if it exists):
+    if len(filters) > 1:
+            
+        for b in beams_unique_0:
+            w = (beam == b) & (filt == filters[1])
+            waves_obj = wave[w]
+            npix_obj = npix[w]
+            snr_obj = snr[w]
+            waves_uniq, ind = np.unique(waves_obj, return_index = True)
+            npix_uniq = npix_obj[ind]
+            snr_uniq = snr_obj[ind]
+            s = np.argsort(waves_uniq)
+            waves_final_filt = waves_uniq[s]
+            npix_final_filt = npix_uniq[s]
+            snr_final_filt = snr_uniq[s]
+
+            for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
+                outfile_0.write(str(parno) + '  ' + str(filters[1]) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+    
+    ## for filter 3 (if it exists):                
+    if len(filters) == 3:
+            
+        for b in beams_unique_0:
+            w = (beam == b) & (filt == filters[2])
+            waves_obj = wave[w]
+            npix_obj = npix[w]
+            snr_obj = snr[w]
+            waves_uniq, ind = np.unique(waves_obj, return_index = True)
+            npix_uniq = npix_obj[ind]
+            snr_uniq = snr_obj[ind]
+            s = np.argsort(waves_uniq)
+            waves_final_filt = waves_uniq[s]
+            npix_final_filt = npix_uniq[s]
+            snr_final_filt = snr_uniq[s]
+
+            for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
+                outfile_0.write(str(parno) + '  ' + str(filters[2]) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+            
+
     outfile_0.close()
 
     ############## Begin with default_2.config
@@ -407,26 +458,43 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
     # M.D.R. - 10/08/2020
     print('')
     print('Searching for default_2.config at: ' + str(path_to_code))
-    config_pars = read_config(str(path_to_code)+'/default_2.config')
+    config_pars = read_config(str(path_to_code)+'/default_2.config',filters)
         
     outfile = open('linelist/temp_R_1', 'w')
 
     print('')
-    print('Analyzing grism files...')
+    print('Analyzing grism-R files...')
 
     for filename in Rfiles:
-        print('running CWT for ' + filter + ' for object in file ', filename)
+        # print('running CWT for object in file ', filename)
         # get spectral data
         try:
             spdata = asc.read(filename, names = ['wave', 'flux', 'error', 'contam', 'zeroth'])
         # trimmed_spec = trim_spec(spdata, None, None, config_pars)
         except Exception as e:
-            print('Skipping object {} as spectrum not found'.format(filename))
+            print('Skipping object as spectrum not found for {}'.format(filename))
             break
 
-        trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+        # print('running CWT for object in file ', filename)
 
+        # get spectral data
+        try:
+            spdata = asc.read(filename, names = ['wave', 'flux', 'error', 'contam', 'zeroth'])
+        # trimmed_spec = trim_spec(spdata, None, None, config_pars)
+        except Exception as e:
+            print('Skipping object as spectrum not found for {}'.format(filename))
+            break
+
+        filter = filename.split('Spectra/')[1].split("_")[1].split("_R")[0]
         beam = int(filename.split('R_')[1].split('.')[0])
+
+        # trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+        
+        trimmed_spec = trim_spec(spdata,  None, None, config_pars, filters)
+        # print('TRIMMED SPEC ',trimmed_spec)
+        # look up the object in the se catalog and grab the a_image
+
+        # trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
 
         parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
 
@@ -475,19 +543,20 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
     outfile = open('linelist/temp_C_1', 'w')
 
     print('')
-    print('Analyzing grism files...')
+    print('Analyzing grism-C files...')
 
     for filename in Cfiles:
-        print('running CWT for ' + filter + ' for object in file ', filename)
+        # print('running CWT for object in file ', filename)
         # get spectral data
         try:
             spdata = asc.read(filename, names = ['wave', 'flux', 'error', 'contam', 'zeroth'])
         except Exception as e:
-            print('Skipping object {} as spectrum not found'.format(filename))
+            print('Skipping object as spectrum not found for {}'.format(filename))
             break
 
-        trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+        trimmed_spec = trim_spec(spdata,  None, None, config_pars, filters)
 
+        filter = filename.split('Spectra/')[1].split("_")[1].split("_C")[0]
         beam = int(filename.split('C_')[1].split('.')[0])
 
         parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
@@ -582,8 +651,9 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
 
     outfile_1 = open('linelist/POPPIES'+str(parno) + 'lines_1.dat', 'w')  #modified for 2nd set of config params
 
+    ## for filter 1:
     for b in beams_unique_1:
-        w = (beam == b) & (filt == filter)
+        w = (beam == b) & (filt == filters[0])
         waves_obj = wave[w]
         npix_obj = npix[w]
         snr_obj = snr[w]
@@ -596,8 +666,46 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
         snr_final_filt = snr_uniq[s]
 
         for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
-            outfile_1.write(str(parno) + '  ' + str(filter) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
- 
+            outfile_1.write(str(parno) + '  ' + str(filters[0]) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+
+    ## for filter 2 (if it exists):
+    if len(filters) > 1:
+            
+        for b in beams_unique_1:
+            w = (beam == b) & (filt == filters[1])
+            waves_obj = wave[w]
+            npix_obj = npix[w]
+            snr_obj = snr[w]
+            waves_uniq, ind = np.unique(waves_obj, return_index = True)
+            npix_uniq = npix_obj[ind]
+            snr_uniq = snr_obj[ind]
+            s = np.argsort(waves_uniq)
+            waves_final_filt = waves_uniq[s]
+            npix_final_filt = npix_uniq[s]
+            snr_final_filt = snr_uniq[s]
+
+            for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
+                outfile_1.write(str(parno) + '  ' + str(filters[1]) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+    
+    ## for filter 3 (if it exists):        
+    if len(filters) == 3:
+            
+        for b in beams_unique_1:
+            w = (beam == b) & (filt == filters[2])
+            waves_obj = wave[w]
+            npix_obj = npix[w]
+            snr_obj = snr[w]
+            waves_uniq, ind = np.unique(waves_obj, return_index = True)
+            npix_uniq = npix_obj[ind]
+            snr_uniq = snr_obj[ind]
+            s = np.argsort(waves_uniq)
+            waves_final_filt = waves_uniq[s]
+            npix_final_filt = npix_uniq[s]
+            snr_final_filt = snr_uniq[s]
+
+            for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
+                outfile_1.write(str(parno) + '  ' + str(filters[2]) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+            
     outfile_1.close()
 
     ######################  final step - combine
@@ -652,8 +760,26 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
 
     outfile_final = open('linelist/POPPIES'+str(parno) + 'lines.dat', 'w') 
 
+    # for b in beams_unique_final:
+    #     print(b)
+    #     w = (beam == b) & (filt == filter)
+    #     waves_obj = wave[w]
+    #     npix_obj = npix[w]
+    #     snr_obj = snr[w]
+    #     waves_uniq, ind = np.unique(waves_obj, return_index = True)
+    #     npix_uniq = npix_obj[ind]
+    #     snr_uniq = snr_obj[ind]
+    #     s = np.argsort(waves_uniq)
+    #     waves_final_filt = waves_uniq[s]
+    #     npix_final_filt = npix_uniq[s]
+    #     snr_final_filt = snr_uniq[s]
+
+    #     for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
+    #         outfile_final.write(str(parno) + '  ' + str(filter) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+
+    ## for filter 1:
     for b in beams_unique_final:
-        w = (beam == b) & (filt == filter)
+        w = (beam == b) & (filt == filters[0])
         waves_obj = wave[w]
         npix_obj = npix[w]
         snr_obj = snr[w]
@@ -666,18 +792,56 @@ def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter="F444W
         snr_final_filt = snr_uniq[s]
 
         for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
-            outfile_final.write(str(parno) + '  ' + str(filter) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
- 
+            outfile_final.write(str(parno) + '  ' + str(filters[0]) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+
+    ## for filter 2 (if it exists):
+    if len(filters) > 1:
+            
+        for b in beams_unique_final:
+            w = (beam == b) & (filt == filters[1])
+            waves_obj = wave[w]
+            npix_obj = npix[w]
+            snr_obj = snr[w]
+            waves_uniq, ind = np.unique(waves_obj, return_index = True)
+            npix_uniq = npix_obj[ind]
+            snr_uniq = snr_obj[ind]
+            s = np.argsort(waves_uniq)
+            waves_final_filt = waves_uniq[s]
+            npix_final_filt = npix_uniq[s]
+            snr_final_filt = snr_uniq[s]
+
+            for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
+                outfile_final.write(str(parno) + '  ' + str(filters[1]) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+    
+    ## for filter 3 (if it exists):        
+    if len(filters) == 3:
+            
+        for b in beams_unique_final:
+            w = (beam == b) & (filt == filters[2])
+            waves_obj = wave[w]
+            npix_obj = npix[w]
+            snr_obj = snr[w]
+            waves_uniq, ind = np.unique(waves_obj, return_index = True)
+            npix_uniq = npix_obj[ind]
+            snr_uniq = snr_obj[ind]
+            s = np.argsort(waves_uniq)
+            waves_final_filt = waves_uniq[s]
+            npix_final_filt = npix_uniq[s]
+            snr_final_filt = snr_uniq[s]
+
+            for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
+                outfile_final.write(str(parno) + '  ' + str(filters[2]) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+
     outfile_final.close()
 
 
-def test_obj_cwt(parno, beamno, configfile):
+def test_obj_cwt(parno, beamno, configfile, filters):
     blue_se = asciitable.read('../DATA/DIRECT_GRISM/fin_F110.cat')
     red_se  = asciitable.read('../DATA/DIRECT_GRISM/fin_F160.cat')
     a_image_blue = blue_se['col5']
     a_image_red = red_se['col5']
     beam_se = blue_se['col2']
-    config_pars = read_config(configfile)
+    config_pars = read_config(configfile,filters)
     bluefile = 'POPPIES'+str(parno) + '_G102_BEAM_'+str(beamno)+'A.dat'
     redfile =  'POPPIES'+str(parno) + '_G141_BEAM_'+str(beamno)+'A.dat'
 
@@ -725,6 +889,531 @@ def test_obj_cwt(parno, beamno, configfile):
 
 
 # #### OLD:
+
+## version until Apr 2026
+# def loop_field_cwt(path_to_data, path_to_out, path_to_code, parno, filter='F444W'):
+#     # no inputs and run from inside the data directory
+#     # KVN updating this to write the linelist to the 'output' directory... take path to data as input
+#     if os.path.exists('linelist') == False:
+#         os.mkdir('linelist')
+
+#     ## FH updated 12/23/24
+#     print('Looking for spectra here: ', str(path_to_out)+str(parno)+'/Spectra/*_1D.dat')
+
+#     ## Find GRISM R and C files:
+#     Rfiles = glob(str(path_to_out)+str(parno)+'/Spectra/*_{}_R_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
+#     Rfiles.sort()
+#     Cfiles = glob(str(path_to_out)+str(parno)+'/Spectra/*_{}_C_*_1D.dat'.format(str(filter))) # looking for spectra for POPPIES
+#     Cfiles.sort()
+
+#     # FH - 12/18/24
+#     print('Searching for catalogs at: ' + str(path_to_data) + str(parno) + "/*_{}_i2d.cat".format(str(filter)))
+#     # catalogs = glob(str(path_to_data) +'POPPIES'+str(parno)+'/DATA/DIRECT_GRISM/POPPIES'+str(parno)+'_phot*.fits') # get list of available catalogs
+
+#     catalogs = glob(path_to_data + str(parno) + "/*_{}_i2d.cat".format(str(filter))) 
+    
+#     catalogs.sort()
+#     print('')
+#     print('I found the following catalogs: ' + str(catalogs))
+#     cat = asc.read(catalogs[0])
+#     print('')
+#     print('Catalog opened successfully: ' + str(catalogs[0]))
+
+#     if len(catalogs) > 1:
+#         cat2 = Table.read(catalogs[1])
+
+#     a_images = cat['A_IMAGE']
+#     beam_se = cat['NUMBER']
+
+#     # M.D.R. - 10/08/2020
+#     print('')
+#     print('Searching for default.config at: ' + str(path_to_code))
+#     config_pars = read_config(str(path_to_code)+'/default.config')
+        
+#     outfile = open('linelist/temp_R_0', 'w')
+
+#     #config_pars['transition_wave'] = 11700.
+#     # config_pars['transition_wave'] = 0. # FH 12/23/24
+#     # config_pars['transition_wave'] = 32000. # FH 12/23/24
+#     # config_pars['lambda_min_{}'.format(filter)] = 32000. # FH 12/23/24
+
+#     print('')
+#     print('Analyzing grism files...')
+
+#     for filename in Rfiles:
+#         print('running CWT for ' + filter + ' for object in file ', filename)
+#         # get spectral data
+#         try:
+#             spdata = asc.read(filename, names = ['wave', 'flux', 'error', 'contam', 'zeroth'])
+#         # trimmed_spec = trim_spec(spdata, None, None, config_pars)
+#         except Exception as e:
+#             print('Skipping object {} as spectrum not found'.format(filename))
+#             break
+
+
+#         trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+
+#         # print('TRIMMED SPEC ',trimmed_spec)
+#         # look up the object in the se catalog and grab the a_image
+#         # beam = float(filename.split('_')[3].split('.')[0])
+#         beam = int(filename.split('R_')[1].split('.')[0])
+
+#         parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
+#         # print('Par Number: ', parno)
+
+#         w = np.where(beam_se == beam)
+#         w = w[0] # because of tuples
+#         a_image = a_images[w][0]
+#         fwhm_est_pix = a_image * 2.0
+
+#         # unpack spectrum and check that it is long enough to proceed
+#         lam = trimmed_spec[0]
+#         flux_corr = trimmed_spec[1] - trimmed_spec[3]
+#         err = trimmed_spec[2]
+#         zeros = trimmed_spec[4]
+
+#         if len(lam) < config_pars['min_spec_length']:
+#             continue
+
+#         # cwt it and unpack and write results
+#         full_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(int(beam)), config_pars, filter = filter, plotflag=False)
+#         lam_cwt = full_cwt[0]
+#         flam_cwt = full_cwt[1]
+#         npix_cwt = full_cwt[2]
+#         snr_cwt = full_cwt[3]
+
+#         for i in np.arange(len(lam_cwt)):
+#             #  FH - commented out 
+#             # print(beam, 'F444W', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+#             outfile.write(str(parno) + '  ' + str(filter) + '  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
+#         if config_pars['n_sigma_for_2pix_lines'] != False:
+#             config_pars['npix_thresh'] = 2
+#             config_pars['n_sigma_above_cont'] = config_pars['n_sigma_for_2pix_lines']
+#             full_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(int(beam)), config_pars, filter = filter, plotflag=False)
+#             lam_cwt = full_cwt[0]
+#             flam_cwt = full_cwt[1]
+#             npix_cwt = full_cwt[2]
+#             snr_cwt = full_cwt[3]
+#             for i in np.arange(len(lam_cwt)):
+#                 #print(beam, 'G102', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+#                 # FH - commented out 
+#                 # print(beam, 'F444W', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+#                 outfile.write(str(parno) + '  ' + str(filter) + '  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
+#     outfile.close()
+
+#     outfile = open('linelist/temp_C_0', 'w')
+
+#     print('')
+#     print('Analyzing grism files...')
+
+#     for filename in Cfiles:
+#         print('running CWT for ' + filter + ' for object in file ', filename)
+#         # get spectral data
+#         try:
+#             spdata = asc.read(filename, names = ['wave', 'flux', 'error', 'contam', 'zeroth'])
+#         # trimmed_spec = trim_spec(spdata, None, None, config_pars)
+#         except Exception as e:
+#             print('Skipping object {} as spectrum not found'.format(filename))
+#             break
+
+#         trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+
+#         # print('TRIMMED SPEC ',trimmed_spec)
+#         # look up the object in the se catalog and grab the a_image
+#         # beam = float(filename.split('_')[3].split('.')[0])
+#         beam = int(filename.split('C_')[1].split('.')[0])
+
+#         parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
+#         # print('Par Number: ', parno)
+
+#         w = np.where(beam_se == beam)
+#         w = w[0] # because of tuples
+#         a_image = a_images[w][0]
+#         fwhm_est_pix = a_image * 2.0
+
+#         # unpack spectrum and check that it is long enough to proceed
+#         lam = trimmed_spec[0]
+#         flux_corr = trimmed_spec[1] - trimmed_spec[3]
+#         err = trimmed_spec[2]
+#         zeros = trimmed_spec[4]
+
+#         if len(lam) < config_pars['min_spec_length']:
+#             continue
+
+#         # cwt it and unpack and write results
+#         full_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(int(beam)), config_pars, filter = filter, plotflag=False)
+#         lam_cwt = full_cwt[0]
+#         flam_cwt = full_cwt[1]
+#         npix_cwt = full_cwt[2]
+#         snr_cwt = full_cwt[3]
+
+#         for i in np.arange(len(lam_cwt)):
+#             #  FH - commented out 
+#             # print(beam, 'F444W', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+#             outfile.write(str(parno) + '  ' + str(filter) + '  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
+#         if config_pars['n_sigma_for_2pix_lines'] != False:
+#             config_pars['npix_thresh'] = 2
+#             config_pars['n_sigma_above_cont'] = config_pars['n_sigma_for_2pix_lines']
+#             full_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(int(beam)), config_pars, filter = filter, plotflag=False)
+#             lam_cwt = full_cwt[0]
+#             flam_cwt = full_cwt[1]
+#             npix_cwt = full_cwt[2]
+#             snr_cwt = full_cwt[3]
+#             for i in np.arange(len(lam_cwt)):
+#                 #print(beam, 'G102', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+#                 # FH - commented out 
+#                 # print(beam, 'F444W', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+#                 outfile.write(str(parno) + '  ' + str(filter) + '  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
+#     # # ########## ##########
+
+#     outfile.close()
+
+#     #try-exception to catch cases where None is available
+#     try:
+#         tab_R = asc.read('linelist/temp_R_0',format='no_header',guess=False,fast_reader=False)
+#     except Exception:
+#         print('No candidates found in R')
+#         tab_R = None
+
+#     try:    
+#         tab_C = asc.read('linelist/temp_C_0',format='no_header',guess=False,fast_reader=False)
+
+#     except Exception:
+#         print('No candidates found in C')     
+#         tab_C = None
+
+#     if (tab_R is None) and (tab_C is None):
+#         print("No CWT candidates found for POPPIES {}".format(parno))
+#         pass
+
+#     elif (tab_R is not None) and (tab_C is not None):
+#         #stack tables together:
+#         tab = vstack([tab_R,tab_C])
+
+#     elif (tab_R is not None) and (tab_C is None):
+#         tab = tab_R
+
+#     elif (tab_C is not None) and (tab_R is None):
+#         tab = tab_C
+
+#     # # print(tab)
+
+#     par = tab['col1']
+#     filt = tab['col2']
+#     beam = tab['col3']
+#     wave = tab['col4']
+#     npix = tab['col5']
+#     snr = tab['col6']
+
+#     s = np.argsort(beam)
+#     beam = beam[s]
+#     filt = filt[s]
+#     wave = wave[s]
+#     npix = npix[s]
+#     snr = snr[s]
+#     par = par[0]
+
+#     beams_unique_0 = np.unique(beam)
+
+#     # start writing new file showing uniquely identified objects:
+#     print('NUMBER OF UNIQUE OBJECTS: ', len(beams_unique_0))
+
+#     # ## Unique IDs list output into a text file:
+#     # with open('linelist/unique.dat','w') as f:
+#     #     for j in beams_unique:
+#     #         f.write(str(j)+' \n')
+
+#     outfile_0 = open('linelist/POPPIES'+str(parno) + 'lines_0.dat', 'w')  #modified for 1st set of config params
+
+#     for b in beams_unique_0:
+#         w = (beam == b) & (filt == filter)
+#         waves_obj = wave[w]
+#         npix_obj = npix[w]
+#         snr_obj = snr[w]
+#         waves_uniq, ind = np.unique(waves_obj, return_index = True)
+#         npix_uniq = npix_obj[ind]
+#         snr_uniq = snr_obj[ind]
+#         s = np.argsort(waves_uniq)
+#         waves_final_filt = waves_uniq[s]
+#         npix_final_filt = npix_uniq[s]
+#         snr_final_filt = snr_uniq[s]
+
+#         for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
+#             outfile_0.write(str(parno) + '  ' + str(filter) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+ 
+#     outfile_0.close()
+
+#     ############## Begin with default_2.config
+
+#     # M.D.R. - 10/08/2020
+#     print('')
+#     print('Searching for default_2.config at: ' + str(path_to_code))
+#     config_pars = read_config(str(path_to_code)+'/default_2.config')
+        
+#     outfile = open('linelist/temp_R_1', 'w')
+
+#     print('')
+#     print('Analyzing grism files...')
+
+#     for filename in Rfiles:
+#         print('running CWT for ' + filter + ' for object in file ', filename)
+#         # get spectral data
+#         try:
+#             spdata = asc.read(filename, names = ['wave', 'flux', 'error', 'contam', 'zeroth'])
+#         # trimmed_spec = trim_spec(spdata, None, None, config_pars)
+#         except Exception as e:
+#             print('Skipping object {} as spectrum not found'.format(filename))
+#             break
+
+#         trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+
+#         beam = int(filename.split('R_')[1].split('.')[0])
+
+#         parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
+
+#         w = np.where(beam_se == beam)
+#         w = w[0] # because of tuples
+#         a_image = a_images[w][0]
+#         fwhm_est_pix = a_image * 2.0
+
+#         # unpack spectrum and check that it is long enough to proceed
+#         lam = trimmed_spec[0]
+#         flux_corr = trimmed_spec[1] - trimmed_spec[3]
+#         err = trimmed_spec[2]
+#         zeros = trimmed_spec[4]
+
+#         if len(lam) < config_pars['min_spec_length']:
+#             continue
+
+#         # cwt it and unpack and write results
+#         full_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(int(beam)), config_pars, filter = filter, plotflag=False)
+#         lam_cwt = full_cwt[0]
+#         flam_cwt = full_cwt[1]
+#         npix_cwt = full_cwt[2]
+#         snr_cwt = full_cwt[3]
+
+#         for i in np.arange(len(lam_cwt)):
+#             #  FH - commented out 
+#             # print(beam, 'F444W', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+#             outfile.write(str(parno) + '  ' + str(filter) + '  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
+#         if config_pars['n_sigma_for_2pix_lines'] != False:
+#             config_pars['npix_thresh'] = 2
+#             config_pars['n_sigma_above_cont'] = config_pars['n_sigma_for_2pix_lines']
+#             full_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(int(beam)), config_pars, filter = filter, plotflag=False)
+#             lam_cwt = full_cwt[0]
+#             flam_cwt = full_cwt[1]
+#             npix_cwt = full_cwt[2]
+#             snr_cwt = full_cwt[3]
+#             for i in np.arange(len(lam_cwt)):
+#                 #print(beam, 'G102', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+#                 # FH - commented out 
+#                 # print(beam, 'F444W', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
+#                 outfile.write(str(parno) + '  ' + str(filter) + '  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
+#     outfile.close()
+
+#     outfile = open('linelist/temp_C_1', 'w')
+
+#     print('')
+#     print('Analyzing grism files...')
+
+#     for filename in Cfiles:
+#         print('running CWT for ' + filter + ' for object in file ', filename)
+#         # get spectral data
+#         try:
+#             spdata = asc.read(filename, names = ['wave', 'flux', 'error', 'contam', 'zeroth'])
+#         except Exception as e:
+#             print('Skipping object {} as spectrum not found'.format(filename))
+#             break
+
+#         trimmed_spec = trim_spec_1filter(spdata, config_pars, filter) #FH 2/10/25
+
+#         beam = int(filename.split('C_')[1].split('.')[0])
+
+#         parno = parno #os.getcwd().split('/')[-2].split('POPPIES')[-1] # fixed parallel field number to zero for the mudf program
+
+#         w = np.where(beam_se == beam)
+#         w = w[0] # because of tuples
+#         a_image = a_images[w][0]
+#         fwhm_est_pix = a_image * 2.0
+
+#         # unpack spectrum and check that it is long enough to proceed
+#         lam = trimmed_spec[0]
+#         flux_corr = trimmed_spec[1] - trimmed_spec[3]
+#         err = trimmed_spec[2]
+#         zeros = trimmed_spec[4]
+
+#         if len(lam) < config_pars['min_spec_length']:
+#             continue
+
+#         # cwt it and unpack and write results
+#         full_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(int(beam)), config_pars, filter = filter, plotflag=False)
+#         lam_cwt = full_cwt[0]
+#         flam_cwt = full_cwt[1]
+#         npix_cwt = full_cwt[2]
+#         snr_cwt = full_cwt[3]
+
+#         for i in np.arange(len(lam_cwt)):
+#             outfile.write(str(parno) + '  ' + str(filter) + '  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
+#         if config_pars['n_sigma_for_2pix_lines'] != False:
+#             config_pars['npix_thresh'] = 2
+#             config_pars['n_sigma_above_cont'] = config_pars['n_sigma_for_2pix_lines']
+#             full_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(int(beam)), config_pars, filter = filter, plotflag=False)
+#             lam_cwt = full_cwt[0]
+#             flam_cwt = full_cwt[1]
+#             npix_cwt = full_cwt[2]
+#             snr_cwt = full_cwt[3]
+#             for i in np.arange(len(lam_cwt)):
+#                 outfile.write(str(parno) + '  ' + str(filter) + '  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
+#     # # ########## ##########
+
+#     outfile.close()
+
+#     #try-exception to catch cases where None is available
+#     try:
+#         tab_0 = asc.read('linelist/temp_R_1',format='no_header',guess=False,fast_reader=False)
+#     except Exception:
+#         print('No candidates found in R')
+#         tab_R = None
+
+#     try:    
+#         tab_C = asc.read('linelist/temp_C_1',format='no_header',guess=False,fast_reader=False)
+
+#     except Exception:
+#         print('No candidates found in C')     
+#         tab_C = None
+
+#     if (tab_R is None) and (tab_C is None):
+#         print("No CWT candidates found for POPPIES {}".format(parno))
+#         pass
+
+#     elif (tab_R is not None) and (tab_C is not None):
+#         #stack tables together:
+#         tab = vstack([tab_R,tab_C])
+
+#     elif (tab_R is not None) and (tab_C is None):
+#         tab = tab_R
+
+#     elif (tab_C is not None) and (tab_R is None):
+#         tab = tab_C
+
+#     par = tab['col1']
+#     filt = tab['col2']
+#     beam = tab['col3']
+#     wave = tab['col4']
+#     npix = tab['col5']
+#     snr = tab['col6']
+
+#     s = np.argsort(beam)
+#     beam = beam[s]
+#     filt = filt[s]
+#     wave = wave[s]
+#     npix = npix[s]
+#     snr = snr[s]
+#     par = par[0]
+
+#     beams_unique_1 = np.unique(beam)
+
+#     # start writing new file showing uniquely identified objects:
+#     print('NUMBER OF UNIQUE OBJECTS - Run 1: ', len(beams_unique_0))
+#     print('NUMBER OF UNIQUE OBJECTS - Run 2: ', len(beams_unique_1))
+
+#     outfile_1 = open('linelist/POPPIES'+str(parno) + 'lines_1.dat', 'w')  #modified for 2nd set of config params
+
+#     for b in beams_unique_1:
+#         w = (beam == b) & (filt == filter)
+#         waves_obj = wave[w]
+#         npix_obj = npix[w]
+#         snr_obj = snr[w]
+#         waves_uniq, ind = np.unique(waves_obj, return_index = True)
+#         npix_uniq = npix_obj[ind]
+#         snr_uniq = snr_obj[ind]
+#         s = np.argsort(waves_uniq)
+#         waves_final_filt = waves_uniq[s]
+#         npix_final_filt = npix_uniq[s]
+#         snr_final_filt = snr_uniq[s]
+
+#         for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
+#             outfile_1.write(str(parno) + '  ' + str(filter) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+ 
+#     outfile_1.close()
+
+#     ######################  final step - combine
+
+#     #try-exception to catch cases where None is available
+#     try:
+#         tab_0 = asc.read('linelist/POPPIES'+str(parno) + 'lines_0.dat',format='no_header',guess=False,fast_reader=False)
+#     except Exception:
+#         print('No candidates found for default.config')
+#         tab_0 = None
+
+#     try:
+#         tab_1 = asc.read('linelist/POPPIES'+str(parno) + 'lines_1.dat',format='no_header',guess=False,fast_reader=False)
+#     except Exception:
+#         print('No candidates found for default_2.config')
+#         tab_1 = None
+
+#     if (tab_0 is None) and (tab_1 is None):
+#         print("No CWT candidates found for POPPIES {} - for either config files".format(parno))
+#         pass
+
+#     elif (tab_0 is not None) and (tab_1 is not None):
+#         #stack tables together:
+#         tab = vstack([tab_0,tab_1])
+
+#     elif (tab_0 is not None) and (tab_1 is None):
+#         tab = tab_0
+
+#     elif (tab_0 is not None) and (tab_1 is None):
+#         tab = tab_1
+
+#     par = tab['col1']
+#     filt = tab['col2']
+#     beam = tab['col3']
+#     wave = tab['col4']
+#     npix = tab['col5']
+#     snr = tab['col6']
+
+#     s = np.argsort(beam)
+#     beam = beam[s]
+#     filt = filt[s]
+#     wave = wave[s]
+#     npix = npix[s]
+#     snr = snr[s]
+#     par = par[0]
+
+#     beams_unique_final = np.unique(beam)
+
+#     # start writing new file showing uniquely identified objects:
+
+#     print('NUMBER OF UNIQUE OBJECTS - FINAL: ', len(beams_unique_final))
+
+#     outfile_final = open('linelist/POPPIES'+str(parno) + 'lines.dat', 'w') 
+
+#     for b in beams_unique_final:
+#         w = (beam == b) & (filt == filter)
+#         waves_obj = wave[w]
+#         npix_obj = npix[w]
+#         snr_obj = snr[w]
+#         waves_uniq, ind = np.unique(waves_obj, return_index = True)
+#         npix_uniq = npix_obj[ind]
+#         snr_uniq = snr_obj[ind]
+#         s = np.argsort(waves_uniq)
+#         waves_final_filt = waves_uniq[s]
+#         npix_final_filt = npix_uniq[s]
+#         snr_final_filt = snr_uniq[s]
+
+#         for lam, npx, sn in zip(waves_final_filt, npix_final_filt, snr_final_filt):
+#             outfile_final.write(str(parno) + '  ' + str(filter) + '  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
+ 
+#     outfile_final.close()
 # # FH 2/10/25 - this version looks at one filter only:
 # def OLD_loop_field_cwt(path_to_data, path_to_code, parno, filter="F444W"):
 #     # no inputs and run from inside the data directory

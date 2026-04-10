@@ -54,7 +54,7 @@ import matplotlib.patheffects as PathEffects
 import utilities
 from copy import copy
 
-
+import traceback ## FH added 4/6/26
 
 # Explicitly import readline to make the text entry process easier on OSX
 import readline
@@ -866,15 +866,20 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
 
     # generate the plot grid.
     plt.ion()
-    fig = plt.figure(4, figsize=(15, 16), dpi=75, layout='tight')
+    fig = plt.figure(4, figsize=(15, 16), dpi=75, layout="constrained")
     plt.clf()
     # gs = gridspec.GridSpec(3, 4)
     # gs = gridspec.GridSpec(3, num_gridspec_plots + 1)
-    gs = gridspec.GridSpec(6, 2, hspace=1.0)
-    ax1 = fig.add_subplot(gs[0:2, :])
-    ax2 = fig.add_subplot(gs[2:3, :])
-    ax3 = fig.add_subplot(gs[3:5, :])
-    ax4 = fig.add_subplot(gs[5:, :])
+    # gs = gridspec.GridSpec(5, num_gridspec_plots+1, hspace=1, height_ratios=[4, 4, 1, 1, 4, 4])
+    # ax1 = fig.add_subplot(gs[0:2, :])
+    # ax2 = fig.add_subplot(gs[2:3, :])
+    # ax3 = fig.add_subplot(gs[3:5, :])
+    # ax4 = fig.add_subplot(gs[5:, :])
+    gs = gridspec.GridSpec(4, 2, hspace=0.2, height_ratios=[3, 1, 3, 1])
+    ax1 = fig.add_subplot(gs[0, :])
+    ax2 = fig.add_subplot(gs[1, :])
+    ax3 = fig.add_subplot(gs[2, :])
+    ax4 = fig.add_subplot(gs[3, :])
 
     # if num_gridspec_plots == 1:
     #     ax3 = fig.add_subplot(gs[2:, 1:2])
@@ -930,7 +935,7 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
     xmin = np.ma.min(spec_lam) - 10.0  # 200.0 - M.D.R. - 10/22/2020
     xmax = np.ma.max(spec_lam) + 10.0  # 200.0 - M.D.R. - 10/22/2020
     ymin = -0.2 * np.ma.max(spec_val)
-    ymax = 1.25 * np.ma.max(spec_val)
+    ymax = 1.2 * np.ma.max(spec_val)  # FH 4/9/26
 
 
     ax1.plot(spec_lam, spec_val, "k", spec_lam, spec_con, "hotpink", drawstyle="steps-mid", lw=lw_data)
@@ -1014,7 +1019,7 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
                 ax.fill_between(config_pars[mr], 0, 1, color="grey", alpha=0.3, transform=trans, label=maskedlabel)
     handles, labels = ax.get_legend_handles_labels()
     if len(labels) > 0:
-        ax1.legend(bbox_to_anchor=[1.0, 1.08], ncol=2, loc="upper right", framealpha=0.5)
+        ax1.legend(bbox_to_anchor=[1.04, 1.12], ncol=2, loc="upper right", framealpha=0.75)
 
     # find values of spec_lam nearest to the nodes
     nodelam = config_pars["node_wave"]
@@ -1086,7 +1091,7 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
     xmin = np.ma.min(spec_lam2) - 10.0  # 200.0 - M.D.R. - 10/22/2020
     xmax = np.ma.max(spec_lam2) + 10.0  # 200.0 - M.D.R. - 10/22/2020
     ymin = -0.2 * np.ma.max(spec_val2)
-    ymax = 1.25 * np.ma.max(spec_val2)
+    ymax = 1.2 * np.ma.max(spec_val)  # FH 4/9/26
 
     ax3.plot(spec_lam2, spec_val2, "k", spec_lam2, spec_con2, "hotpink", drawstyle="steps-mid", lw=lw_data)
 
@@ -1363,17 +1368,16 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
         addtext = ("Accepted: z = {:.4f}".format(zfit) + ", " + "wSNR = {:.2f}".format(snr_tot_others))
         addtextcolor = "green"
 
-    fig.text(0.35, 0.64, addtext, ha="right", va="bottom", color=addtextcolor,
+    fig.text(0.4, 0.96, addtext, ha="right", va="bottom", color=addtextcolor,
         fontsize=18, fontweight=500, path_effects=[PathEffects.withStroke(linewidth=0.5,foreground="k")])
 
     gs.tight_layout(fig) # FH 2/24/25 - Added to fill screen when fitting.
     # plt.tight_layout()  # MDR 2022/05/19 - Added to fill screen when fitting.
-    fig.savefig(plotfilename)
+    fig.savefig(plotfilename,bbox_inches='tight')
     plt.draw()
     
 
-## FH 2/6/25: New version - for one filter
-
+## FH 4/9/25: New version - multi-filter
 def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_others, full_fitmodel, full_contmodel, broad_fitmodel, current_lam, lamlines_found, index_of_strongest_line, contmodel, plottitle, outdir, zset=None, orientation=""):
     if verbose == True:
         print("\nRunning plot_object...\n")  # MDR 2022/05/17
@@ -1416,61 +1420,63 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
 
     # generate the plot grid.
     plt.ion()
-    fig = plt.figure(2, figsize=(15, 8), dpi=75)
+    fig = plt.figure(2, figsize=(15, 8), dpi=75, layout="constrained")
     plt.clf()
     # gs = gridspec.GridSpec(3, 4)
-    gs = gridspec.GridSpec(3, num_gridspec_plots + 1)
-    ax1 = fig.add_subplot(gs[0:2, :])
-    ax2 = fig.add_subplot(gs[2:, 0:1])
+    # gs = gridspec.GridSpec(4, 2, hspace=1, height_ratios=[4, 4, 1, 1])  # FH 2/24/25 - Updated to add more space for zoom-in plots.
+    gs = gridspec.GridSpec(2, 2, hspace=0.3, height_ratios=[3, 1])
+    ax1 = fig.add_subplot(gs[0, :])
+    ax2 = fig.add_subplot(gs[1, :])
 
-    if num_gridspec_plots == 1:
-        ax3 = fig.add_subplot(gs[2:, 1:2])
-        all_ax = [ax1, ax2, ax3]
-    elif num_gridspec_plots == 2:
-        ax3 = fig.add_subplot(gs[2:, 1:2])
-        ax4 = fig.add_subplot(gs[2:, 2:3])
-        all_ax = [ax1, ax2, ax3, ax4]
-    elif num_gridspec_plots == 3:
-        ax3 = fig.add_subplot(gs[2:, 1:2])
-        ax4 = fig.add_subplot(gs[2:, 2:3])
-        ax5 = fig.add_subplot(gs[2:, 3:4])
-        all_ax = [ax1, ax2, ax3, ax4, ax5]
-    elif num_gridspec_plots == 4:
-        ax3 = fig.add_subplot(gs[2:, 1:2])
-        ax4 = fig.add_subplot(gs[2:, 2:3])
-        ax5 = fig.add_subplot(gs[2:, 3:4])
-        ax6 = fig.add_subplot(gs[2:, 4:5])
-        all_ax = [ax1, ax2, ax3, ax4, ax5, ax6]
-    elif num_gridspec_plots == 5:
-        ax3 = fig.add_subplot(gs[2:, 1:2])
-        ax4 = fig.add_subplot(gs[2:, 2:3])
-        ax5 = fig.add_subplot(gs[2:, 3:4])
-        ax6 = fig.add_subplot(gs[2:, 4:5])
-        ax7 = fig.add_subplot(gs[2:, 5:6])
-        all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7]
-    elif num_gridspec_plots == 6:
-        ax3 = fig.add_subplot(gs[2:, 1:2])
-        ax4 = fig.add_subplot(gs[2:, 2:3])
-        ax5 = fig.add_subplot(gs[2:, 3:4])
-        ax6 = fig.add_subplot(gs[2:, 4:5])
-        ax7 = fig.add_subplot(gs[2:, 5:6])
-        ax8 = fig.add_subplot(gs[2:, 6:7])
-        all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]
-    elif num_gridspec_plots >= 7:
-        ax3 = fig.add_subplot(gs[2:, 1:2])
-        ax4 = fig.add_subplot(gs[2:, 2:3])
-        ax5 = fig.add_subplot(gs[2:, 3:4])
-        ax6 = fig.add_subplot(gs[2:, 4:5])
-        ax7 = fig.add_subplot(gs[2:, 5:6])
-        ax8 = fig.add_subplot(gs[2:, 6:7])
-        ax9 = fig.add_subplot(gs[2:, 7:8])
-        all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9]
-    else:
-        all_ax = [ax1, ax2]
+    # if num_gridspec_plots == 1:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     all_ax = [ax1, ax2, ax3]
+    # elif num_gridspec_plots == 2:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     all_ax = [ax1, ax2, ax3, ax4]
+    # elif num_gridspec_plots == 3:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     ax5 = fig.add_subplot(gs[2:, 3:4])
+    #     all_ax = [ax1, ax2, ax3, ax4, ax5]
+    # elif num_gridspec_plots == 4:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     ax5 = fig.add_subplot(gs[2:, 3:4])
+    #     ax6 = fig.add_subplot(gs[2:, 4:5])
+    #     all_ax = [ax1, ax2, ax3, ax4, ax5, ax6]
+    # elif num_gridspec_plots == 5:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     ax5 = fig.add_subplot(gs[2:, 3:4])
+    #     ax6 = fig.add_subplot(gs[2:, 4:5])
+    #     ax7 = fig.add_subplot(gs[2:, 5:6])
+    #     all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7]
+    # elif num_gridspec_plots == 6:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     ax5 = fig.add_subplot(gs[2:, 3:4])
+    #     ax6 = fig.add_subplot(gs[2:, 4:5])
+    #     ax7 = fig.add_subplot(gs[2:, 5:6])
+    #     ax8 = fig.add_subplot(gs[2:, 6:7])
+    #     all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]
+    # elif num_gridspec_plots >= 7:
+    #     ax3 = fig.add_subplot(gs[2:, 1:2])
+    #     ax4 = fig.add_subplot(gs[2:, 2:3])
+    #     ax5 = fig.add_subplot(gs[2:, 3:4])
+    #     ax6 = fig.add_subplot(gs[2:, 4:5])
+    #     ax7 = fig.add_subplot(gs[2:, 5:6])
+    #     ax8 = fig.add_subplot(gs[2:, 6:7])
+    #     ax9 = fig.add_subplot(gs[2:, 7:8])
+    #     all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9]
+    # else:
+    #     all_ax = [ax1, ax2]
+
     xmin = np.ma.min(spec_lam) - 10.0  # 200.0 - M.D.R. - 10/22/2020
     xmax = np.ma.max(spec_lam) + 10.0  # 200.0 - M.D.R. - 10/22/2020
     ymin = -0.2 * np.ma.max(spec_val)
-    ymax = 1.25 * np.ma.max(spec_val)
+    ymax = 1.2 * np.ma.max(spec_val)  # FH 4/9/26
 
     # the line widths for the data and overlaid fit.
     lw_data = 2.0
@@ -1489,7 +1495,7 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
     # plot observed wavelengths of all the possible lines.
     for li, lstring, sn_meas in zip(lamobs, supported_lines_strings, snr_meas_array):
         if (li > xmin + 100) & (li < xmax - 100):
-            for ax in all_ax:  # [ax1, ax2, ax3, ax4]: # for ax in [ax1, ax2]: # - M.D.R. - 10/22/2020
+            for ax in [ax1,ax2]:  # [ax1, ax2, ax3, ax4]: # for ax in [ax1, ax2]: # - M.D.R. - 10/22/2020
                 if ax != ax2:  # skip s/n plot.
                     ax.axvline(x=li, color="b")
                     # add blue lines for close doublets without text label.
@@ -1534,7 +1540,7 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
     # plot any masked regions
     for mr in ["mask_region1", "mask_region2", "mask_region3", "mask_region4", "mask_region5", "mask_region6", "mask_region7", "mask_region8"]:
         if (config_pars[mr][0] != 0.0) & (config_pars[mr][1] != 0.0):
-            for ax in all_ax:  # [ax1, ax2]:
+            for ax in [ax1,ax2]:  # [ax1, ax2]:
                 trans = mtransforms.blended_transform_factory(
                     ax.transData, ax.transAxes
                 )
@@ -1546,7 +1552,7 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
                 ax.fill_between(config_pars[mr], 0, 1, color="grey", alpha=0.3, transform=trans, label=maskedlabel)
     handles, labels = ax.get_legend_handles_labels()
     if len(labels) > 0:
-        ax1.legend(bbox_to_anchor=[1.04, 1.08], ncol=2, loc="upper right", framealpha=0.5)
+        ax1.legend(bbox_to_anchor=[1.04, 1.12], ncol=2, loc="upper right", framealpha=0.75)
 
     # find values of spec_lam nearest to the nodes
     nodelam = config_pars["node_wave"]
@@ -1606,132 +1612,133 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
     # UNCOMMENT BELOW IF YOU WANT THE CYAN LINE INDICATING THE TRANSITION WAVE
     # ax2.axvline(x=config_pars['transition_wave'], c='c', linestyle=':', lw=3)
     # ax2.set_xlabel(r'$\lambda$ ($\AA$)', size='xx-large')
-    # ax2.set_ylabel(r'S/N', size='xx-large')
-    # ax2.set_title(r"S/N", size="xx-large")
     ax2.set_ylabel("S/N", size="xx-large")
     ax2.set_xlim([xmin, xmax])
     ax2.set_ylim(ymin, ymax)
     # fig = plt.gcf() a
 
-    # - M.D.R. - 10/22/2020
-    # find max S/N in list of detected lines.
-    # pull index location, determine lambda of that line.
-    # set ymin/max based on centroid +/-i range based on dispersion.
-    # print('snr_meas_array =', snr_meas_array)  # M.D.R 01/27/2021
-    # print(np.max(snr_meas_array)) # M.D.R 01/27/2021
-    # print(np.argmax(snr_meas_array)) # M.D.R 01/27/2021
-    # lamobs_maxsnr = lamobs[np.argmax(snr_meas_array)]
-    lamobs_blue = lamobs[np.argwhere(lamobs < config_pars["mask_region1"][0])]
-    # lamobs_red = lamobs[np.argwhere(lamobs > config_pars['mask_region1'][1])]
-    # array of the indices for lines with s/n > 3 from strongest to weakest.
-    snr_muse_idx = np.flip(np.argsort(snr_muse, axis=0))
 
-    # loop over lines with s/n > 3 and create zoom-in plots.
-    for x in range(num_gridspec_plots):
-        # print 'x =', x
-        if snr_muse[snr_muse_idx[x]][0] >= 10.0:
+    ######## ######## COMMENTED OUT FOR NOW - 2/24/25 ######## ########
 
-            idx_i = snr_muse_idx[x][0]
-            snr_i = snr_muse[snr_muse_idx[x]][0][0]
-            lam_i = lamobs_blue[snr_muse_idx[x]][0][0]
-            # print 'idx_i = ', idx_i
-            # print 'snr_i = ', snr_i
-            # print 'lam_i = ', lam_i
+    # # - M.D.R. - 10/22/2020
+    # # find max S/N in list of detected lines.
+    # # pull index location, determine lambda of that line.
+    # # set ymin/max based on centroid +/-i range based on dispersion.
+    # # print('snr_meas_array =', snr_meas_array)  # M.D.R 01/27/2021
+    # # print(np.max(snr_meas_array)) # M.D.R 01/27/2021
+    # # print(np.argmax(snr_meas_array)) # M.D.R 01/27/2021
+    # # lamobs_maxsnr = lamobs[np.argmax(snr_meas_array)]
+    # lamobs_blue = lamobs[np.argwhere(lamobs < config_pars["mask_region1"][0])]
+    # # lamobs_red = lamobs[np.argwhere(lamobs > config_pars['mask_region1'][1])]
+    # # array of the indices for lines with s/n > 3 from strongest to weakest.
+    # snr_muse_idx = np.flip(np.argsort(snr_muse, axis=0))
 
-            # the wavelength array index corresponding to the detected line wavelength.
-            snr_muse_idy = min(enumerate(spec_lam), key=lambda x: abs(lam_i - x[1]))[0]
-            # half-width of zoom-in plots in angstroms
-            half_xrange_ang = 1000
-            # half-width of zoom-in plots in pixels
-            half_xrange_pix = int((half_xrange_ang / config_pars["dispersion_blue"]))
+    # # loop over lines with s/n > 3 and create zoom-in plots.
+    # for x in range(num_gridspec_plots):
+    #     # print 'x =', x
+    #     if snr_muse[snr_muse_idx[x]][0] >= 10.0:
 
-            xmin = lam_i - half_xrange_ang
-            xmax = lam_i + half_xrange_ang
+    #         idx_i = snr_muse_idx[x][0]
+    #         snr_i = snr_muse[snr_muse_idx[x]][0][0]
+    #         lam_i = lamobs_blue[snr_muse_idx[x]][0][0]
+    #         # print 'idx_i = ', idx_i
+    #         # print 'snr_i = ', snr_i
+    #         # print 'lam_i = ', lam_i
 
-            # update to a sigma rejected min?
-            # print(spec_val)
-            # print(np.shape(spec_val))
-            # print(snr_muse_idy - half_xrange_pix, snr_muse_idy + half_xrange_pix)
-            ymin = 0.9 * np.nanmin(spec_val[snr_muse_idy - half_xrange_pix : snr_muse_idy + half_xrange_pix])
-            ymax = 1.2 * np.nanmax(spec_val[snr_muse_idy - half_xrange_pix : snr_muse_idy + half_xrange_pix])
+    #         # the wavelength array index corresponding to the detected line wavelength.
+    #         snr_muse_idy = min(enumerate(spec_lam), key=lambda x: abs(lam_i - x[1]))[0]
+    #         # half-width of zoom-in plots in angstroms
+    #         half_xrange_ang = 1000
+    #         # half-width of zoom-in plots in pixels
+    #         half_xrange_pix = int((half_xrange_ang / config_pars["dispersion_blue"]))
 
-            if x == 0:
-                ax3trans = mtransforms.blended_transform_factory(ax3.transData, ax3.transAxes)
-                ax3.plot(spec_lam, spec_val, "k", lw=lw_data)
-                ax3.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
-                ax3.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
-                ax3.set_xlim([xmin, xmax])
-                ax3.set_ylim([ymin, ymax])
-            #                 add_line_labels(ax3, ax3trans, xmin, xmax)
-            #                 add_extra_lines(ax3, ax3trans, xmin, xmax)
-            elif x == 1:
-                ax4trans = mtransforms.blended_transform_factory(ax4.transData, ax4.transAxes)
-                ax4.plot(spec_lam, spec_val, "k", lw=lw_data)
-                ax4.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
-                ax4.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
-                ax4.set_xlim([xmin, xmax])
-                ax4.set_ylim([ymin, ymax])
-            #                 add_line_labels(ax4, ax4trans, xmin, xmax)
-            #                 add_extra_lines(ax4, ax4trans, xmin, xmax)
-            elif x == 2:
-                ax5trans = mtransforms.blended_transform_factory(
-                    ax5.transData, ax5.transAxes
-                )
-                ax5.plot(spec_lam, spec_val, "k", lw=lw_data)
-                ax5.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
-                ax5.plot(
-                    spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits
-                )
-                ax5.set_xlim([xmin, xmax])
-                ax5.set_ylim([ymin, ymax])
-            #                 add_line_labels(ax5, ax5trans, xmin, xmax)
-            #                 add_extra_lines(ax5, ax5trans, xmin, xmax)
-            elif x == 3:
-                ax6trans = mtransforms.blended_transform_factory(
-                    ax6.transData, ax6.transAxes
-                )
-                ax6.plot(spec_lam, spec_val, "k", lw=lw_data)
-                ax6.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
-                ax6.plot(
-                    spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits
-                )
-                ax6.set_xlim([xmin, xmax])
-                ax6.set_ylim([ymin, ymax])
-            #                 add_line_labels(ax6, ax6trans, xmin, xmax)
-            #                 add_extra_lines(ax6, ax6trans, xmin, xmax)
-            elif x == 4:
-                ax7trans = mtransforms.blended_transform_factory(
-                    ax7.transData, ax7.transAxes
-                )
-                ax7.plot(spec_lam, spec_val, "k", lw=lw_data)
-                ax7.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
-                ax7.plot(
-                    spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits
-                )
-                ax7.set_xlim([xmin, xmax])
-                ax7.set_ylim([ymin, ymax])
-            #                 add_line_labels(ax7, ax7trans, xmin, xmax)
-            #                 add_extra_lines(ax7, ax7trans, xmin, xmax)
-            elif x == 5:
-                ax8trans = mtransforms.blended_transform_factory(ax8.transData, ax8.transAxes)
-                ax8.plot(spec_lam, spec_val, "k", lw=lw_data)
-                ax8.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
-                ax8.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
-                ax8.set_xlim([xmin, xmax])
-                ax8.set_ylim([ymin, ymax])
-            #                 add_line_labels(ax8, ax8trans, xmin, xmax)
-            #                 add_extra_lines(ax8, ax8trans, xmin, xmax)
-            elif x == 6:
-                ax9trans = mtransforms.blended_transform_factory(ax9.transData, ax9.transAxes)
-                ax9.plot(spec_lam, spec_val, "k", lw=lw_data)
-                ax9.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
-                ax9.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
-                ax9.set_xlim([xmin, xmax])
-                ax9.set_ylim([ymin, ymax])
-            #                 add_line_labels(ax9, ax9trans, xmin, xmax)
-            #                 add_extra_lines(ax9, ax9trans, xmin, xmax)
-            else:
-                print("Failed to set XY limits.")
+    #         xmin = lam_i - half_xrange_ang
+    #         xmax = lam_i + half_xrange_ang
+
+    #         # update to a sigma rejected min?
+    #         # print(spec_val)
+    #         # print(np.shape(spec_val))
+    #         # print(snr_muse_idy - half_xrange_pix, snr_muse_idy + half_xrange_pix)
+    #         ymin = 0.9 * np.nanmin(spec_val[snr_muse_idy - half_xrange_pix : snr_muse_idy + half_xrange_pix])
+    #         ymax = 1.2 * np.nanmax(spec_val[snr_muse_idy - half_xrange_pix : snr_muse_idy + half_xrange_pix])
+
+    #         if x == 0:
+    #             ax3trans = mtransforms.blended_transform_factory(ax3.transData, ax3.transAxes)
+    #             ax3.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax3.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax3.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
+    #             ax3.set_xlim([xmin, xmax])
+    #             ax3.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax3, ax3trans, xmin, xmax)
+    #         #                 add_extra_lines(ax3, ax3trans, xmin, xmax)
+    #         elif x == 1:
+    #             ax4trans = mtransforms.blended_transform_factory(ax4.transData, ax4.transAxes)
+    #             ax4.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax4.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax4.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
+    #             ax4.set_xlim([xmin, xmax])
+    #             ax4.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax4, ax4trans, xmin, xmax)
+    #         #                 add_extra_lines(ax4, ax4trans, xmin, xmax)
+    #         elif x == 2:
+    #             ax5trans = mtransforms.blended_transform_factory(
+    #                 ax5.transData, ax5.transAxes
+    #             )
+    #             ax5.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax5.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax5.plot(
+    #                 spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits
+    #             )
+    #             ax5.set_xlim([xmin, xmax])
+    #             ax5.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax5, ax5trans, xmin, xmax)
+    #         #                 add_extra_lines(ax5, ax5trans, xmin, xmax)
+    #         elif x == 3:
+    #             ax6trans = mtransforms.blended_transform_factory(
+    #                 ax6.transData, ax6.transAxes
+    #             )
+    #             ax6.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax6.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax6.plot(
+    #                 spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits
+    #             )
+    #             ax6.set_xlim([xmin, xmax])
+    #             ax6.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax6, ax6trans, xmin, xmax)
+    #         #                 add_extra_lines(ax6, ax6trans, xmin, xmax)
+    #         elif x == 4:
+    #             ax7trans = mtransforms.blended_transform_factory(
+    #                 ax7.transData, ax7.transAxes
+    #             )
+    #             ax7.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax7.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax7.plot(
+    #                 spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits
+    #             )
+    #             ax7.set_xlim([xmin, xmax])
+    #             ax7.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax7, ax7trans, xmin, xmax)
+    #         #                 add_extra_lines(ax7, ax7trans, xmin, xmax)
+    #         elif x == 5:
+    #             ax8trans = mtransforms.blended_transform_factory(ax8.transData, ax8.transAxes)
+    #             ax8.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax8.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax8.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
+    #             ax8.set_xlim([xmin, xmax])
+    #             ax8.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax8, ax8trans, xmin, xmax)
+    #         #                 add_extra_lines(ax8, ax8trans, xmin, xmax)
+    #         elif x == 6:
+    #             ax9trans = mtransforms.blended_transform_factory(ax9.transData, ax9.transAxes)
+    #             ax9.plot(spec_lam, spec_val, "k", lw=lw_data)
+    #             ax9.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits)
+    #             ax9.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits)
+    #             ax9.set_xlim([xmin, xmax])
+    #             ax9.set_ylim([ymin, ymax])
+    #         #                 add_line_labels(ax9, ax9trans, xmin, xmax)
+    #         #                 add_extra_lines(ax9, ax9trans, xmin, xmax)
+    #         else:
+    #             print("Failed to set XY limits.")
 
     if zset is None:
         addtext = ("In progress: z = {:.4f}".format(zfit) +", "+"wSNR = {:.2f}".format(snr_tot_others))
@@ -1743,11 +1750,11 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
         addtext = ("Accepted: z = {:.4f}".format(zfit) + ", " + "wSNR = {:.2f}".format(snr_tot_others))
         addtextcolor = "green"
 
-    fig.text(0.35, 0.3, addtext, ha="right", va="bottom", color=addtextcolor,
+    fig.text(0.4, 0.9, addtext, ha="right", va="bottom", color=addtextcolor,
         fontsize=18, fontweight=500, path_effects=[PathEffects.withStroke(linewidth=0.5,foreground="k")])
 
-    plt.tight_layout()  # MDR 2022/05/19 - Added to fill screen when fitting.
-    fig.savefig(plotfilename)
+    # plt.tight_layout()  # MDR 2022/05/19 - Added to fill screen when fitting.
+    fig.savefig(plotfilename, bbox_inches='tight')
     plt.draw()
 
 
@@ -1783,12 +1790,13 @@ def check_input_objid(objlist, objid, nextup):
 
 ### FH started 2/3/25:
 ## This version is for "all" objects identified by SE
+## FH updated 4/10/26 - multi-filter version
 def inspect_object_all(
     user,
     par,
     obj,
     objinfo,
-    filter,
+    filters,
     linelistoutfile,
     commentsfile,
     remaining,
@@ -1810,90 +1818,168 @@ def inspect_object_all(
     # set up and filenames
     outdir = "POPPIES%s_output_%s" % (par, user)
 
-    if path_to_out == " ":
-        specnameA_C = ("A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
-        specnameA_R = ("A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
-        specnameB_C = ("B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
-        specnameB_R = ("B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
+    specnames_A_C, specnames_A_R, specnames_B_C, specnames_B_R = [], [], [], []
+
+    ## FH updated 4/2/26 - multi-filter version
+    if path_to_out == " ": 
+
+        for filter in filters:
+            specnameA_C = ("A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
+            specnameA_R = ("A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
+            specnameB_C = ("B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
+            specnameB_R = ("B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat")                                                   
+            
+            specnames_A_C.append(specnameA_C)
+            specnames_A_R.append(specnameA_R)
+            specnames_B_C.append(specnameB_C)
+            specnames_B_R.append(specnameB_R)
 
     else:
-        base_path = path_to_out+ str(par)+ "/Spectra/"
-        specnameA_C = (base_path + "A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
-        specnameA_R = (base_path + "A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
-        specnameB_C = (base_path + "B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
-        specnameB_R = (base_path + "B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
+        base_path = path_to_out + str(par)+ "/Spectra/"
+        
+        for filter in filters:
 
-    plottitle = "POPPIES_Par{}_{}".format(int(par),int(obj))
+            specnameA_C = (base_path + "A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
+            specnameA_R = (base_path + "A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
+            specnameB_C = (base_path + "B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
+            specnameB_R = (base_path + "B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
+            
+            specnames_A_C.append(specnameA_C)
+            specnames_A_R.append(specnameA_R)
+            specnames_B_C.append(specnameB_C)
+            specnames_B_R.append(specnameB_R)
+        
+    plottitle = "POPPIES{}_{}".format(int(par),int(obj))
     fitdatafilename = os.path.join(outdir, "fitdata/%s_fitspec" % plottitle)
-    availgrism = ""
-    # read in 1D spectrum
- 
-    # if availfilt == "g115g150g200": availfilt = "both"  
+    # availgrism = ""
 
-    if os.path.exists(specnameA_R):
+
+    ### read in 1D spectra:
+
+    if os.path.exists(specnames_A_R[0]):
         # print('A1')
-        availgrism += filter
-        tab_R = asciitable.read(specnameA_R, names=["wave","flux","error","contam","zeroth"])
-        tab_R_cont = np.copy(tab_R)
-        tab_R_cont['flux'] = tab_R['flux'] + tab_R['contam']
+        # availgrism.append(filters[0])
+        tab_blue_R = asciitable.read(specnames_A_R[0], names=["wave","flux","error","contam","zeroth"])
+        tab_blue_R_cont = np.copy(tab_blue_R)
+        tab_blue_R_cont['flux'] = tab_blue_R['flux'] + tab_blue_R['contam']
 
-    elif os.path.exists(specnameB_R):
+    elif os.path.exists(specnames_B_R[0]):
         # print('B1')
-        availgrism += filter
-        tab_R = asciitable.read(specnameB_R, names=["wave","flux","error","contam","zeroth"])
-        tab_R_cont = np.copy(tab_R)
-        tab_R_cont['flux'] = tab_R['flux'] + tab_R['contam']
+        # availgrism.append(filters[0])
+        tab_blue_R = asciitable.read(specnames_B_R[0], names=["wave","flux","error","contam","zeroth"])
+        tab_blue_R_cont = np.copy(tab_blue_R)
+        tab_blue_R_cont['flux'] = tab_blue_R['flux'] + tab_blue_R['contam']
 
     else:
         # print('C1')
+        tab_blue_R = None; tab_blue_R_cont = None
 
-        tab_R = None; tab_R_cont = None
 
-
-    if os.path.exists(specnameA_C):
+    if os.path.exists(specnames_A_C[0]):
         # print('A2')
+        # availgrism.append(filters[0])
+        tab_blue_C = asciitable.read(specnames_A_C[0], names=["wave","flux","error","contam","zeroth"])
+        tab_blue_C_cont = np.copy(tab_blue_C)
+        tab_blue_C_cont['flux'] = tab_blue_C['flux'] + tab_blue_C['contam']
 
-        availgrism += filter
-        tab_C = asciitable.read(specnameA_C, names=["wave","flux","error","contam","zeroth"])
-        tab_C_cont = np.copy(tab_C)
-        tab_C_cont['flux'] = tab_C['flux'] + tab_C['contam']
-    
-    elif os.path.exists(specnameB_C):
+    elif os.path.exists(specnames_B_C[0]):
         # print('B2')
-        availgrism += filter
-        tab_C = asciitable.read(specnameB_C, names=["wave","flux","error","contam","zeroth"])
-        tab_C_cont = np.copy(tab_C)
-        tab_C_cont['flux'] = tab_C['flux'] + tab_C['contam']
+        # availgrism.append(filters[0])
+        tab_blue_C = asciitable.read(specnames_B_C[0], names=["wave","flux","error","contam","zeroth"])
+        tab_blue_C_cont = np.copy(tab_blue_C)
+        tab_blue_C_cont['flux'] = tab_blue_C['flux'] + tab_blue_C['contam']
 
     else:
-        # print('C2')
-        # print(specnameA_R,specnameB_R,specnameA_C,specnameB_C) 
+        tab_blue_C = None; tab_blue_C_cont = None
 
-        tab_C = None; tab_C_cont = None
+    if len(filters) == 1:
+
+        tab_mid_R = None; tab_mid_R_cont = None    
+        tab_mid_C = None; tab_mid_C_cont = None   
+        tab_red_R = None; tab_red_R_cont = None    
+        tab_red_C = None; tab_red_C_cont = None   
+
+    elif len(filters) > 1:
+        if os.path.exists(specnames_A_R[1]):
+            # availgrism.append(filters[1])
+            tab_mid_R = asciitable.read(specnames_A_R[1], names=["wave","flux","error","contam","zeroth"])
+            tab_mid_R_cont = np.copy(tab_mid_R)
+            tab_mid_R_cont['flux'] = tab_mid_R['flux'] + tab_mid_R['contam']
+
+        elif os.path.exists(specnames_B_R[1]):
+            # availgrism.append(filters[1])
+            tab_mid_R = asciitable.read(specnames_B_R[1], names=["wave","flux","error","contam","zeroth"])
+            tab_mid_R_cont = np.copy(tab_mid_R)
+            tab_mid_R_cont['flux'] = tab_mid_R['flux'] + tab_mid_R['contam']
+
+        else:
+            tab_mid_R = None; tab_mid_R_cont = None
 
 
-    # =================== Show spec2d new (begin) =====================
-    ## FH modified 3/6/25
-    if (tab_R is not None) or (tab_C is not None):
+        if os.path.exists(specnames_A_C[1]):
+            # availgrism.append(filters[1])
+            tab_mid_C = asciitable.read(specnames_A_C[1], names=["wave","flux","error","contam","zeroth"])
+            tab_mid_C_cont = np.copy(tab_mid_C)
+            tab_mid_C_cont['flux'] = tab_mid_C['flux'] + tab_mid_C['contam']
 
-        showSpec2D_POPPIES(par, obj, filter, path_to_data)
+        elif os.path.exists(specnames_B_C[1]):
+            # availgrism.append(filters[1])
+            tab_mid_C = asciitable.read(specnames_B_C[1], names=["wave","flux","error","contam","zeroth"])
+            tab_mid_C_cont = np.copy(tab_mid_C)
+            tab_mid_C_cont['flux'] = tab_mid_C['flux'] + tab_mid_C['contam']
 
-    else:
-        print("Could not display spec2D as it doesn't exist!")
+        else:
+            tab_mid_C = None; tab_mid_C_cont = None
 
-    # =================== Show spec2d new (end) =====================
+        if len(filters) == 3:
 
-    # pan full images to the new object
-    # showDirectNEW(obj, par, g141zeros, path_to_wisp_data=path_to_wisp_data)
+            if os.path.exists(specnames_A_R[2]):
+                # availgrism.append(filters[2])
+                tab_red_R = asciitable.read(specnames_A_R[2], names=["wave","flux","error","contam","zeroth"])
+                tab_red_R_cont = np.copy(tab_red_R)
+                tab_red_R_cont['flux'] = tab_red_R['flux'] + tab_red_R['contam']
+
+            elif os.path.exists(specnames_B_R[2]):
+                # availgrism.append(filters[2])
+                tab_red_R = asciitable.read(specnames_B_R[2], names=["wave","flux","error","contam","zeroth"])
+                tab_red_R_cont = np.copy(tab_red_R)
+                tab_red_R_cont['flux'] = tab_red_R['flux'] + tab_red_R['contam']
+
+            else:
+                tab_red_R = None; tab_red_R_cont = None
 
 
-    # =================== Show direct image (begin) =====================
+            if os.path.exists(specnames_A_C[2]):
+                # availgrism.append(filters[2])
+                tab_red_C = asciitable.read(specnames_A_C[2], names=["wave","flux","error","contam","zeroth"])
+                tab_red_C_cont = np.copy(tab_red_C)
+                tab_red_C_cont['flux'] = tab_red_C['flux'] + tab_red_C['contam']
 
-    # pan full images to the new object
-    # showDirectNEW(obj, par, path_to_wisp_data=path_to_wisp_data)
+            elif os.path.exists(specnames_B_C[2]):
+                # availgrism.append(filters[2])
+                tab_red_C = asciitable.read(specnames_B_C[2], names=["wave","flux","error","contam","zeroth"])
+                tab_red_C_cont = np.copy(tab_red_C)
+                tab_red_C_cont['flux'] = tab_red_C['flux'] + tab_red_C['contam']
 
-    # showDirect_POPPIES(par, filter, path_to_data)
-    # =================== Show direct image (end) =====================
+            else:
+                tab_red_C = None; tab_red_C_cont = None
+
+        else:
+            tab_red_R = None; tab_red_R_cont = None    
+            tab_red_C = None; tab_red_C_cont = None    
+
+
+    # # =================== Show spec2d new (begin) =====================
+    # ## FH modified 3/6/25
+    if (tab_blue_R is not None) or (tab_blue_C is not None):
+
+        showSpec2D_POPPIES(par, obj, filters, path_to_data)
+        # print("NOTHING TO SEE HERE")
+
+    # else:
+    #     print("Could not display spec2D as it doesn't exist!")
+
+    # # =================== Show spec2d new (end) =====================
 
     # tbaines: pan full frame image to object of interest (new)
 
@@ -1911,20 +1997,19 @@ def inspect_object_all(
     herr = objinfo["herr"]
 
     # pan to object in direct frames
-    panDirect_POPPIES(ra, dec)
-    # #panDirect_PASSAGE(x_pix, y_pix)
+    panDirect_POPPIES(ra, dec, filters)
+
     # ### Updated by KVN because this panning needs to be offset for each grism
     # ### See new panDispersed_PASSAGE function in guis.py
     # panDispersed_PASSAGE(obj, parno=par, path_to_data=path_to_data)
-
+ 
     # start with a fresh set of config pars
-    config_pars = read_config(path_to_code+"/default.config", availgrism=filter)
+    config_pars = read_config(path_to_code+"/default.config", availgrism=filters)
 
     # Data have been successfully loaded for this object. If it has been inspected
     # previously, the original results will have been stored in the SQLLite database
     # and a retrieval obtion should be offered.
     #    databaseManager = WDBM(dbFileNamePrefix='Par{}'.format(par))
-
 
     databaseManager = WDBM(
         dbFileNamePrefix=os.path.join(outdir, "POPPIES{}".format(par)))  
@@ -1991,28 +2076,30 @@ def inspect_object_all(
     # get line, fwhm, z estimate - FH 2/4/25:
     
     # choose the lamline that has the highest S/N estimate - using utilities function
+    tab_R = trim_spec(tab_blue_R,  tab_mid_R, tab_red_R, config_pars, filters, mask_zeros=True, return_masks=False)        
+    tab_C = trim_spec(tab_blue_C,  tab_mid_C, tab_red_C, config_pars, filters, mask_zeros=True, return_masks=False)        
     
-    if tab_R is not None:
-
+    if (tab_R is not None):
+        
+        # print(obj,tab_R[0],tab_R[1]/tab_R[2])
         # masks = np.ma.masked_where(np.ma.getmask(tab_R_cont["flux"]), tab_R_cont["wave"])
         # mask_wave, mask_flux, mask_err = np.ma.masked_array(tab_R_cont["flux"], mask=tab_R_cont["flux"]<=0)
-        masks = np.where(tab_R["flux"]/tab_R["error"] > 0)[0]
-        masked_wave, masked_flux, masked_err = np.ma.compressed(tab_R["wave"][masks]), np.ma.compressed(tab_R["flux"][masks]), np.ma.compressed(tab_R["wave"][masks])
-        lamlines_found,ston_found = utilities.quick_flux_max(masked_wave, masked_flux, masked_err, config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
+        masks = np.where(tab_R[1]/tab_R[2] > 0)[0]
+        masked_wave, masked_flux, masked_err = np.ma.compressed(tab_R[0][masks]), np.ma.compressed(tab_R[1][masks]), np.ma.compressed(tab_R[2][masks])
+        # print("R ", tab_R, obj,masks,masked_wave,masked_flux,masked_err)
+
+        lamlines_found,ston_found = utilities.quick_flux_max(masked_wave, masked_flux, masked_err, config_pars['lambda_min_{}'.format(filters[0])],config_pars['lambda_max_{}'.format(filters[-1])])
 
     elif (tab_C is not None) and (tab_R is None):
 
         # lamlines_found,ston_found = utilities.quick_flux_max(tab_C_cont["wave"],tab_C_cont["flux"],tab_C_cont["error"],config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
 
-        masks = np.where(tab_C["flux"]/tab_C["error"] > 0)[0]
-        masked_wave, masked_flux, masked_err = np.ma.compressed(tab_C["wave"][masks]), np.ma.compressed(tab_C["flux"][masks]), np.ma.compressed(tab_C["wave"][masks])
-        lamlines_found,ston_found = utilities.quick_flux_max(masked_wave, masked_flux, masked_err,config_pars['lambda_min_{}'.format(filter)],config_pars['lambda_max_{}'.format(filter)])
+        masks = np.where(tab_C[1]/tab_C[2] > 0)[0]
+        masked_wave, masked_flux, masked_err = np.ma.compressed(tab_C[0][masks]), np.ma.compressed(tab_C[1][masks]), np.ma.compressed(tab_C[2][masks])
+        # print("C ", obj,masks,masked_wave,masked_flux,masked_err)
+       
+        lamlines_found,ston_found = utilities.quick_flux_max(masked_wave, masked_flux, masked_err, config_pars['lambda_min_{}'.format(filters[0])],config_pars['lambda_max_{}'.format(filters[-1])])
 
-        # s = np.argsort(ston_found)
-        # # reverse s/n order
-
-        # ston_found = ston_found[s[::-1]]
-        # lamlines_found = lamlines_found[s[::-1]]
 
     #FH modified 3/6/25
     else:
@@ -2217,16 +2304,23 @@ def inspect_object_all(
 
         # KVN: creating spectra for each orientation ("T" for total/combined, "R" for row, "C" for column)
 
-        ## FH updating 1/16/25
-        spdata_R = trim_spec_1filter(tab_R, config_pars, filter, mask_zeros=True, return_masks=True)
+        # ## FH updating 1/16/25
+        # spdata_R = trim_spec_1filter(tab_R, config_pars, filter, mask_zeros=True, return_masks=True)
 
-        spdata_C = trim_spec_1filter(tab_C, config_pars, filter, mask_zeros=True, return_masks=True)
+        # spdata_C = trim_spec_1filter(tab_C, config_pars, filter, mask_zeros=True, return_masks=True)
 
-        # spdata_T_contam = trim_spec(tab_blue_cont, tab_mid_cont, tab_red_cont, config_pars, mask_zeros=True, return_masks=True)
+        # # spdata_T_contam = trim_spec(tab_blue_cont, tab_mid_cont, tab_red_cont, config_pars, mask_zeros=True, return_masks=True)
 
-        spdata_R_contam = trim_spec_1filter(tab_R_cont, config_pars, filter, mask_zeros=True, return_masks=True)
+        # spdata_R_contam = trim_spec_1filter(tab_R_cont, config_pars, filter, mask_zeros=True, return_masks=True)
 
-        spdata_C_contam = trim_spec_1filter(tab_C_cont, config_pars, filter, mask_zeros=True, return_masks=True)
+        # spdata_C_contam = trim_spec_1filter(tab_C_cont, config_pars, filter, mask_zeros=True, return_masks=True)
+
+        ## FH updated 4/10/26 - multi-filter version:
+        spdata_R = trim_spec(tab_blue_R,  tab_mid_R, tab_red_R, config_pars, filters, mask_zeros=True, return_masks=True)        
+        spdata_C = trim_spec(tab_blue_C,  tab_mid_C, tab_red_C, config_pars, filters, mask_zeros=True, return_masks=True)        
+
+        spdata_R_contam = trim_spec(tab_blue_R_cont,  tab_mid_R_cont, tab_red_R_cont, config_pars, filters, mask_zeros=True, return_masks=True)        
+        spdata_C_contam = trim_spec(tab_blue_C_cont,  tab_mid_C_cont, tab_red_C_cont, config_pars, filters, mask_zeros=True, return_masks=True)        
 
         # KVN: the default is to use the combined spectra as this will likely be the preferred option for most cases.
         # This will be updated when/if the user makes a different selection
@@ -2287,7 +2381,7 @@ def inspect_object_all(
                 lincont_fit] 
             # parsing the input to facilitate parallel processing when fitting is done in batch mode.
             try:
-                fitresults = fit_obj_comb(fit_inputs,filter)
+                fitresults = fit_obj_comb(fit_inputs,filters=filters)
         
         
             ## FH modified 3/10/25:
@@ -2327,7 +2421,7 @@ def inspect_object_all(
                     lincont_fit] 
                 
                 try:
-                    fitresults = fit_obj(fit_inputs,filter)
+                    fitresults = fit_obj(fit_inputs,filters=filters)
 
                 except Exception as e:
                     print('Skipping Obj. {}, Reason: '.format(obj),e)
@@ -2413,7 +2507,7 @@ def inspect_object_all(
             
             try:
                                 
-                fitresults_R = fit_obj(fit_inputs,filter)
+                fitresults_R = fit_obj(fit_inputs,filters=filters)
                 fitpars_R = fitresults_R["fit_parameters"]
                 fitpars_nolines = cp.deepcopy(fitpars_R)
                 
@@ -2423,8 +2517,7 @@ def inspect_object_all(
                     fitpars_nolines[idx] = 1.0
 
             except Exception as e:
-                print('Could not fit R-continuum for Obj. {}, Reason: '.format(obj),e)
-                
+                print('Could not fit R-continuum for Obj. {}, Reason: '.format(obj),e)                
                 #revert to combined fit, which is only applicable for emission lines
                 fitpars_R = fitresults["fit_parameters"] 
                 fitpars_nolines = cp.deepcopy(fitpars_R)
@@ -2482,7 +2575,7 @@ def inspect_object_all(
             
             try:
                                 
-                fitresults_C = fit_obj(fit_inputs,filter)
+                fitresults_C = fit_obj(fit_inputs,filters=filters)
                 fitpars_C = fitresults_C["fit_parameters"]
                 fitpars_nolines = cp.deepcopy(fitpars_C)
                 
@@ -2644,7 +2737,7 @@ def inspect_object_all(
             
             # parsing the input to facilitate parallel processing when fitting is done in batch mode.
             try:
-                fitresults = fit_obj(fit_inputs,filter)
+                fitresults = fit_obj(fit_inputs,filters=filters)
 
             except Exception as e:
                 print('Skipping Obj. {}, Reason: '.format(obj),e)
@@ -2778,24 +2871,31 @@ def inspect_object_all(
             # MDR 2022/06/10
             snr_tot_others = np.sum(snr_tot_others)
 
-            # plot the whole darn thing
-            plot_object(
-                zguess,
-                fitresults["redshift"],
-                spdata,
-                config_pars,
-                snr_meas_array,
-                snr_tot_others,
-                full_fitmodel,
-                full_contmodel,
-                broad_fitmodel,
-                lamline,
-                lamlines_found,
-                index_of_strongest_line,
-                contmodel,
-                plottitle,
-                outdir,
-                )
+            try:
+
+                # plot the whole darn thing
+                plot_object(
+                    zguess,
+                    fitresults["redshift"],
+                    spdata,
+                    config_pars,
+                    snr_meas_array,
+                    snr_tot_others,
+                    full_fitmodel,
+                    full_contmodel,
+                    broad_fitmodel,
+                    lamline,
+                    lamlines_found,
+                    index_of_strongest_line,
+                    contmodel,
+                    plottitle,
+                    outdir,
+                    )
+                
+            except Exception as e:
+                print('Could not make plots for Obj. {}, Reason: '.format(obj),e)
+                # traceback.print_exc()
+                pass
             
             print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
             
@@ -2983,8 +3083,10 @@ def inspect_object_all(
             except ValueError:
                 print_prompt("Invalid Entry.")
 
+
         # mask out up to 8 regions of the spectrum
         elif option.strip().lower() == "m1":
+            print_prompt('Masked Region 1 currently masks: '+str(config_pars["mask_region1"]))
             print_prompt("Enter wavelength window to mask out:  blue, red:")
             maskstr = input("> ")
             try:
@@ -2995,6 +3097,7 @@ def inspect_object_all(
                 config_pars["mask_region1"] = maskwave
 
         elif option.strip().lower() == "m2":
+            print_prompt('Masked Region 2 currently masks: '+str(config_pars["mask_region2"]))
             print_prompt("Enter wavelength window to mask out:  blue, red:")
             maskstr = input("> ")
             try:
@@ -3005,6 +3108,7 @@ def inspect_object_all(
                 config_pars["mask_region2"] = maskwave
 
         elif option.strip().lower() == "m3":
+            print_prompt('Masked Region 3 currently masks: '+str(config_pars["mask_region3"]))
             print_prompt("Enter wavelength window to mask out:  blue, red (Angstroms):")
             maskstr = input("> ")
             try:
@@ -3015,6 +3119,7 @@ def inspect_object_all(
                 config_pars["mask_region3"] = maskwave
 
         elif option.strip().lower() == "m4":
+            print_prompt('Masked Region 4 currently masks: '+str(config_pars["mask_region4"]))
             print_prompt("Enter wavelength window to mask out:  blue, red (Angstroms):")
             maskstr = input("> ")
             try:
@@ -3025,6 +3130,7 @@ def inspect_object_all(
                 config_pars["mask_region4"] = maskwave
 
         elif option.strip().lower() == "m5":
+            print_prompt('Masked Region 5 currently masks: '+str(config_pars["mask_region5"]))
             print_prompt("Enter wavelength window to mask out:  blue, red (Angstroms):")
             maskstr = input("> ")
             try:
@@ -3066,6 +3172,7 @@ def inspect_object_all(
                 print_prompt("Invalid entry. Enter wavelengths separated by commas")
             else:
                 config_pars["mask_region8"] = maskwave
+        
 
         ## FH commenting out for now (2/4/25):
         # # change the transition wavelength between the grisms
@@ -3896,7 +4003,8 @@ def measure_z_interactive_all(
     path_to_data=" ",
     path_to_code=" ",
     path_to_out=" ",
-    show_dispersed=True,
+    filters=["F444W"],
+    show_dispersed=False,
     path_to_stored_fits=" ",
     print_colors=True,
     parno=0):
@@ -3974,7 +4082,7 @@ def measure_z_interactive_all(
     #par = parnos[0]  # MDR 2022/05/17
     par = parno # KVN 2024/07/31
 
-    filters_field = np.unique(filter) # FH 2/3/25
+    # filters_field = np.unique(filter) # FH 2/3/25
 
     #### STEP 2:  set user name and output directory #########################
     ###########################################################################
@@ -4114,27 +4222,35 @@ def measure_z_interactive_all(
     #   the output linelist.
     # find all available cats
 
-    #do this for each field separately (for now)
-    for filter in filters_field:
+    # #do this for each field separately (for now)
+    # for filter in filters_field:
 
-        print(filter,path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+    #     print(filter,path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
 
-        try:
-            secats = glob(path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
-        except:
-            secats = glob(path_to_data + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
+    #     try:
+    #         secats = glob(path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+    #     except:
+    #         secats = glob(path_to_data + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
         
-        secats.sort()
-
-        if verbose == True:
-            print("I found the following photometric catalogs...\n")  # MDR 2022/05/17
-            print(secats)  # MDR 2022/05/17
-            # print('\nThe catalog was read in as...\n') # MDR 2022/05/17
-            # print(cat)
-            # print('') # MDR 2022/05/17
+    #     secats.sort()
 
 
-        cat = asciitable.read(secats[0])
+    secats = glob(path_to_data + str(par) + "/*_comb.cat".format(str(par)))
+    
+    if len(secats) == 0:
+        secats = glob(path_to_data + str(par) + "/*_i2d.cat")  # Allowing for single-filter fields
+
+    secats.sort()
+
+    if verbose == True:
+        print("I found the following photometric catalogs...\n")  # MDR 2022/05/17
+        print(secats)  # MDR 2022/05/17
+        # print('\nThe catalog was read in as...\n') # MDR 2022/05/17
+        # print(cat)
+        # print('') # MDR 2022/05/17
+
+
+    cat = asciitable.read(secats[0])
 
         # # beam = cat['col2'] - M.D.R. - 10/08/2020
         # # a_image = cat['col5'] - M.D.R. - 10/08/2020
@@ -4150,51 +4266,51 @@ def measure_z_interactive_all(
         # dec = cat["dec"]
     
 
-        # Edited to call specific columns for POPPIES - F.H. - 12/17/2024
-        beam = cat["NUMBER"]
-        a_image = cat["A_IMAGE"]
-        b_image = cat["B_IMAGE"]
-        ra = cat["RA"]
-        dec = cat["DEC"]
+    # Edited to call specific columns for POPPIES - F.H. - 12/17/2024
+    beam = cat["NUMBER"]
+    a_image = cat["A_IMAGE"]
+    b_image = cat["B_IMAGE"]
+    ra = cat["ALPHA_J2000"]
+    dec = cat["DELTA_J2000"]
 
 
-    # Edited to get positions from catalog instead of region files. - K.V.N. 09/28/2023
-    #### STEP 5 now comes after STEP 6...
-    #### STEP 5:  Get zero and first order positions; unpack them ###########
-    #########################################################################
-    # g102zeroordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G102_0th.reg'
-    # g102firstordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G102_1st.reg'
-    # g141zeroordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G141_0th.reg'
-    # g141firstordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G141_1st.reg'
+# Edited to get positions from catalog instead of region files. - K.V.N. 09/28/2023
+#### STEP 5 now comes after STEP 6...
+#### STEP 5:  Get zero and first order positions; unpack them ###########
+#########################################################################
+# g102zeroordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G102_0th.reg'
+# g102firstordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G102_1st.reg'
+# g141zeroordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G141_0th.reg'
+# g141firstordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G141_1st.reg'
 
-        fzeroordreg = secats
-        # f356zeroordreg = secats
-        # f444zeroordreg = secats
+    fzeroordreg = secats
+    # f356zeroordreg = secats
+    # f444zeroordreg = secats
 
-        jmag = np.ones(ra.shape, dtype=float) * 99.0
-        jerr = np.ones(ra.shape, dtype=float) * 99.0
-        hmag = cat["MAG_AUTO"]  # hmag = cat['col13'] - M.D.R. - 10/08/2020
-        herr = cat["MAGERR_AUTO"]  # herr = cat['col14'] - M.D.R. - 10/08/2020
-        # read in second file if there are two
-        # if len(secats) == 2: # MDR 2022/05/17
-        #     cat2 = asciitable.read(secats[1]) # MDR 2022/05/17
-        #     # second catalog should be hband # MDR 2022/05/17
-        #     hmag = cat2['col13'] # MDR 2022/05/17
-        #     herr = cat2['col14'] # MDR 2022/05/17
-        objtable = Table(
-            [beam, ra, dec, a_image, b_image, jmag, jerr, hmag, herr],
-            names=(
-                "obj",
-                "ra",
-                "dec",
-                "a_image",
-                "b_image",
-                "jmag",
-                "jerr",
-                "hmag",
-                "herr",
-            ),
-        )
+    jmag = np.ones(ra.shape, dtype=float) * 99.0
+    jerr = np.ones(ra.shape, dtype=float) * 99.0
+    hmag = cat["MAG_AUTO"]  # hmag = cat['col13'] - M.D.R. - 10/08/2020
+    herr = cat["MAGERR_AUTO"]  # herr = cat['col14'] - M.D.R. - 10/08/2020
+    # read in second file if there are two
+    # if len(secats) == 2: # MDR 2022/05/17
+    #     cat2 = asciitable.read(secats[1]) # MDR 2022/05/17
+    #     # second catalog should be hband # MDR 2022/05/17
+    #     hmag = cat2['col13'] # MDR 2022/05/17
+    #     herr = cat2['col14'] # MDR 2022/05/17
+    objtable = Table(
+        [beam, ra, dec, a_image, b_image, jmag, jerr, hmag, herr],
+        names=(
+            "obj",
+            "ra",
+            "dec",
+            "a_image",
+            "b_image",
+            "jmag",
+            "jerr",
+            "hmag",
+            "herr",
+        ),
+    )
 
     #### STEP 7:  Set up initial ds9 display ################################
     #########################################################################
@@ -4252,194 +4368,193 @@ def measure_z_interactive_all(
     # #     path_to_data=path_to_data,
     # # )
 
-        # show direct images of POPPIES data
-        # showDirect_PASSAGE(parno=parnos[0], path_to_data=path_to_data)
-        showDirect_POPPIES(parno, filter, path_to_data, path_to_out)
+    # show direct images of POPPIES data
+    showDirect_POPPIES(parno, path_to_data, path_to_out)
 
     # #     if show_dispersed:  # MB
     # #         showDispersed(objid_unique[0], parnos[0], load_image=True, path_to_data  = path_to_data)
 
-        #### STEP 8:  Loop through objects ############
-        #########################################################################
-        if verbose == True:
-            print("\nStarting loop through objects...\n")  # MDR 2022/05/17
+    #### STEP 8:  Loop through objects ############
+    #########################################################################
+    if verbose == True:
+        print("\nStarting loop through objects...\n")  # MDR 2022/05/17
 
-        remaining_objects = get_remaining_objects(objid_unique, objid_done)
-        allobjects = [int(unique_obj) for unique_obj in objid_unique]
-        
-        print('\nNumber of unique Objects: ',len(allobjects))
+    remaining_objects = get_remaining_objects(objid_unique, objid_done)
+    allobjects = [int(unique_obj) for unique_obj in objid_unique]
+    
+    print('\nNumber of unique Objects: ',len(allobjects))
 
-        # if (verbose == True):
-        #     print('remaining_objects =', remaining_objects) # MDR 2022/05/17
-        #     print('allobjects =', allobjects) # MDR 2022/05/17
+    # if (verbose == True):
+    #     print('remaining_objects =', remaining_objects) # MDR 2022/05/17
+    #     print('allobjects =', allobjects) # MDR 2022/05/17
 
-        print_prompt(
-            "\nAs you loop through the objects, you can choose from the following\noptions at any time:\n\txxx = skip to object xxx\n\tb = revisit the previous object\n\tleft = list all remaining objects that need review\n\tlist = list all objects in line list\n\tlen = count number of unique objects in list\n\tany other key = continue with the next object\n\th = help/list interactive commands\n\tq = quit\n",
-            prompt_type="interim",
-        )
+    print_prompt(
+        "\nAs you loop through the objects, you can choose from the following\noptions at any time:\n\txxx = skip to object xxx\n\tb = revisit the previous object\n\tleft = list all remaining objects that need review\n\tlist = list all objects in line list\n\tlen = count number of unique objects in list\n\tany other key = continue with the next object\n\th = help/list interactive commands\n\tq = quit\n",
+        prompt_type="interim",
+    )
 
-        while remaining_objects.shape[0] > 0:
-            if path_to_stored_fits == " ":
+    while remaining_objects.shape[0] > 0:
+        if path_to_stored_fits == " ":
+            use_stored_fits = False
+        elif os.path.exists(path_to_stored_fits):
+            use_stored_fits = True
+            print("looking for stored fit data")
+        else:
+            use_stored_fits = False
+            print("not using stored fit data")
+
+        ndone = len(np.unique(objid_done))
+        progress = float(ndone) / float(len(objid_unique)) * 100.0
+        print_prompt("\nProgress: %.1f percent" % (progress), prompt_type="interim")
+
+        # do some things as long as there are still objects to inspect
+        next_obj = remaining_objects[0]
+        print_prompt("Next up: Obj %i" % (next_obj), prompt_type="interim")
+        o = input("Enter 'xxx' to skip to Obj xxx, 'q' to quit, or any other key to continue. > ")
+
+        if o.strip().lower() == "left":
+            # remaining_list = ', '.join(['%i'%i for i in remaining_objects])
+            print_prompt("Remaining objects:", prompt_type="interim")
+            print(remaining_objects)
+            o = input("> ")
+
+        if o.strip().lower() == "list":
+            print_prompt("All objects:", prompt_type="interim")
+            print(allobjects)
+            o = input("> ")
+
+        # print number of unique objects in line list
+        elif o.strip().lower() == "len":
+            print_prompt("Number of unique objects:", prompt_type="interim")
+            print(len(allobjects))
+
+        if o.strip().lower() == "b":
+            previous_obj = int(objid_done[-1])
+            # need to figure out what object came before this one
+            # w = np.where(objid_unique == remaining_objects[0])
+            # if on first object, this will roll around to previous object
+            next_obj = previous_obj
+            print_prompt(
+                "Going back to previous object: Obj %i" % (next_obj),
+                prompt_type="interim",
+            )
+
+        elif o.strip().lower() == "q":
+            print_prompt(
+                "Quitting; saved through previously completed object.",
+                prompt_type="interim",
+            )
+            return 0
+
+        elif o.strip().lower() == "random":
+            print_prompt("Hi user!", prompt_type="random")
+            next_obj_idx = np.random.randint(remaining_objects.shape[0])
+            next_obj = remaining_objects[next_obj_idx]
+
+        elif isFloat(o.strip()):
+            next_obj = int(re.search("\d+", o).group())
+            # confirm that requested object is in line list
+            next_obj = check_input_objid(objid_unique, next_obj, remaining_objects[0])
+            next_obj = next_obj if next_obj else remaining_objects[0]
+        elif "obj" in o:
+            next_obj = int(re.search("\d+", o).group())
+            # confirm that requested object is in line list
+            next_obj = check_input_objid(objid_unique, next_obj, remaining_objects[0])
+            next_obj = next_obj if next_obj else remaining_objects[0]
+
+        # pass the information for this object
+        wlinelist = np.where(objid == next_obj)
+        # lamlines_found = wavelen[wlinelist]
+        # ston_found = ston[wlinelist]
+        wcatalog = np.where(objtable["obj"] == next_obj)
+        objinfo = objtable[wcatalog]
+
+        if use_stored_fits == True:
+            ### get pickle files:
+            inpickles = []
+            path_pickle1 = (
+                path_to_stored_fits
+                + "/POPPIES"
+                + str(parnos[0])
+                + "_output_a/fitdata/POPPIES0_"
+                + str(next_obj)
+                + "_fitspec.pickle"
+            )
+    #         # path_pickle1 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_mbagley/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle2 = path_to_stored_fits + '/Par'  + str(parnos[0]) +    '_output_marc/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle3 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_ben/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle4 = path_to_stored_fits + '/Par'  + str(parnos[0]) +     '_output_claudia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle5 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_vihang/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle6 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_ivano/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle7 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mbeck/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle8 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_karlenoid/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle9 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mjr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle10 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_sophia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle11 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_marc-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+    #         # path_pickle12 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_alaina-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+
+            ### put new fits first
+            # if os.path.exists(path_pickle11):
+            #     inpickles.append(path_pickle11)
+            # if os.path.exists(path_pickle12):
+            #     inpickles.append(path_pickle12)
+            if os.path.exists(path_pickle1):
+                inpickles.append(path_pickle1)
+            # if os.path.exists(path_pickle2):
+            #     inpickles.append(path_pickle2)
+            # if os.path.exists(path_pickle3):
+            #     inpickles.append(path_pickle3)
+            # if os.path.exists(path_pickle4):
+            #     inpickles.append(path_pickle4)
+            # if os.path.exists(path_pickle5):
+            #     inpickles.append(path_pickle5)
+            # if os.path.exists(path_pickle6):
+            #     inpickles.append(path_pickle6)
+            # if os.path.exists(path_pickle7):
+            #     inpickles.append(path_pickle7)
+            # if os.path.exists(path_pickle8):
+            #     inpickles.append(path_pickle8)
+            # if os.path.exists(path_pickle9):
+            #     inpickles.append(path_pickle9)
+            # if os.path.exists(path_pickle10):
+            #     inpickles.append(path_pickle10)
+
+            if len(inpickles) == 0:
                 use_stored_fits = False
-            elif os.path.exists(path_to_stored_fits):
-                use_stored_fits = True
-                print("looking for stored fit data")
-            else:
-                use_stored_fits = False
-                print("not using stored fit data")
 
-            ndone = len(np.unique(objid_done))
-            progress = float(ndone) / float(len(objid_unique)) * 100.0
-            print_prompt("\nProgress: %.1f percent" % (progress), prompt_type="interim")
-
-            # do some things as long as there are still objects to inspect
-            next_obj = remaining_objects[0]
-            print_prompt("Next up: Obj %i" % (next_obj), prompt_type="interim")
-            o = input("Enter 'xxx' to skip to Obj xxx, 'q' to quit, or any other key to continue. > ")
-
-            if o.strip().lower() == "left":
-                # remaining_list = ', '.join(['%i'%i for i in remaining_objects])
-                print_prompt("Remaining objects:", prompt_type="interim")
-                print(remaining_objects)
-                o = input("> ")
-
-            if o.strip().lower() == "list":
-                print_prompt("All objects:", prompt_type="interim")
-                print(allobjects)
-                o = input("> ")
-
-            # print number of unique objects in line list
-            elif o.strip().lower() == "len":
-                print_prompt("Number of unique objects:", prompt_type="interim")
-                print(len(allobjects))
-
-            if o.strip().lower() == "b":
-                previous_obj = int(objid_done[-1])
-                # need to figure out what object came before this one
-                # w = np.where(objid_unique == remaining_objects[0])
-                # if on first object, this will roll around to previous object
-                next_obj = previous_obj
-                print_prompt(
-                    "Going back to previous object: Obj %i" % (next_obj),
-                    prompt_type="interim",
-                )
-
-            elif o.strip().lower() == "q":
-                print_prompt(
-                    "Quitting; saved through previously completed object.",
-                    prompt_type="interim",
-                )
-                return 0
-
-            elif o.strip().lower() == "random":
-                print_prompt("Hi user!", prompt_type="random")
-                next_obj_idx = np.random.randint(remaining_objects.shape[0])
-                next_obj = remaining_objects[next_obj_idx]
-
-            elif isFloat(o.strip()):
-                next_obj = int(re.search("\d+", o).group())
-                # confirm that requested object is in line list
-                next_obj = check_input_objid(objid_unique, next_obj, remaining_objects[0])
-                next_obj = next_obj if next_obj else remaining_objects[0]
-            elif "obj" in o:
-                next_obj = int(re.search("\d+", o).group())
-                # confirm that requested object is in line list
-                next_obj = check_input_objid(objid_unique, next_obj, remaining_objects[0])
-                next_obj = next_obj if next_obj else remaining_objects[0]
-
-            # pass the information for this object
-            wlinelist = np.where(objid == next_obj)
-            # lamlines_found = wavelen[wlinelist]
-            # ston_found = ston[wlinelist]
-            wcatalog = np.where(objtable["obj"] == next_obj)
-            objinfo = objtable[wcatalog]
-
-            if use_stored_fits == True:
-                ### get pickle files:
-                inpickles = []
-                path_pickle1 = (
-                    path_to_stored_fits
-                    + "/POPPIES"
-                    + str(parnos[0])
-                    + "_output_a/fitdata/POPPIES0_"
-                    + str(next_obj)
-                    + "_fitspec.pickle"
-                )
-        #         # path_pickle1 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_mbagley/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle2 = path_to_stored_fits + '/Par'  + str(parnos[0]) +    '_output_marc/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle3 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_ben/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle4 = path_to_stored_fits + '/Par'  + str(parnos[0]) +     '_output_claudia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle5 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_vihang/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle6 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_ivano/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle7 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mbeck/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle8 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_karlenoid/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle9 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mjr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle10 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_sophia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle11 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_marc-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-        #         # path_pickle12 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_alaina-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-
-                ### put new fits first
-                # if os.path.exists(path_pickle11):
-                #     inpickles.append(path_pickle11)
-                # if os.path.exists(path_pickle12):
-                #     inpickles.append(path_pickle12)
-                if os.path.exists(path_pickle1):
-                    inpickles.append(path_pickle1)
-                # if os.path.exists(path_pickle2):
-                #     inpickles.append(path_pickle2)
-                # if os.path.exists(path_pickle3):
-                #     inpickles.append(path_pickle3)
-                # if os.path.exists(path_pickle4):
-                #     inpickles.append(path_pickle4)
-                # if os.path.exists(path_pickle5):
-                #     inpickles.append(path_pickle5)
-                # if os.path.exists(path_pickle6):
-                #     inpickles.append(path_pickle6)
-                # if os.path.exists(path_pickle7):
-                #     inpickles.append(path_pickle7)
-                # if os.path.exists(path_pickle8):
-                #     inpickles.append(path_pickle8)
-                # if os.path.exists(path_pickle9):
-                #     inpickles.append(path_pickle9)
-                # if os.path.exists(path_pickle10):
-                #     inpickles.append(path_pickle10)
-
-                if len(inpickles) == 0:
-                    use_stored_fits = False
-
-            if use_stored_fits == True:
-                inspect_object_all(
-                    user,
-                    par,
-                    next_obj,
-                    objinfo,
-                    filter,
-                    linelistoutfile,
-                    commentsfile,
-                    remaining_objects,
-                    allobjects,
-                    show_dispersed=show_dispersed,
-                    stored_fits=inpickles,
-                    path_to_data=path_to_data, 
-                    path_to_code=path_to_code,
-                    path_to_out=path_to_out)
-            else:
-                inspect_object_all(
-                    user,
-                    par,
-                    next_obj,
-                    objinfo,
-                    filter,
-                    linelistoutfile,
-                    commentsfile,
-                    remaining_objects,
-                    allobjects,
-                    show_dispersed=show_dispersed,
-                    stored_fits=False,
-                    path_to_data=path_to_data, 
-                    path_to_code=path_to_code,
-                    path_to_out=path_to_out)
-        
+        if use_stored_fits == True:
+            inspect_object_all(
+                user,
+                par,
+                next_obj,
+                objinfo,
+                filters,
+                linelistoutfile,
+                commentsfile,
+                remaining_objects,
+                allobjects,
+                show_dispersed=show_dispersed,
+                stored_fits=inpickles,
+                path_to_data=path_to_data, 
+                path_to_code=path_to_code,
+                path_to_out=path_to_out)
+        else:
+            inspect_object_all(
+                user,
+                par,
+                next_obj,
+                objinfo,
+                filters,
+                linelistoutfile,
+                commentsfile,
+                remaining_objects,
+                allobjects,
+                show_dispersed=show_dispersed,
+                stored_fits=False,
+                path_to_data=path_to_data, 
+                path_to_code=path_to_code,
+                path_to_out=path_to_out)
+    
                 # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
                 #     inspect_object_all(
                 #     user,
@@ -4470,119 +4585,119 @@ def measure_z_interactive_all(
                 #     stored_fits=False,
                 #     path_to_data=path_to_data, orientation='C')
 
-            objid_done = np.append(objid_done, next_obj)
-            remaining_objects = get_remaining_objects(objid_unique, objid_done)
+        objid_done = np.append(objid_done, next_obj)
+        remaining_objects = get_remaining_objects(objid_unique, objid_done)
 
-        # outside the while loop, field is done
-        redo = " "
-        while redo != "q":
-            print_prompt(
-                "You've finished this field.\nEnter an object ID below to revisit a particular object.\nOtherwise enter 'q' to quit the field.",
-                prompt_type="interim",
-            )
-            redo = input("> ").strip().lower()
-            if redo != "q":
-                try:
-                    next_obj = int(re.search("\d+", redo).group())
-                except (ValueError, AttributeError):
-                    print_prompt(
-                        "Invalid entry. Enter an object ID or enter 'q' to quit",
-                        prompt_type="interim",
-                    )
-                else:
-                    next_obj = check_input_objid(objid_unique, next_obj, 0)
-                    if next_obj:
-                        # pass the information for this object
-                        wlinelist = np.where(objid == next_obj)
-                        # lamlines_found = wavelen[wlinelist]
-                        # ston_found = ston[wlinelist]
-                        wcatalog = np.where(objtable["obj"] == next_obj)
-                        objinfo = objtable[wcatalog]
-
-                        if use_stored_fits == True:
-                            ### get pickle files:
-                            inpickles = []
-                            path_pickle1 = (
-                                path_to_stored_fits
-                                + "/POPPIES"
-                                + str(parnos[0])
-                                + "_output_a/fitdata/POPPIES0_"
-                                + str(next_obj)
-                                + "_fitspec.pickle"
-                            )
-
-                            ### put new fits first
-                            # if os.path.exists(path_pickle11):
-                            #     inpickles.append(path_pickle11)
-                            # if os.path.exists(path_pickle12):
-                            #     inpickles.append(path_pickle12)
-                            if os.path.exists(path_pickle1):
-                                inpickles.append(path_pickle1)
-                            # if os.path.exists(path_pickle2):
-                            #    inpickles.append(path_pickle2)
-                            # if os.path.exists(path_pickle3):
-                            #    inpickles.append(path_pickle3)
-                            # if os.path.exists(path_pickle4):
-                            #    inpickles.append(path_pickle4)
-                            # if os.path.exists(path_pickle5):
-                            #    inpickles.append(path_pickle5)
-                            # if os.path.exists(path_pickle6):
-                            #    inpickles.append(path_pickle6)
-                            # if os.path.exists(path_pickle7):
-                            #    inpickles.append(path_pickle7)
-                            # if os.path.exists(path_pickle8):
-                            #    inpickles.append(path_pickle8)
-                            # if os.path.exists(path_pickle9):
-                            #    inpickles.append(path_pickle9)
-                            # if os.path.exists(path_pickle10):
-                            #    inpickles.append(path_pickle10)
-
-                            if len(inpickles) == 0:
-                                use_stored_fits = False
-
-                        if use_stored_fits == True:
-                            inspect_object_all(
-                                user,
-                                par,
-                                next_obj,
-                                objinfo,
-                                filter,
-                                linelistoutfile,
-                                commentsfile,
-                                remaining_objects,
-                                allobjects,
-                                show_dispersed=show_dispersed,
-                                stored_fits=inpickles,
-                                path_to_data=path_to_data, 
-                                path_to_code=path_to_code,
-                                path_to_out=path_to_out
-                                )
-                        else:
-                            inspect_object_all(
-                                user,
-                                par,
-                                next_obj,
-                                objinfo,
-                                filter,
-                                linelistoutfile,
-                                commentsfile,
-                                remaining_objects,
-                                allobjects,
-                                show_dispersed=show_dispersed,
-                                stored_fits=False,
-                                path_to_data=path_to_data, 
-                                path_to_code=path_to_code,
-                                path_to_out=path_to_out
-                                )
-
-                    else:
-                        break
-
-        make_tarfile(outdir)
+    # outside the while loop, field is done
+    redo = " "
+    while redo != "q":
         print_prompt(
-            "A tarfile of your outputs has been created: %s.tar.gz" % outdir,
+            "You've finished this field.\nEnter an object ID below to revisit a particular object.\nOtherwise enter 'q' to quit the field.",
             prompt_type="interim",
         )
+        redo = input("> ").strip().lower()
+        if redo != "q":
+            try:
+                next_obj = int(re.search("\d+", redo).group())
+            except (ValueError, AttributeError):
+                print_prompt(
+                    "Invalid entry. Enter an object ID or enter 'q' to quit",
+                    prompt_type="interim",
+                )
+            else:
+                next_obj = check_input_objid(objid_unique, next_obj, 0)
+                if next_obj:
+                    # pass the information for this object
+                    wlinelist = np.where(objid == next_obj)
+                    # lamlines_found = wavelen[wlinelist]
+                    # ston_found = ston[wlinelist]
+                    wcatalog = np.where(objtable["obj"] == next_obj)
+                    objinfo = objtable[wcatalog]
+
+                    if use_stored_fits == True:
+                        ### get pickle files:
+                        inpickles = []
+                        path_pickle1 = (
+                            path_to_stored_fits
+                            + "/POPPIES"
+                            + str(parnos[0])
+                            + "_output_a/fitdata/POPPIES0_"
+                            + str(next_obj)
+                            + "_fitspec.pickle"
+                        )
+
+                        ### put new fits first
+                        # if os.path.exists(path_pickle11):
+                        #     inpickles.append(path_pickle11)
+                        # if os.path.exists(path_pickle12):
+                        #     inpickles.append(path_pickle12)
+                        if os.path.exists(path_pickle1):
+                            inpickles.append(path_pickle1)
+                        # if os.path.exists(path_pickle2):
+                        #    inpickles.append(path_pickle2)
+                        # if os.path.exists(path_pickle3):
+                        #    inpickles.append(path_pickle3)
+                        # if os.path.exists(path_pickle4):
+                        #    inpickles.append(path_pickle4)
+                        # if os.path.exists(path_pickle5):
+                        #    inpickles.append(path_pickle5)
+                        # if os.path.exists(path_pickle6):
+                        #    inpickles.append(path_pickle6)
+                        # if os.path.exists(path_pickle7):
+                        #    inpickles.append(path_pickle7)
+                        # if os.path.exists(path_pickle8):
+                        #    inpickles.append(path_pickle8)
+                        # if os.path.exists(path_pickle9):
+                        #    inpickles.append(path_pickle9)
+                        # if os.path.exists(path_pickle10):
+                        #    inpickles.append(path_pickle10)
+
+                        if len(inpickles) == 0:
+                            use_stored_fits = False
+
+                    if use_stored_fits == True:
+                        inspect_object_all(
+                            user,
+                            par,
+                            next_obj,
+                            objinfo,
+                            filters,
+                            linelistoutfile,
+                            commentsfile,
+                            remaining_objects,
+                            allobjects,
+                            show_dispersed=show_dispersed,
+                            stored_fits=inpickles,
+                            path_to_data=path_to_data, 
+                            path_to_code=path_to_code,
+                            path_to_out=path_to_out
+                            )
+                    else:
+                        inspect_object_all(
+                            user,
+                            par,
+                            next_obj,
+                            objinfo,
+                            filters,
+                            linelistoutfile,
+                            commentsfile,
+                            remaining_objects,
+                            allobjects,
+                            show_dispersed=show_dispersed,
+                            stored_fits=False,
+                            path_to_data=path_to_data, 
+                            path_to_code=path_to_code,
+                            path_to_out=path_to_out
+                            )
+
+                else:
+                    break
+
+    make_tarfile(outdir)
+    print_prompt(
+        "A tarfile of your outputs has been created: %s.tar.gz" % outdir,
+        prompt_type="interim",
+    )
 
         # # Clean up temp files
         # if os.path.exists("./tempcoo.dat") == 1:
@@ -4608,13 +4723,13 @@ def measure_z_interactive_all(
 
 ### FH 2/10/25:
 ## This version is the classic one, i.e., for CWT
-## FH modified 5/30/25
+## FH modified 4/2/26 - multi-filter version
 def inspect_object(
     user,
     par,
     obj,
     objinfo,
-    filter,
+    filters,
     lamlines_found,
     ston_found,
     linelistoutfile,
@@ -4635,135 +4750,176 @@ def inspect_object(
     """
     An attempt to move all object-specific tasks
     """
+
+    # ## FH 4/9/26:
+
+    # if not isinstance(filters, list):
+    #     filters = [i for i in filters]
+
     # set up and filenames
     outdir = "POPPIES%s_output_%s" % (par, user)
 
-    if path_to_out == " ":
-        specnameA_C = ("A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
-        specnameA_R = ("A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
-        specnameB_C = ("B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
-        specnameB_R = ("B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
+    specnames_A_C, specnames_A_R, specnames_B_C, specnames_B_R = [], [], [], []
+
+    ## FH updated 4/2/26 - multi-filter version
+    if path_to_out == " ": 
+
+        for filter in filters:
+            specnameA_C = ("A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
+            specnameA_R = ("A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
+            specnameB_C = ("B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
+            specnameB_R = ("B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat")                                                   
+            
+            specnames_A_C.append(specnameA_C)
+            specnames_A_R.append(specnameA_R)
+            specnames_B_C.append(specnameB_C)
+            specnames_B_R.append(specnameB_R)
 
     else:
         base_path = path_to_out + str(par)+ "/Spectra/"
-        specnameA_C = (base_path + "A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
-        specnameA_R = (base_path + "A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
-        specnameB_C = (base_path + "B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
-        specnameB_R = (base_path + "B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
+        
+        for filter in filters:
 
-    plottitle = "POPPIES_Par{}_{}".format(int(par),int(obj))
+            specnameA_C = (base_path + "A_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
+            specnameA_R = (base_path + "A_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
+            specnameB_C = (base_path + "B_" + str(filter) + "_C_" + str(obj) + ".V4_1D.dat") 
+            specnameB_R = (base_path + "B_" + str(filter) + "_R_" + str(obj) + ".V4_1D.dat") 
+            
+            specnames_A_C.append(specnameA_C)
+            specnames_A_R.append(specnameA_R)
+            specnames_B_C.append(specnameB_C)
+            specnames_B_R.append(specnameB_R)
+        
+    plottitle = "POPPIES{}_{}".format(int(par),int(obj))
     fitdatafilename = os.path.join(outdir, "fitdata/%s_fitspec" % plottitle)
-    availgrism = ""
+    # availgrism = []
 
-    # read in 1D spectrum
-    # if os.path.exists(specnameg1):
-    #     availgrism += "f444w"
-    #     tab_blue = asciitable.read(specnameg1, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_blue_cont = np.copy(tab_blue)
-    #     tab_blue_cont['flux'] = tab_blue['flux'] + tab_blue['contam']
-    # else: tab_blue = None; tab_blue_cont = None 
-    # if os.path.exists(specnameg2):
-    #     availgrism += "g150"
-    #     tab_mid = asciitable.read(specnameg2, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_mid_cont = np.copy(tab_mid)
-    #     tab_mid_cont['flux'] = tab_mid['flux'] + tab_mid['contam']
-    # else: tab_mid = None; tab_mid_cont = None
-    # if os.path.exists(specnameg3):
-    #     availgrism += "g200"
-    #     tab_red = asciitable.read(specnameg3, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_red_cont = np.copy(tab_red)
-    #     tab_red_cont['flux'] = tab_red['flux'] + tab_red['contam']
-    # else: tab_red = None; tab_red_cont = None
+    ### read in 1D spectra:
 
-    # if availgrism == "g115g150g200": availgrism = "both"  
-
-    if os.path.exists(specnameA_R):
+    if os.path.exists(specnames_A_R[0]):
         # print('A1')
-        availgrism += filter
-        tab_R = asciitable.read(specnameA_R, names=["wave","flux","error","contam","zeroth"])
-        tab_R_cont = np.copy(tab_R)
-        tab_R_cont['flux'] = tab_R['flux'] + tab_R['contam']
+        # availgrism.append(filters[0])
+        tab_blue_R = asciitable.read(specnames_A_R[0], names=["wave","flux","error","contam","zeroth"])
+        tab_blue_R_cont = np.copy(tab_blue_R)
+        tab_blue_R_cont['flux'] = tab_blue_R['flux'] + tab_blue_R['contam']
 
-    elif os.path.exists(specnameB_R):
+    elif os.path.exists(specnames_B_R[0]):
         # print('B1')
-        availgrism += filter
-        tab_R = asciitable.read(specnameB_R, names=["wave","flux","error","contam","zeroth"])
-        tab_R_cont = np.copy(tab_R)
-        tab_R_cont['flux'] = tab_R['flux'] + tab_R['contam']
+        # availgrism.append(filters[0])
+        tab_blue_R = asciitable.read(specnames_B_R[0], names=["wave","flux","error","contam","zeroth"])
+        tab_blue_R_cont = np.copy(tab_blue_R)
+        tab_blue_R_cont['flux'] = tab_blue_R['flux'] + tab_blue_R['contam']
 
     else:
         # print('C1')
+        tab_blue_R = None; tab_blue_R_cont = None
 
-        tab_R = None; tab_R_cont = None
 
-
-    if os.path.exists(specnameA_C):
+    if os.path.exists(specnames_A_C[0]):
         # print('A2')
+        # availgrism.append(filters[0])
+        tab_blue_C = asciitable.read(specnames_A_C[0], names=["wave","flux","error","contam","zeroth"])
+        tab_blue_C_cont = np.copy(tab_blue_C)
+        tab_blue_C_cont['flux'] = tab_blue_C['flux'] + tab_blue_C['contam']
 
-        availgrism += filter
-        tab_C = asciitable.read(specnameA_C, names=["wave","flux","error","contam","zeroth"])
-        tab_C_cont = np.copy(tab_C)
-        tab_C_cont['flux'] = tab_C['flux'] + tab_C['contam']
-    
-    elif os.path.exists(specnameB_C):
+    elif os.path.exists(specnames_B_C[0]):
         # print('B2')
-        availgrism += filter
-        tab_C = asciitable.read(specnameB_C, names=["wave","flux","error","contam","zeroth"])
-        tab_C_cont = np.copy(tab_C)
-        tab_C_cont['flux'] = tab_C['flux'] + tab_C['contam']
+        # availgrism.append(filters[0])
+        tab_blue_C = asciitable.read(specnames_B_C[0], names=["wave","flux","error","contam","zeroth"])
+        tab_blue_C_cont = np.copy(tab_blue_C)
+        tab_blue_C_cont['flux'] = tab_blue_C['flux'] + tab_blue_C['contam']
 
     else:
-        # print('C2')
-        # print(specnameA_R,specnameB_R,specnameA_C,specnameB_C) 
+        tab_blue_C = None; tab_blue_C_cont = None
 
-        tab_C = None; tab_C_cont = None
+    if len(filters) == 1:
+
+        tab_mid_R = None; tab_mid_R_cont = None    
+        tab_mid_C = None; tab_mid_C_cont = None   
+        tab_red_R = None; tab_red_R_cont = None    
+        tab_red_C = None; tab_red_C_cont = None   
+
+    elif len(filters) > 1:
+        if os.path.exists(specnames_A_R[1]):
+            # availgrism.append(filters[1])
+            tab_mid_R = asciitable.read(specnames_A_R[1], names=["wave","flux","error","contam","zeroth"])
+            tab_mid_R_cont = np.copy(tab_mid_R)
+            tab_mid_R_cont['flux'] = tab_mid_R['flux'] + tab_mid_R['contam']
+
+        elif os.path.exists(specnames_B_R[1]):
+            # availgrism.append(filters[1])
+            tab_mid_R = asciitable.read(specnames_B_R[1], names=["wave","flux","error","contam","zeroth"])
+            tab_mid_R_cont = np.copy(tab_mid_R)
+            tab_mid_R_cont['flux'] = tab_mid_R['flux'] + tab_mid_R['contam']
+
+        else:
+            tab_mid_R = None; tab_mid_R_cont = None
 
 
-    # if os.path.exists(specnameg2_R):
-    #     tab_mid_R = asciitable.read(specnameg2_R, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_mid_R_cont = np.copy(tab_mid_R)
-    #     tab_mid_R_cont['flux'] = tab_mid_R['flux'] + tab_mid_R['contam']
-    # else: tab_mid_R = None; tab_mid_R_cont= None
-    # if os.path.exists(specnameg3_R):
-    #     tab_red_R = asciitable.read(specnameg3_R, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_red_R_cont = np.copy(tab_red_R)
-    #     tab_red_R_cont['flux'] = tab_red_R['flux'] + tab_red_R['contam']
-    # else: tab_red_R = None; tab_red_R_cont = None
+        if os.path.exists(specnames_A_C[1]):
+            # availgrism.append(filters[1])
+            tab_mid_C = asciitable.read(specnames_A_C[1], names=["wave","flux","error","contam","zeroth"])
+            tab_mid_C_cont = np.copy(tab_mid_C)
+            tab_mid_C_cont['flux'] = tab_mid_C['flux'] + tab_mid_C['contam']
 
-    # if os.path.exists(specnameg1_C):
-    #     tab_blue_C = asciitable.read(specnameg1_C, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_blue_C_cont = np.copy(tab_blue_C)
-    #     tab_blue_C_cont['flux'] = tab_blue_C['flux'] + tab_blue_C['contam']
-    # else: tab_blue_C = None; tab_blue_C_cont = None
-    # if os.path.exists(specnameg2_C):
-    #     tab_mid_C = asciitable.read(specnameg2_C, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_mid_C_cont = np.copy(tab_mid_C)
-    #     tab_mid_C_cont['flux'] = tab_mid_C['flux'] + tab_mid_C['contam']
-    # else: tab_mid_C = None; tab_mid_C_cont = None
-    # if os.path.exists(specnameg3_C):
-    #     tab_red_C = asciitable.read(specnameg3_C, names=["lambda","flux","ferror","contam","zero"])
-    #     tab_red_C_cont = np.copy(tab_red_C)
-    #     tab_red_C_cont['flux'] = tab_red_C['flux'] + tab_red_C['contam']
-    # else: tab_red_C = None; tab_red_C_cont = None 
+        elif os.path.exists(specnames_B_C[1]):
+            # availgrism.append(filters[1])
+            tab_mid_C = asciitable.read(specnames_B_C[1], names=["wave","flux","error","contam","zeroth"])
+            tab_mid_C_cont = np.copy(tab_mid_C)
+            tab_mid_C_cont['flux'] = tab_mid_C['flux'] + tab_mid_C['contam']
 
-    # =================== Show spec2d new (begin) =====================
-    ## FH modified 3/6/25
-    if (tab_R is not None) or (tab_C is not None):
+        else:
+            tab_mid_C = None; tab_mid_C_cont = None
 
-        showSpec2D_POPPIES(par, obj, filter, path_to_data)
+        if len(filters) == 3:
+
+            if os.path.exists(specnames_A_R[2]):
+                # availgrism.append(filters[2])
+                tab_red_R = asciitable.read(specnames_A_R[2], names=["wave","flux","error","contam","zeroth"])
+                tab_red_R_cont = np.copy(tab_red_R)
+                tab_red_R_cont['flux'] = tab_red_R['flux'] + tab_red_R['contam']
+
+            elif os.path.exists(specnames_B_R[2]):
+                # availgrism.append(filters[2])
+                tab_red_R = asciitable.read(specnames_B_R[2], names=["wave","flux","error","contam","zeroth"])
+                tab_red_R_cont = np.copy(tab_red_R)
+                tab_red_R_cont['flux'] = tab_red_R['flux'] + tab_red_R['contam']
+
+            else:
+                tab_red_R = None; tab_red_R_cont = None
+
+
+            if os.path.exists(specnames_A_C[2]):
+                # availgrism.append(filters[2])
+                tab_red_C = asciitable.read(specnames_A_C[2], names=["wave","flux","error","contam","zeroth"])
+                tab_red_C_cont = np.copy(tab_red_C)
+                tab_red_C_cont['flux'] = tab_red_C['flux'] + tab_red_C['contam']
+
+            elif os.path.exists(specnames_B_C[2]):
+                # availgrism.append(filters[2])
+                tab_red_C = asciitable.read(specnames_B_C[2], names=["wave","flux","error","contam","zeroth"])
+                tab_red_C_cont = np.copy(tab_red_C)
+                tab_red_C_cont['flux'] = tab_red_C['flux'] + tab_red_C['contam']
+
+            else:
+                tab_red_C = None; tab_red_C_cont = None
+
+        else:
+            tab_red_R = None; tab_red_R_cont = None    
+            tab_red_C = None; tab_red_C_cont = None    
+
+    # # =================== Show spec2d new (begin) =====================
+    # ## FH modified 3/6/25
+    if (tab_blue_R is not None) or (tab_blue_C is not None):
+
+        showSpec2D_POPPIES(par, obj, filters, path_to_data)
         # print("NOTHING TO SEE HERE")
 
-    else:
-        print("Could not display spec2D as it doesn't exist!")
+    # else:
+    #     print("Could not display spec2D as it doesn't exist!")
 
-    # =================== Show spec2d new (end) =====================
+    # # =================== Show spec2d new (end) =====================
 
-    # =================== Show direct image (begin) =====================
-
-    # pan full images to the new object
-    # showDirectNEW(obj, par, path_to_wisp_data=path_to_wisp_data)
-
-    # =================== Show direct image (end) =====================
 
     # tbaines: pan full frame image to object of interest (new)
 
@@ -4781,17 +4937,17 @@ def inspect_object(
     herr = objinfo["herr"]
 
     # pan to object in direct frames
-    panDirect_POPPIES(ra, dec)
+    panDirect_POPPIES(ra, dec, filters)
 
-    # showDirect_POPPIES(par, filter, path_to_data, path_to_out, pan_mode=True, ra=ra, dec=dec)
+    ## FH updated 4/7/26
+    # showDirect_POPPIES(par, filters, path_to_data, path_to_out, ra=ra, dec=dec)
 
-    #panDirect_PASSAGE(x_pix, y_pix)
     ### Updated by KVN because this panning needs to be offset for each grism
     ### See new panDispersed_PASSAGE function in guis.py
     # panDispersed_PASSAGE(obj, parno=par, path_to_data=path_to_data)
 
     # start with a fresh set of config pars
-    config_pars = read_config(path_to_code+"/default.config", availgrism=filter)
+    config_pars = read_config(path_to_code+"/default.config", availgrism=filters)
 
     # Data have been successfully loaded for this object. If it has been inspected
     # previously, the original results will have been stored in the SQLLite database
@@ -4835,6 +4991,7 @@ def inspect_object(
                 except:
                     pass
 
+        f.close()
 
         if catalogueEntryData != 1:
             print("No match found...\n")
@@ -5044,16 +5201,21 @@ def inspect_object(
 
         # KVN: creating spectra for each orientation ("T" for total/combined, "R" for row, "C" for column)
 
-        ## FH updating 1/16/25
-        spdata_R = trim_spec_1filter(tab_R, config_pars, filter, mask_zeros=True, return_masks=True)
+        # ## FH updating 1/16/25
+        # spdata_R = trim_spec_1filter(tab_R, config_pars, filter, mask_zeros=True, return_masks=True)
+        # spdata_C = trim_spec_1filter(tab_C, config_pars, filter, mask_zeros=True, return_masks=True)
 
-        spdata_C = trim_spec_1filter(tab_C, config_pars, filter, mask_zeros=True, return_masks=True)
+        # # spdata_T_contam = trim_spec(tab_blue_cont, tab_mid_cont, tab_red_cont, config_pars, mask_zeros=True, return_masks=True)
 
-        # spdata_T_contam = trim_spec(tab_blue_cont, tab_mid_cont, tab_red_cont, config_pars, mask_zeros=True, return_masks=True)
+        # spdata_R_contam = trim_spec_1filter(tab_R_cont, config_pars, filter, mask_zeros=True, return_masks=True)
+        # spdata_C_contam = trim_spec_1filter(tab_C_cont, config_pars, filter, mask_zeros=True, return_masks=True)
 
-        spdata_R_contam = trim_spec_1filter(tab_R_cont, config_pars, filter, mask_zeros=True, return_masks=True)
+        ## FH updated 4/2/26 - multi-filter version:
+        spdata_R = trim_spec(tab_blue_R,  tab_mid_R, tab_red_R, config_pars, filters, mask_zeros=True, return_masks=True)        
+        spdata_C = trim_spec(tab_blue_C,  tab_mid_C, tab_red_C, config_pars, filters, mask_zeros=True, return_masks=True)        
 
-        spdata_C_contam = trim_spec_1filter(tab_C_cont, config_pars, filter, mask_zeros=True, return_masks=True)
+        spdata_R_contam = trim_spec(tab_blue_R_cont,  tab_mid_R_cont, tab_red_R_cont, config_pars, filters, mask_zeros=True, return_masks=True)        
+        spdata_C_contam = trim_spec(tab_blue_C_cont,  tab_mid_C_cont, tab_red_C_cont, config_pars, filters, mask_zeros=True, return_masks=True)        
 
         # KVN: the default is to use the combined spectra as this will likely be the preferred option for most cases.
         # This will be updated when/if the user makes a different selection
@@ -5095,8 +5257,6 @@ def inspect_object(
             masked_spec_lam2 = np.ma.masked_where(np.ma.getmask(spec_val2), spec_lam2)
             # compress the masked arrays for fitting
 
-
-
             print('Running the fit with the following settings: redshift = ',zguess,', fast_fit = ',fast_fit,', comp_fit = ',comp_fit,', polycont_fit = ',polycont_fit,', lincont_fit = ',lincont_fit)
             fit_inputs = [
                 np.ma.compressed(masked_spec_lam),
@@ -5116,7 +5276,7 @@ def inspect_object(
                 lincont_fit] 
             # parsing the input to facilitate parallel processing when fitting is done in batch mode.
             try:
-                fitresults = fit_obj_comb(fit_inputs,filter)
+                fitresults = fit_obj_comb(fit_inputs,filters=filters)
 
             ## FH modified 3/10/25:
             except Exception as e:
@@ -5155,7 +5315,7 @@ def inspect_object(
                     lincont_fit] 
                 
                 try:
-                    fitresults = fit_obj(fit_inputs,filter)
+                    fitresults = fit_obj(fit_inputs,filters=filters)
 
                 except Exception as e:
 
@@ -5174,7 +5334,7 @@ def inspect_object(
             
                 #FH catching the case where fit_status was 0 (9/23/25):
                 if fitresults['fit_status'] == 0:
-                    print('Fit did not run for Obj. {} for some reaso: '.format(obj))
+                    print('Fit did not run for Obj. {} for some reason: '.format(obj))
                     zset = 0
                     # comment = "failed"
                     done = 1
@@ -5238,7 +5398,7 @@ def inspect_object(
             
             try:
                                 
-                fitresults_R = fit_obj(fit_inputs,filter)
+                fitresults_R = fit_obj(fit_inputs,filters=filters)
                 fitpars_R = fitresults_R["fit_parameters"]
                 fitpars_nolines = cp.deepcopy(fitpars_R)
                 
@@ -5249,7 +5409,8 @@ def inspect_object(
 
             except Exception as e:
                 print('Could not fit R-continuum for Obj. {}, Reason: '.format(obj),e)
-                
+                traceback.print_exc()
+
                 #revert to combined fit, which is only applicable for emission lines
                 fitpars_R = fitresults["fit_parameters"] 
                 fitpars_nolines = cp.deepcopy(fitpars_R)
@@ -5307,7 +5468,7 @@ def inspect_object(
             
             try:
                                 
-                fitresults_C = fit_obj(fit_inputs,filter)
+                fitresults_C = fit_obj(fit_inputs,filters=filters)
                 fitpars_C = fitresults_C["fit_parameters"]
                 fitpars_nolines = cp.deepcopy(fitpars_C)
                 
@@ -5468,10 +5629,16 @@ def inspect_object(
                 lincont_fit] 
             # parsing the input to facilitate parallel processing when fitting is done in batch mode.
             try:
-                fitresults = fit_obj(fit_inputs,filter)
+                fitresults = fit_obj(fit_inputs,filters=filters)
 
             except Exception as e:
                 print('Skipping Obj. {}, Reason: '.format(obj),e)
+                traceback.print_exc()
+
+                # exc_type, exc_obj, exc_tb = sys.exc_info()
+                # line_number = exc_tb.tb_lineno
+                # print(f"Error: {e} at line {line_number}")
+
                 zset = 0
                 done = 1
                 # FH 3/12/25: write object to done file, incase process gets interrupted
@@ -5485,7 +5652,7 @@ def inspect_object(
             
             #FH catching the case where fit_status was 0 (9/23/25):
             if fitresults['fit_status'] == 0:
-                print('Fit did not run for Obj. {} for some reaso: '.format(obj))
+                print('Fit did not run for Obj. {} for some reason: '.format(obj))
                 zset = 0
                 # comment = "failed"
                 done = 1
@@ -5624,6 +5791,8 @@ def inspect_object(
                 
             except Exception as e:
                 print('Could not make plots for Obj. {}, Reason: '.format(obj),e)
+                # traceback.print_exc()
+
                 pass
             #        print "    Guess Redshift: z = %f" % (zguess)
             print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
@@ -5808,6 +5977,7 @@ def inspect_object(
 
         # mask out up to 8 regions of the spectrum
         elif option.strip().lower() == "m1":
+            print_prompt('Masked Region 1 currently masks: '+str(config_pars["mask_region1"]))
             print_prompt("Enter wavelength window to mask out:  blue, red:")
             maskstr = input("> ")
             try:
@@ -5818,6 +5988,7 @@ def inspect_object(
                 config_pars["mask_region1"] = maskwave
 
         elif option.strip().lower() == "m2":
+            print_prompt('Masked Region 2 currently masks: '+str(config_pars["mask_region2"]))
             print_prompt("Enter wavelength window to mask out:  blue, red:")
             maskstr = input("> ")
             try:
@@ -5828,6 +5999,7 @@ def inspect_object(
                 config_pars["mask_region2"] = maskwave
 
         elif option.strip().lower() == "m3":
+            print_prompt('Masked Region 3 currently masks: '+str(config_pars["mask_region3"]))
             print_prompt("Enter wavelength window to mask out:  blue, red (Angstroms):")
             maskstr = input("> ")
             try:
@@ -5838,6 +6010,7 @@ def inspect_object(
                 config_pars["mask_region3"] = maskwave
 
         elif option.strip().lower() == "m4":
+            print_prompt('Masked Region 4 currently masks: '+str(config_pars["mask_region4"]))
             print_prompt("Enter wavelength window to mask out:  blue, red (Angstroms):")
             maskstr = input("> ")
             try:
@@ -5848,6 +6021,7 @@ def inspect_object(
                 config_pars["mask_region4"] = maskwave
 
         elif option.strip().lower() == "m5":
+            print_prompt('Masked Region 5 currently masks: '+str(config_pars["mask_region5"]))
             print_prompt("Enter wavelength window to mask out:  blue, red (Angstroms):")
             maskstr = input("> ")
             try:
@@ -6279,20 +6453,20 @@ def inspect_object(
         ## FH updated 2/7/25
         # change 2d stamp scaling to linear
         elif option.strip().lower() == "lin":
-            showSpec2D_POPPIES(par, obj, filter, path_to_data, zsc="linear")
+            showSpec2D_POPPIES(par, obj, filters, path_to_data, zsc="linear")
 
         elif option.strip().lower() == "log":
-            showSpec2D_POPPIES(par, obj, filter, path_to_data, zsc="log")
+            showSpec2D_POPPIES(par, obj, filters, path_to_data, zsc="log")
 
         elif option.strip().lower() == "squared":
-            showSpec2D_POPPIES(par, obj, filter, path_to_data, zsc="squared")
+            showSpec2D_POPPIES(par, obj, filters, path_to_data, zsc="squared")
 
 
         # recenter full images
         # Updated for PASSAGE KVN 19-Nov-2024
         elif option.strip().lower() == "dc":
             print("Recentering images")
-            panDirect_POPPIES(ra, dec)
+            panDirect_POPPIES(ra, dec, filters)
             # if show_dispersed:  # MB
             #     panDispersed_PASSAGE(obj, parno=par, path_to_data=path_to_data)
 
@@ -6302,8 +6476,8 @@ def inspect_object(
         elif option.strip().lower() == "reload":
             print("Reloading images and 2D spectra")
             # showDirect_POPPIES(par, filter, path_to_data)
-            showSpec2D_POPPIES(par, obj,  filter, path_to_data)
-            panDirect_POPPIES(ra, dec)
+            showSpec2D_POPPIES(par, obj,  filters, path_to_data)
+            panDirect_POPPIES(ra, dec, filters)
 
         # # reload direct image region files
         # elif option.strip().lower() == "dr":
@@ -6440,6 +6614,8 @@ def inspect_object(
                 outdir,
                 zset=zset,
             )
+
+            
         else:
             # plot the whole darn thing - combined version
             plot_object_comb(
@@ -6581,17 +6757,18 @@ def inspect_object(
 
 ### FH 2/10/25
 ## This version is the classic one, i.e., for CWT
-
+## FH 4/2/26 - multi-filter version
 def measure_z_interactive(
     linelistfile=" ",
     path_to_data=" ",
     path_to_code=" ",
     path_to_out=" ",
-    show_dispersed=True,
+    filters=["F444W"],
+    show_dispersed=False,
     path_to_stored_fits=" ",
     print_colors=True,
     parno=0):
-        
+
     if verbose == True:
         print("\nRunning measure_z_interactive...\n")
 
@@ -6661,7 +6838,7 @@ def measure_z_interactive(
     objid_unique = np.unique(objid)
     #par = parnos[0]  # MDR 2022/05/17
     par = parno # KVN 2024/07/31
-    filters_field = np.unique(filt) # FH 2/3/25
+    # filters_field = np.unique(filt) # FH 2/3/25
 
     #### STEP 2:  set user name and output directory #########################
     ###########################################################################
@@ -6802,509 +6979,519 @@ def measure_z_interactive(
     #   the output linelist.
     # find all available cats
 
-    #do this for each field separately (for now)
-    for filter in filters_field:
+    # #do this for each field separately (for now)
+    # for filter in filters_field:
 
-        print(filter,path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+    #     print(filter,path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
 
-        try:
-            secats = glob(path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
-        except:
-            secats = glob(path_to_data + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
+    #     try:
+    #         secats = glob(path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))
+    #     except:
+    #         secats = glob(path_to_data + str(par) + "/Products/*_i2d.cat")  # KVN allowing for different path structure (?)
 
-        secats.sort()
+    # try:
+    #     secats = glob(path_to_data + str(par) + "/*_comb.cat".format(str(par)))
+    # except:
+    #     secats = glob(path_to_data + str(par) + "/*_{}_i2d.cat".format(str(filter)))  # Allowing for different path structure for single-filter fields
 
-        cat = asciitable.read(secats[0])
-
-        if verbose == True:
-            print("I found the following photometric catalogs...\n")  # MDR 2022/05/17
-            print(secats)  # MDR 2022/05/17
-            # print('\nThe catalog was read in as...\n') # MDR 2022/05/17
-            # print(cat)
-            # print('') # MDR 2022/05/17
-
-        
-        cat = asciitable.read(secats[0])
-
-        # beam = cat['col2'] - M.D.R. - 10/08/2020
-        # a_image = cat['col5'] - M.D.R. - 10/08/2020
-        # b_image = cat['col6'] - M.D.R. - 10/08/2020
-        # ra = cat['col8'] - M.D.R. - 10/08/2020
-        # dec = cat['col9'] - M.D.R. - 10/08/2020
-
-        # Edited to call specific columns for POPPES - F.H. - 12/17/2024
-        beam = cat["NUMBER"]
-        a_image = cat["A_IMAGE"]
-        b_image = cat["B_IMAGE"]
-        ra = cat["RA"]
-        dec = cat["DEC"]
-
-
-        # Edited to get positions from catalog instead of region files. - K.V.N. 09/28/2023
-        #### STEP 5 now comes after STEP 6...
-        #### STEP 5:  Get zero and first order positions; unpack them ###########
-        #########################################################################
-        # g102zeroordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G102_0th.reg'
-        # g102firstordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G102_1st.reg'
-        # g141zeroordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G141_0th.reg'
-        # g141firstordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G141_1st.reg'
-
-        fzeroordreg = secats
-        # f356zeroordreg = secats
-        # f444zeroordreg = secats
-
-        jmag = np.ones(ra.shape, dtype=float) * 99.0
-        jerr = np.ones(ra.shape, dtype=float) * 99.0
-        hmag = cat["MAG_AUTO"]  # hmag = cat['col13'] - M.D.R. - 10/08/2020
-        herr = cat["MAGERR_AUTO"]  # herr = cat['col14'] - M.D.R. - 10/08/2020
-        # read in second file if there are two
-        # if len(secats) == 2: # MDR 2022/05/17
-        #     cat2 = asciitable.read(secats[1]) # MDR 2022/05/17
-        #     # second catalog should be hband # MDR 2022/05/17
-        #     hmag = cat2['col13'] # MDR 2022/05/17
-        #     herr = cat2['col14'] # MDR 2022/05/17
-        objtable = Table(
-            [beam, ra, dec, a_image, b_image, jmag, jerr, hmag, herr],
-            names=(
-                "obj",
-                "ra",
-                "dec",
-                "a_image",
-                "b_image",
-                "jmag",
-                "jerr",
-                "hmag",
-                "herr",
-            ),
-        )
-
-        #### STEP 7:  Set up initial ds9 display ################################
-        #########################################################################
-        # ## FH updated 1/21/25
-        # if os.path.exists(f277zeroordreg[0]):
-        #     f277zeroarr = getzeroorders_from_cat(f277zeroordreg[0], g="F277W")
-        #     show2dNEW(
-        #         "F277W",
-        #         parnos[0],
-        #         objid_unique[0],
-        #         f277zeroarr,
-        #         user,
-        #         "linear",
-        #         path_to_data=path_to_data,
-        #     )
-        # else:
-        #     f277zeroarr = None
-        #     f277firstarr = None
-
-        # if os.path.exists(f356zeroordreg[0]):
-        #     f356zeroarr = getzeroorders_from_cat(f356zeroordreg[0], g="F356W")
-        #     show2dNEW(
-        #         "F356W",
-        #         parnos[0],
-        #         objid_unique[0],
-        #         f356zeroarr,
-        #         user,
-        #         "linear",
-        #         path_to_data=path_to_data,
-        #     )
-        # else:
-        #     f356zeroarr = None
-        #     f356firstarr = None
-
-        # if os.path.exists(f444zeroordreg[0]):
-        #     f444zeroarr = getzeroorders_from_cat(f444zeroordreg[0], g="F444W")
-        #     show2dNEW(
-        #         "F444W",
-        #         parnos[0],
-        #         objid_unique[0],
-        #         f444zeroarr,
-        #         user,
-        #         "linear",
-        #         path_to_data=path_to_data,
-        #     )
-        # else:
-        #     f444zeroarr = None
-        #     f444firstarr = None
-        
-        # # showDirectNEW(
-        # #     objid_unique[0],
-        # #     parnos[0],
-        # #     g102zeroarr,
-        # #     load_image=True,
-        # #     path_to_data=path_to_data,
-        # # )
-
-        # show direct images of POPPIES data
-        showDirect_POPPIES(parno, filter, path_to_data, path_to_out)
-
-        #     if show_dispersed:  # MB
-        #         showDispersed(objid_unique[0], parnos[0], load_image=True, path_to_data  = path_to_data)
-
-        #### STEP 8:  Loop through objects ############
-        #########################################################################
-        if verbose == True:
-            print("\nStarting loop through objects...\n")  # MDR 2022/05/17
-
-        remaining_objects = get_remaining_objects(objid_unique, objid_done)
-        allobjects = [int(unique_obj) for unique_obj in objid_unique]
-
-        print('\nNumber of unique Objects: ',len(allobjects))
-        # if (verbose == True):
-        #     print('remaining_objects =', remaining_objects) # MDR 2022/05/17
-        #     print('allobjects =', allobjects) # MDR 2022/05/17
-
-        print_prompt(
-            "\nAs you loop through the objects, you can choose from the following\noptions at any time:\n\txxx = skip to object xxx\n\tb = revisit the previous object\n\tleft = list all remaining objects that need review\n\tlist = list all objects in line list\n\tlen = count number of unique objects in list\n\tany other key = continue with the next object\n\th = help/list interactive commands\n\tq = quit\n",
-            prompt_type="interim",
-        )
-        
-        while remaining_objects.shape[0] > 0:
-            if path_to_stored_fits == " ":
-                use_stored_fits = False
-            elif os.path.exists(path_to_stored_fits):
-                use_stored_fits = True
-                print("looking for stored fit data")
-            else:
-                use_stored_fits = False
-                print("not using stored fit data")
-
-            ndone = len(np.unique(objid_done))
-            progress = float(ndone) / float(len(objid_unique)) * 100.0
-            print_prompt("\nProgress: %.1f percent" % (progress), prompt_type="interim")
-
-            # do some things as long as there are still objects to inspect
-            next_obj = remaining_objects[0]
-            print_prompt("Next up: Obj %i" % (next_obj), prompt_type="interim")
-            o = input("Enter 'xxx' to skip to Obj xxx, 'q' to quit, or any other key to continue. > ")
-
-            if o.strip().lower() == "left":
-                # remaining_list = ', '.join(['%i'%i for i in remaining_objects])
-                print_prompt("Remaining objects:", prompt_type="interim")
-                print(remaining_objects)
-                o = input("> ")
-
-            if o.strip().lower() == "list":
-                print_prompt("All objects:", prompt_type="interim")
-                print([obj for obj in allobjects])
-                o = input("> ")
-
-            # print number of unique objects in line list
-            if o.strip().lower() == "len":
-                print_prompt("Number of unique objects:",prompt_type="interim")
-                print(len(np.unique(allobjects)))
-                
-
-            if o.strip().lower() == "b":
-                previous_obj = int(objid_done[-1])
-                # need to figure out what object came before this one
-                # w = np.where(objid_unique == remaining_objects[0])
-                # if on first object, this will roll around to previous object
-                next_obj = previous_obj
-                print_prompt(
-                    "Going back to previous object: Obj %i" % (next_obj),
-                    prompt_type="interim",
-                )
-
-            elif o.strip().lower() == "q":
-                print_prompt(
-                    "Quitting; saved through previously completed object.",
-                    prompt_type="interim",
-                )
-                return 0
-
-            elif o.strip().lower() == "random":
-                print_prompt("Hi Vihang!", prompt_type="random")
-                next_obj_idx = np.random.randint(remaining_objects.shape[0])
-                next_obj = remaining_objects[next_obj_idx]
-
-            elif isFloat(o.strip()):
-                next_obj = int(re.search("\d+", o).group())
-                # confirm that requested object is in line list
-                next_obj = check_input_objid(objid_unique, next_obj, remaining_objects[0])
-                next_obj = next_obj if next_obj else remaining_objects[0]
-            elif "obj" in o:
-                next_obj = int(re.search("\d+", o).group())
-                # confirm that requested object is in line list
-                next_obj = check_input_objid(objid_unique, next_obj, remaining_objects[0])
-                next_obj = next_obj if next_obj else remaining_objects[0]
-
-            # pass the information for this object
-            wlinelist = np.where(objid == next_obj)
-            lamlines_found = wavelen[wlinelist]
-            ston_found = ston[wlinelist]
-            wcatalog = np.where(objtable["obj"] == next_obj)
-            objinfo = objtable[wcatalog]
-            # inspect_object(user, parnos[0], next_obj, objinfo, lamlines_found,
-            #               ston_found, g102zeroarr, g141zeroarr, linelistoutfile,
-            #               commentsfile, remaining_objects, allobjects,
-            #               show_dispersed=show_dispersed)
-
-            if use_stored_fits == True:
-                ### get pickle files:
-                inpickles = []
-                path_pickle1 = (
-                    path_to_stored_fits
-                    + "/POPPIES"
-                    + str(parnos[0])
-                    + "_output_a/fitdata/POPPIES0_"
-                    + str(next_obj)
-                    + "_fitspec.pickle"
-                )
-                # path_pickle1 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_mbagley/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle2 = path_to_stored_fits + '/Par'  + str(parnos[0]) +    '_output_marc/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle3 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_ben/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle4 = path_to_stored_fits + '/Par'  + str(parnos[0]) +     '_output_claudia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle5 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_vihang/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle6 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_ivano/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle7 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mbeck/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle8 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_karlenoid/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle9 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mjr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle10 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_sophia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle11 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_marc-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-                # path_pickle12 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_alaina-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
-
-                ### put new fits first
-                # if os.path.exists(path_pickle11):
-                #     inpickles.append(path_pickle11)
-                # if os.path.exists(path_pickle12):
-                #     inpickles.append(path_pickle12)
-                if os.path.exists(path_pickle1):
-                    inpickles.append(path_pickle1)
-                # if os.path.exists(path_pickle2):
-                #     inpickles.append(path_pickle2)
-                # if os.path.exists(path_pickle3):
-                #     inpickles.append(path_pickle3)
-                # if os.path.exists(path_pickle4):
-                #     inpickles.append(path_pickle4)
-                # if os.path.exists(path_pickle5):
-                #     inpickles.append(path_pickle5)
-                # if os.path.exists(path_pickle6):
-                #     inpickles.append(path_pickle6)
-                # if os.path.exists(path_pickle7):
-                #     inpickles.append(path_pickle7)
-                # if os.path.exists(path_pickle8):
-                #     inpickles.append(path_pickle8)
-                # if os.path.exists(path_pickle9):
-                #     inpickles.append(path_pickle9)
-                # if os.path.exists(path_pickle10):
-                #     inpickles.append(path_pickle10)
-
-                if len(inpickles) == 0:
-                    use_stored_fits = False
+    secats = glob(path_to_data + str(par) + "/*_comb.cat".format(str(par)))
     
-            if use_stored_fits == True:
-                inspect_object(
-                    user,
-                    par,
-                    next_obj,
-                    objinfo,
-                    filter,
-                    lamlines_found,
-                    ston_found,
-                    linelistoutfile,
-                    commentsfile,
-                    remaining_objects,
-                    allobjects,
-                    show_dispersed=show_dispersed,
-                    stored_fits=inpickles,
-                    path_to_data=path_to_data, path_to_code=path_to_code, path_to_out=path_to_out)
-            else:
-                inspect_object(
-                    user,
-                    par,
-                    next_obj,
-                    objinfo,
-                    filter,
-                    lamlines_found,
-                    ston_found,
-                    linelistoutfile,
-                    commentsfile,
-                    remaining_objects,
-                    allobjects,
-                    show_dispersed=show_dispersed,
-                    stored_fits=False,
-                    path_to_data=path_to_data, path_to_code=path_to_code, path_to_out=path_to_out)
-                # if len(glob.glob(path_to_wisp_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
-                #     inspect_object(
-                #         user,
-                #         parnos[0],
-                #         next_obj,
-                #         objinfo,
-                #         lamlines_found,
-                #         ston_found,
-                #         g102zeroarr,
-                #         g141zeroarr,
-                #         linelistoutfile,
-                #         commentsfile,
-                #         remaining_objects,
-                #         allobjects,
-                #         show_dispersed=show_dispersed,
-                #         stored_fits=False,
-                #         path_to_wisp_data=path_to_wisp_data, orientation='R')
-                # if len(glob.glob(path_to_wisp_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_C.dat'))> 0:
-                #     inspect_object(
-                #         user,
-                #         parnos[0],
-                #         next_obj,
-                #         objinfo,
-                #         lamlines_found,
-                #         ston_found,
-                #         g102zeroarr,
-                #         g141zeroarr,
-                #         linelistoutfile,
-                #         commentsfile,
-                #         remaining_objects,
-                #         allobjects,
-                #         show_dispersed=show_dispersed,
-                #         stored_fits=False,
-                #         path_to_wisp_data=path_to_wisp_data, orientation='C')
-                    
+    if len(secats) == 0:
+        secats = glob(path_to_data + str(par) + "/*_i2d.cat")  # Allowing for single-filter fields
 
-            objid_done = np.append(objid_done, next_obj)
-            remaining_objects = get_remaining_objects(objid_unique, objid_done)
+    secats.sort()
 
-        # outside the while loop, field is done
-        redo = " "
-        while redo != "q":
+    # cat = asciitable.read(secats[0])
+
+    if verbose == True:
+        print("I found the following photometric catalogs...\n")  # MDR 2022/05/17
+        print(secats)  # MDR 2022/05/17
+        # print('\nThe catalog was read in as...\n') # MDR 2022/05/17
+        # print(cat)
+        # print('') # MDR 2022/05/17
+
+    
+    cat = asciitable.read(secats[0])
+
+    # beam = cat['col2'] - M.D.R. - 10/08/2020
+    # a_image = cat['col5'] - M.D.R. - 10/08/2020
+    # b_image = cat['col6'] - M.D.R. - 10/08/2020
+    # ra = cat['col8'] - M.D.R. - 10/08/2020
+    # dec = cat['col9'] - M.D.R. - 10/08/2020
+
+    # Edited to call specific columns for POPPES - F.H. - 12/17/2024
+    beam = cat["NUMBER"]
+    a_image = cat["A_IMAGE"]
+    b_image = cat["B_IMAGE"]
+    ra = cat["ALPHA_J2000"]
+    dec = cat["DELTA_J2000"]
+
+
+    # Edited to get positions from catalog instead of region files. - K.V.N. 09/28/2023
+    #### STEP 5 now comes after STEP 6...
+    #### STEP 5:  Get zero and first order positions; unpack them ###########
+    #########################################################################
+    # g102zeroordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G102_0th.reg'
+    # g102firstordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G102_1st.reg'
+    # g141zeroordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G141_0th.reg'
+    # g141firstordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G141_1st.reg'
+
+    fzeroordreg = secats
+    # f356zeroordreg = secats
+    # f444zeroordreg = secats
+
+    jmag = np.ones(ra.shape, dtype=float) * 99.0
+    jerr = np.ones(ra.shape, dtype=float) * 99.0
+    hmag = cat["MAG_AUTO"]  # hmag = cat['col13'] - M.D.R. - 10/08/2020
+    herr = cat["MAGERR_AUTO"]  # herr = cat['col14'] - M.D.R. - 10/08/2020
+    # read in second file if there are two
+    # if len(secats) == 2: # MDR 2022/05/17
+    #     cat2 = asciitable.read(secats[1]) # MDR 2022/05/17
+    #     # second catalog should be hband # MDR 2022/05/17
+    #     hmag = cat2['col13'] # MDR 2022/05/17
+    #     herr = cat2['col14'] # MDR 2022/05/17
+    objtable = Table(
+        [beam, ra, dec, a_image, b_image, jmag, jerr, hmag, herr],
+        names=(
+            "obj",
+            "ra",
+            "dec",
+            "a_image",
+            "b_image",
+            "jmag",
+            "jerr",
+            "hmag",
+            "herr",
+        ),
+    )
+
+    #### STEP 7:  Set up initial ds9 display ################################
+    #########################################################################
+    # ## FH updated 1/21/25
+    # if os.path.exists(f277zeroordreg[0]):
+    #     f277zeroarr = getzeroorders_from_cat(f277zeroordreg[0], g="F277W")
+    #     show2dNEW(
+    #         "F277W",
+    #         parnos[0],
+    #         objid_unique[0],
+    #         f277zeroarr,
+    #         user,
+    #         "linear",
+    #         path_to_data=path_to_data,
+    #     )
+    # else:
+    #     f277zeroarr = None
+    #     f277firstarr = None
+
+    # if os.path.exists(f356zeroordreg[0]):
+    #     f356zeroarr = getzeroorders_from_cat(f356zeroordreg[0], g="F356W")
+    #     show2dNEW(
+    #         "F356W",
+    #         parnos[0],
+    #         objid_unique[0],
+    #         f356zeroarr,
+    #         user,
+    #         "linear",
+    #         path_to_data=path_to_data,
+    #     )
+    # else:
+    #     f356zeroarr = None
+    #     f356firstarr = None
+
+    # if os.path.exists(f444zeroordreg[0]):
+    #     f444zeroarr = getzeroorders_from_cat(f444zeroordreg[0], g="F444W")
+    #     show2dNEW(
+    #         "F444W",
+    #         parnos[0],
+    #         objid_unique[0],
+    #         f444zeroarr,
+    #         user,
+    #         "linear",
+    #         path_to_data=path_to_data,
+    #     )
+    # else:
+    #     f444zeroarr = None
+    #     f444firstarr = None
+    
+    # # showDirectNEW(
+    # #     objid_unique[0],
+    # #     parnos[0],
+    # #     g102zeroarr,
+    # #     load_image=True,
+    # #     path_to_data=path_to_data,
+    # # )
+
+    # show direct images of POPPIES data
+    showDirect_POPPIES(parno, path_to_data, path_to_out)
+
+    #     if show_dispersed:  # MB
+    #         showDispersed(objid_unique[0], parnos[0], load_image=True, path_to_data  = path_to_data)
+
+    #### STEP 8:  Loop through objects ############
+    #########################################################################
+    if verbose == True:
+        print("\nStarting loop through objects...\n")  # MDR 2022/05/17
+
+    remaining_objects = get_remaining_objects(objid_unique, objid_done)
+    allobjects = [int(unique_obj) for unique_obj in objid_unique]
+
+    print('\nNumber of unique Objects: ',len(allobjects))
+    # if (verbose == True):
+    #     print('remaining_objects =', remaining_objects) # MDR 2022/05/17
+    #     print('allobjects =', allobjects) # MDR 2022/05/17
+
+    print_prompt(
+        "\nAs you loop through the objects, you can choose from the following\noptions at any time:\n\txxx = skip to object xxx\n\tb = revisit the previous object\n\tleft = list all remaining objects that need review\n\tlist = list all objects in line list\n\tlen = count number of unique objects in list\n\tany other key = continue with the next object\n\th = help/list interactive commands\n\tq = quit\n",
+        prompt_type="interim",
+    )
+    
+    while remaining_objects.shape[0] > 0:
+        if path_to_stored_fits == " ":
+            use_stored_fits = False
+        elif os.path.exists(path_to_stored_fits):
+            use_stored_fits = True
+            print("looking for stored fit data")
+        else:
+            use_stored_fits = False
+            print("not using stored fit data")
+
+        ndone = len(np.unique(objid_done))
+        progress = float(ndone) / float(len(objid_unique)) * 100.0
+        print_prompt("\nProgress: %.1f percent" % (progress), prompt_type="interim")
+
+        # do some things as long as there are still objects to inspect
+        next_obj = remaining_objects[0]
+        print_prompt("Next up: Obj %i" % (next_obj), prompt_type="interim")
+        o = input("Enter 'xxx' to skip to Obj xxx, 'q' to quit, or any other key to continue. > ")
+
+        if o.strip().lower() == "left":
+            # remaining_list = ', '.join(['%i'%i for i in remaining_objects])
+            print_prompt("Remaining objects:", prompt_type="interim")
+            print(remaining_objects)
+            o = input("> ")
+
+        if o.strip().lower() == "list":
+            print_prompt("All objects:", prompt_type="interim")
+            print([obj for obj in allobjects])
+            o = input("> ")
+
+        # print number of unique objects in line list
+        if o.strip().lower() == "len":
+            print_prompt("Number of unique objects:",prompt_type="interim")
+            print(len(np.unique(allobjects)))
+            
+
+        if o.strip().lower() == "b":
+            previous_obj = int(objid_done[-1])
+            # need to figure out what object came before this one
+            # w = np.where(objid_unique == remaining_objects[0])
+            # if on first object, this will roll around to previous object
+            next_obj = previous_obj
             print_prompt(
-                "You've finished this field.\nEnter an object ID below to revisit a particular object.\nOtherwise enter 'q' to quit the field.",
+                "Going back to previous object: Obj %i" % (next_obj),
                 prompt_type="interim",
             )
-            redo = input("> ").strip().lower()
-            if redo != "q":
-                try:
-                    next_obj = int(re.search("\d+", redo).group())
-                except (ValueError, AttributeError):
-                    print_prompt(
-                        "Invalid entry. Enter an object ID or enter 'q' to quit",
-                        prompt_type="interim",
-                    )
-                else:
-                    next_obj = check_input_objid(objid_unique, next_obj, 0)
-                    if next_obj:
-                        # pass the information for this object
-                        wlinelist = np.where(objid == next_obj)
-                        lamlines_found = wavelen[wlinelist]
-                        ston_found = ston[wlinelist]
-                        wcatalog = np.where(objtable["obj"] == next_obj)
-                        objinfo = objtable[wcatalog]
 
-                    #### FH updated 7/30/25:
+        elif o.strip().lower() == "q":
+            print_prompt(
+                "Quitting; saved through previously completed object.",
+                prompt_type="interim",
+            )
+            return 0
 
-                        ### get pickle files:
-                        ### Note from KVN. field is done so all obj should have pickle files?
-                        inpickles = []
-                        path_pickle1 = (
-                            path_to_stored_fits
-                            + "/Par"
-                            + str(parnos[0])
-                            + "_output_"+str(user)+"/fitdata/PASSAGE_"
-                            + str(next_obj)
-                            + "_fitspec.pickle")
+        elif o.strip().lower() == "random":
+            print_prompt("Hi user!", prompt_type="random")
+            next_obj_idx = np.random.randint(remaining_objects.shape[0])
+            next_obj = remaining_objects[next_obj_idx]
 
-                        ### put new fits first
-                        # if os.path.exists(path_pickle11):
-                        #     inpickles.append(path_pickle11)
-                        # if os.path.exists(path_pickle12):
-                        #     inpickles.append(path_pickle12)
-                        if os.path.exists(path_pickle1):
-                            inpickles.append(path_pickle1)
-                        # if os.path.exists(path_pickle2):
-                        #    inpickles.append(path_pickle2)
-                        # if os.path.exists(path_pickle3):
-                        #    inpickles.append(path_pickle3)
-                        # if os.path.exists(path_pickle4):
-                        #    inpickles.append(path_pickle4)
-                        # if os.path.exists(path_pickle5):
-                        #    inpickles.append(path_pickle5)
-                        # if os.path.exists(path_pickle6):
-                        #    inpickles.append(path_pickle6)
-                        # if os.path.exists(path_pickle7):
-                        #    inpickles.append(path_pickle7)
-                        # if os.path.exists(path_pickle8):
-                        #    inpickles.append(path_pickle8)
-                        # if os.path.exists(path_pickle9):
-                        #    inpickles.append(path_pickle9)
-                        # if os.path.exists(path_pickle10):
-                        #    inpickles.append(path_pickle10)
+        elif isFloat(o.strip()):
+            next_obj = int(re.search("\d+", o).group())
+            # confirm that requested object is in line list
+            next_obj = check_input_objid(objid_unique, next_obj, remaining_objects[0])
+            next_obj = next_obj if next_obj else remaining_objects[0]
+        elif "obj" in o:
+            next_obj = int(re.search("\d+", o).group())
+            # confirm that requested object is in line list
+            next_obj = check_input_objid(objid_unique, next_obj, remaining_objects[0])
+            next_obj = next_obj if next_obj else remaining_objects[0]
 
-                        if len(inpickles) == 0:
-                            use_stored_fits = False
+        # pass the information for this object
+        wlinelist = np.where(objid == next_obj)
+        lamlines_found = wavelen[wlinelist]
+        ston_found = ston[wlinelist]
+        wcatalog = np.where(objtable["obj"] == next_obj)
+        objinfo = objtable[wcatalog]
+        # inspect_object(user, parnos[0], next_obj, objinfo, lamlines_found,
+        #               ston_found, g102zeroarr, g141zeroarr, linelistoutfile,
+        #               commentsfile, remaining_objects, allobjects,
+        #               show_dispersed=show_dispersed)
 
-                            
-                        if use_stored_fits == True:
-                            inspect_object(
-                                user,
-                                par,
-                                next_obj,
-                                objinfo,
-                                filter,
-                                lamlines_found,
-                                ston_found,
-                                linelistoutfile,
-                                commentsfile,
-                                remaining_objects,
-                                allobjects,
-                                show_dispersed=show_dispersed,
-                                stored_fits=inpickles,
-                                path_to_data=path_to_data, path_to_code=path_to_code,path_to_out=path_to_out
-                                )
-                        else:
-                            inspect_object(
-                                user,
-                                par,
-                                next_obj,
-                                objinfo,
-                                filter,
-                                lamlines_found,
-                                ston_found,
-                                linelistoutfile,
-                                commentsfile,
-                                remaining_objects,
-                                allobjects,
-                                show_dispersed=show_dispersed,
-                                stored_fits=False,
-                                path_to_data=path_to_data, path_to_code=path_to_code,path_to_out=path_to_out
-                                )
-                            # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
-                            #     inspect_object(
-                            #         user,
-                            #         parnos[0],
-                            #         next_obj,
-                            #         objinfo,
-                            #         lamlines_found,
-                            #         ston_found,
-                            #         f277zeroarr,
-                            #         f356zeroarr,
-                            #         f444zeroarr,
-                            #         linelistoutfile,
-                            #         commentsfile,
-                            #         remaining_objects,
-                            #         allobjects,
-                            #         show_dispersed=show_dispersed,
-                            #         stored_fits=False,
-                            #         path_to_data=path_to_data, orientation='R')
-                            # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_C.dat'))> 0:
-                            #     inspect_object(
-                            #         user,
-                            #         parnos[0],
-                            #         next_obj,
-                            #         objinfo,
-                            #         lamlines_found,
-                            #         ston_found,
-                            #         f277zeroarr,
-                            #         f356zeroarr,
-                            #         f444zeroarr,
-                            #         linelistoutfile,
-                            #         commentsfile,
-                            #         remaining_objects,
-                            #         allobjects,
-                            #         show_dispersed=show_dispersed,
-                            #         stored_fits=False,
-                            #         path_to_data=path_to_data, orientation='C')
+        if use_stored_fits == True:
+            ### get pickle files:
+            inpickles = []
+            path_pickle1 = (
+                path_to_stored_fits
+                + "/POPPIES"
+                + str(parnos[0])
+                + "_output_a/fitdata/POPPIES0_"
+                + str(next_obj)
+                + "_fitspec.pickle"
+            )
+            # path_pickle1 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_mbagley/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle2 = path_to_stored_fits + '/Par'  + str(parnos[0]) +    '_output_marc/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle3 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_ben/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle4 = path_to_stored_fits + '/Par'  + str(parnos[0]) +     '_output_claudia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle5 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_vihang/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle6 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_ivano/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle7 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mbeck/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle8 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_karlenoid/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle9 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mjr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle10 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_sophia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle11 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_marc-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle12 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_alaina-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
 
+            ### put new fits first
+            # if os.path.exists(path_pickle11):
+            #     inpickles.append(path_pickle11)
+            # if os.path.exists(path_pickle12):
+            #     inpickles.append(path_pickle12)
+            if os.path.exists(path_pickle1):
+                inpickles.append(path_pickle1)
+            # if os.path.exists(path_pickle2):
+            #     inpickles.append(path_pickle2)
+            # if os.path.exists(path_pickle3):
+            #     inpickles.append(path_pickle3)
+            # if os.path.exists(path_pickle4):
+            #     inpickles.append(path_pickle4)
+            # if os.path.exists(path_pickle5):
+            #     inpickles.append(path_pickle5)
+            # if os.path.exists(path_pickle6):
+            #     inpickles.append(path_pickle6)
+            # if os.path.exists(path_pickle7):
+            #     inpickles.append(path_pickle7)
+            # if os.path.exists(path_pickle8):
+            #     inpickles.append(path_pickle8)
+            # if os.path.exists(path_pickle9):
+            #     inpickles.append(path_pickle9)
+            # if os.path.exists(path_pickle10):
+            #     inpickles.append(path_pickle10)
+
+            if len(inpickles) == 0:
+                use_stored_fits = False
+
+        if use_stored_fits == True:
+            inspect_object(
+                user,
+                par,
+                next_obj,
+                objinfo,
+                filters,
+                lamlines_found,
+                ston_found,
+                linelistoutfile,
+                commentsfile,
+                remaining_objects,
+                allobjects,
+                show_dispersed=show_dispersed,
+                stored_fits=inpickles,
+                path_to_data=path_to_data, path_to_code=path_to_code, path_to_out=path_to_out)
+        else:
+            inspect_object(
+                user,
+                par,
+                next_obj,
+                objinfo,
+                filters,
+                lamlines_found,
+                ston_found,
+                linelistoutfile,
+                commentsfile,
+                remaining_objects,
+                allobjects,
+                show_dispersed=show_dispersed,
+                stored_fits=False,
+                path_to_data=path_to_data, path_to_code=path_to_code, path_to_out=path_to_out)
+            # if len(glob.glob(path_to_wisp_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
+            #     inspect_object(
+            #         user,
+            #         parnos[0],
+            #         next_obj,
+            #         objinfo,
+            #         lamlines_found,
+            #         ston_found,
+            #         g102zeroarr,
+            #         g141zeroarr,
+            #         linelistoutfile,
+            #         commentsfile,
+            #         remaining_objects,
+            #         allobjects,
+            #         show_dispersed=show_dispersed,
+            #         stored_fits=False,
+            #         path_to_wisp_data=path_to_wisp_data, orientation='R')
+            # if len(glob.glob(path_to_wisp_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_C.dat'))> 0:
+            #     inspect_object(
+            #         user,
+            #         parnos[0],
+            #         next_obj,
+            #         objinfo,
+            #         lamlines_found,
+            #         ston_found,
+            #         g102zeroarr,
+            #         g141zeroarr,
+            #         linelistoutfile,
+            #         commentsfile,
+            #         remaining_objects,
+            #         allobjects,
+            #         show_dispersed=show_dispersed,
+            #         stored_fits=False,
+            #         path_to_wisp_data=path_to_wisp_data, orientation='C')
+                
+
+        objid_done = np.append(objid_done, next_obj)
+        remaining_objects = get_remaining_objects(objid_unique, objid_done)
+
+    # outside the while loop, field is done
+    redo = " "
+    while redo != "q":
+        print_prompt(
+            "You've finished this field.\nEnter an object ID below to revisit a particular object.\nOtherwise enter 'q' to quit the field.",
+            prompt_type="interim",
+        )
+        redo = input("> ").strip().lower()
+        if redo != "q":
+            try:
+                next_obj = int(re.search("\d+", redo).group())
+            except (ValueError, AttributeError):
+                print_prompt(
+                    "Invalid entry. Enter an object ID or enter 'q' to quit",
+                    prompt_type="interim",
+                )
+            else:
+                next_obj = check_input_objid(objid_unique, next_obj, 0)
+                if next_obj:
+                    # pass the information for this object
+                    wlinelist = np.where(objid == next_obj)
+                    lamlines_found = wavelen[wlinelist]
+                    ston_found = ston[wlinelist]
+                    wcatalog = np.where(objtable["obj"] == next_obj)
+                    objinfo = objtable[wcatalog]
+
+                #### FH updated 7/30/25:
+
+                    ### get pickle files:
+                    ### Note from KVN. field is done so all obj should have pickle files?
+                    inpickles = []
+                    path_pickle1 = (
+                        path_to_stored_fits
+                        + "/Par"
+                        + str(parnos[0])
+                        + "_output_"+str(user)+"/fitdata/PASSAGE_"
+                        + str(next_obj)
+                        + "_fitspec.pickle")
+
+                    ### put new fits first
+                    # if os.path.exists(path_pickle11):
+                    #     inpickles.append(path_pickle11)
+                    # if os.path.exists(path_pickle12):
+                    #     inpickles.append(path_pickle12)
+                    if os.path.exists(path_pickle1):
+                        inpickles.append(path_pickle1)
+                    # if os.path.exists(path_pickle2):
+                    #    inpickles.append(path_pickle2)
+                    # if os.path.exists(path_pickle3):
+                    #    inpickles.append(path_pickle3)
+                    # if os.path.exists(path_pickle4):
+                    #    inpickles.append(path_pickle4)
+                    # if os.path.exists(path_pickle5):
+                    #    inpickles.append(path_pickle5)
+                    # if os.path.exists(path_pickle6):
+                    #    inpickles.append(path_pickle6)
+                    # if os.path.exists(path_pickle7):
+                    #    inpickles.append(path_pickle7)
+                    # if os.path.exists(path_pickle8):
+                    #    inpickles.append(path_pickle8)
+                    # if os.path.exists(path_pickle9):
+                    #    inpickles.append(path_pickle9)
+                    # if os.path.exists(path_pickle10):
+                    #    inpickles.append(path_pickle10)
+
+                    if len(inpickles) == 0:
+                        use_stored_fits = False
+
+                        
+                    if use_stored_fits == True:
+                        inspect_object(
+                            user,
+                            par,
+                            next_obj,
+                            objinfo,
+                            filter,
+                            lamlines_found,
+                            ston_found,
+                            linelistoutfile,
+                            commentsfile,
+                            remaining_objects,
+                            allobjects,
+                            show_dispersed=show_dispersed,
+                            stored_fits=inpickles,
+                            path_to_data=path_to_data, path_to_code=path_to_code,path_to_out=path_to_out
+                            )
                     else:
-                        break
+                        inspect_object(
+                            user,
+                            par,
+                            next_obj,
+                            objinfo,
+                            filter,
+                            lamlines_found,
+                            ston_found,
+                            linelistoutfile,
+                            commentsfile,
+                            remaining_objects,
+                            allobjects,
+                            show_dispersed=show_dispersed,
+                            stored_fits=False,
+                            path_to_data=path_to_data, path_to_code=path_to_code,path_to_out=path_to_out
+                            )
+                        # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_R.dat')) > 0:
+                        #     inspect_object(
+                        #         user,
+                        #         parnos[0],
+                        #         next_obj,
+                        #         objinfo,
+                        #         lamlines_found,
+                        #         ston_found,
+                        #         f277zeroarr,
+                        #         f356zeroarr,
+                        #         f444zeroarr,
+                        #         linelistoutfile,
+                        #         commentsfile,
+                        #         remaining_objects,
+                        #         allobjects,
+                        #         show_dispersed=show_dispersed,
+                        #         stored_fits=False,
+                        #         path_to_data=path_to_data, orientation='R')
+                        # if len(glob.glob(path_to_data +"POPPIES"+ str(parnos[0])+ '/Spectra/Par' +str(parnos[0])+ '_' + str(next_obj).zfill(5)+'*_C.dat'))> 0:
+                        #     inspect_object(
+                        #         user,
+                        #         parnos[0],
+                        #         next_obj,
+                        #         objinfo,
+                        #         lamlines_found,
+                        #         ston_found,
+                        #         f277zeroarr,
+                        #         f356zeroarr,
+                        #         f444zeroarr,
+                        #         linelistoutfile,
+                        #         commentsfile,
+                        #         remaining_objects,
+                        #         allobjects,
+                        #         show_dispersed=show_dispersed,
+                        #         stored_fits=False,
+                        #         path_to_data=path_to_data, orientation='C')
+
+                else:
+                    break
 
     make_tarfile(outdir)
     print_prompt(

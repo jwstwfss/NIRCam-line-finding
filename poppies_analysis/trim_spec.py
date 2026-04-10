@@ -180,12 +180,12 @@ def trim_spec_1filter(tbdata_blue, config_pars, filter, mask_zeros=False, return
 
 
 
-### FH 2/4/25 POPPIES version:
-def trim_spec(tbdata_blue,  tbdata_green, tbdata_red, config_pars, mask_zeros=False, return_masks=False):
+### FH 4/2/26 POPPIES multi-filter version:
+def trim_spec(tbdata_blue,  tbdata_green, tbdata_red, config_pars, filters, mask_zeros=False, return_masks=False):
     """Create one array of spectra, etc. from multiple filters
     
     If masking: 
-        don't need to mask wavelenghth or zeroth orders, keep these for 
+        don't need to mask wavelength or zeroth orders, keep these for 
         writing out file
 
     create an array keeping track of the masked regions
@@ -202,9 +202,19 @@ def trim_spec(tbdata_blue,  tbdata_green, tbdata_red, config_pars, mask_zeros=Fa
     ### check each grism separately
     ### only fit finite data
     
-    lam_spec_blue, flux_spec_blue, error_spec_blue, contam_spec_blue, zero_spec_blue = check_grism(tbdata_blue, config_pars['lambda_min'], config_pars['transition_wave1'])
-    lam_spec_green, flux_spec_green, error_spec_green, contam_spec_green, zero_spec_green = check_grism(tbdata_green, config_pars['transition_wave1'], config_pars['transition_wave2'])
-    lam_spec_red, flux_spec_red, error_spec_red, contam_spec_red, zero_spec_red = check_grism(tbdata_red, config_pars['transition_wave2'], config_pars['lambda_max'])
+    lam_spec_blue, flux_spec_blue, error_spec_blue, contam_spec_blue, zero_spec_blue = check_grism(tbdata_blue, config_pars['lambda_min_{}'.format(filters[0])], config_pars['lambda_max_{}'.format(filters[0])])
+
+    if len(filters) == 3:
+        lam_spec_green, flux_spec_green, error_spec_green, contam_spec_green, zero_spec_green = check_grism(tbdata_green, config_pars['lambda_min_{}'.format(filters[1])], config_pars['lambda_max_{}'.format(filters[1])])
+        lam_spec_red, flux_spec_red, error_spec_red, contam_spec_red, zero_spec_red = check_grism(tbdata_red, config_pars['lambda_min_{}'.format(filters[2])], config_pars['lambda_max_{}'.format(filters[2])])
+            
+    elif len(filters) == 2:
+        lam_spec_green, flux_spec_green, error_spec_green, contam_spec_green, zero_spec_green = check_grism(tbdata_green, config_pars['lambda_min_{}'.format(filters[1])], config_pars['lambda_max_{}'.format(filters[1])])
+        lam_spec_red, flux_spec_red, error_spec_red, contam_spec_red, zero_spec_red = [],[],[],[],[]
+
+    elif len(filters) == 1:
+        lam_spec_green, flux_spec_green, error_spec_green, contam_spec_green, zero_spec_green = [],[],[],[],[]
+        lam_spec_red, flux_spec_red, error_spec_red, contam_spec_red, zero_spec_red = [],[],[],[],[]
 
     # If one filter doesn't exist, then arrays are already empty. Just add them. 
     lam_spec = np.array(list(lam_spec_blue) + list(lam_spec_green) + list(lam_spec_red))
