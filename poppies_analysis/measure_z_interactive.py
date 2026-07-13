@@ -2130,38 +2130,38 @@ def inspect_object_all(
 
         try:
             matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
-
+            ct = 0
             #Determine if there are existing redshifts for this POPPIES field:
             for i in range(len(matched_z_cats)):
                 matched_z_cat = matched_z_cats[i]
                 existing_field_name = str(existingredshifts[i]).split("anc_data/")[1].split("_matched_redshifts.cat")[0]
 
                 for j in range(len(matched_z_cat)):
-                    
+
                     if (matched_z_cat['FieldName'][j] == int(par)) and (int(matched_z_cat['POPPIES_ID'][j]) == int(obj)): ## if this object is in the matched list
-
-                        # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
-                        
-                        # print("FH test ", str(matched_z_cat['FieldName'][j]), int(par), int(matched_z_cat['POPPIES_ID'][j]), int(obj))
-
-                        z_spec, z_phot = float(matched_z_cat['Z_SPEC'][j]), float(matched_z_cat['Z_PHOT'][j])
+                        ct += 1
+                        z_phot =  float(matched_z_cat['Z_PHOT'][j])
 
                         print_prompt("\nThe object {} has existing redshifts in {} \n".format(int(obj), str(existing_field_name)))
 
                         if existing_field_name == "goodsn-candels":
+
+                            z_spec = float(matched_z_cat['Z_SPEC'][j])
                                 
                             if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
-                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
-                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),round(z_spec,4),str(existing_field_name)))
+                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
 
                             else:  ### else at least photo-z exists
-                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
 
 
                         elif existing_field_name == "goodsn-jades":
+                            
+                            z_spec = float(matched_z_cat['Z_SPEC'][j])
                                 
                             if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
-                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),round(z_spec,4),str(existing_field_name)))
                                 
                                 z_spec_flag = matched_z_cat['Z_SPEC_FLAG'][j]
                                 
@@ -2180,16 +2180,25 @@ def inspect_object_all(
 
                                 print_prompt("The spec-z flag is: {} -- {} \n".format(str(z_spec_flag),str(flag_desc)))
 
-                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),round(z_phot,4),str(existing_field_name)))
 
                             else:  ### else at least photo-z exists
-                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),round(z_phot,4),str(existing_field_name)))
 
+                        elif existing_field_name == "ceers":
+                                
+                            print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
+
+                
+            if ct==0:
+                print_prompt("No existing redshifts found for this object")
 
         except Exception as e:
             print('Error reading existing matched redshift catalogs: ', e )
             pass
 
+    else:
+        print('No existing redshift catalogs found!')
 
     index_of_strongest_line = 0
     lamline = lamlines_found
@@ -3724,38 +3733,38 @@ def inspect_object_all(
 
                 try:
                     matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
-
+                    ct = 0
                     #Determine if there are existing redshifts for this POPPIES field:
                     for i in range(len(matched_z_cats)):
                         matched_z_cat = matched_z_cats[i]
                         existing_field_name = str(existingredshifts[i]).split("anc_data/")[1].split("_matched_redshifts.cat")[0]
 
                         for j in range(len(matched_z_cat)):
-                            
+
                             if (matched_z_cat['FieldName'][j] == int(par)) and (int(matched_z_cat['POPPIES_ID'][j]) == int(obj)): ## if this object is in the matched list
-
-                                # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
-                                
-                                # print("FH test ", str(matched_z_cat['FieldName'][j]), int(par), int(matched_z_cat['POPPIES_ID'][j]), int(obj))
-
-                                z_spec, z_phot = float(matched_z_cat['Z_SPEC'][j]), float(matched_z_cat['Z_PHOT'][j])
+                                ct += 1
+                                z_phot =  float(matched_z_cat['Z_PHOT'][j])
 
                                 print_prompt("\nThe object {} has existing redshifts in {} \n".format(int(obj), str(existing_field_name)))
 
                                 if existing_field_name == "goodsn-candels":
+
+                                    z_spec = float(matched_z_cat['Z_SPEC'][j])
                                         
                                     if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
-                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
-                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),round(z_spec,4),str(existing_field_name)))
+                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
 
                                     else:  ### else at least photo-z exists
-                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
 
 
                                 elif existing_field_name == "goodsn-jades":
+                                    
+                                    z_spec = float(matched_z_cat['Z_SPEC'][j])
                                         
                                     if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
-                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),round(z_spec,4),str(existing_field_name)))
                                         
                                         z_spec_flag = matched_z_cat['Z_SPEC_FLAG'][j]
                                         
@@ -3774,11 +3783,18 @@ def inspect_object_all(
 
                                         print_prompt("The spec-z flag is: {} -- {} \n".format(str(z_spec_flag),str(flag_desc)))
 
-                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),round(z_phot,4),str(existing_field_name)))
 
                                     else:  ### else at least photo-z exists
-                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),round(z_phot,4),str(existing_field_name)))
 
+                                elif existing_field_name == "ceers":
+                                        
+                                    print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
+
+                     
+                    if ct==0:
+                        print_prompt("No existing redshifts found for this object")
 
                 except Exception as e:
                     print('Error reading existing matched redshift catalogs: ', e )
@@ -4290,8 +4306,11 @@ def measure_z_interactive_all(
 
     jmag = np.ones(ra.shape, dtype=float) * 99.0
     jerr = np.ones(ra.shape, dtype=float) * 99.0
-    hmag = cat["MAG_AUTO"]  # hmag = cat['col13'] - M.D.R. - 10/08/2020
-    herr = cat["MAGERR_AUTO"]  # herr = cat['col14'] - M.D.R. - 10/08/2020
+    # hmag = cat["MAG_AUTO"]  # hmag = cat['col13'] - M.D.R. - 10/08/2020
+    # herr = cat["MAGERR_AUTO"]  # herr = cat['col14'] - M.D.R. - 10/08/2020
+    ## FH updated 7/13/26
+    hmag = cat["MAG_AUTO_{}".format(filters[-1])]  # hmag = cat['col13'] - M.D.R. - 10/08/2020
+    herr = cat["MAGERR_AUTO_{}".format(filters[-1])]  # herr = cat['col14'] - M.D.R. - 10/08/2020
     # read in second file if there are two
     # if len(secats) == 2: # MDR 2022/05/17
     #     cat2 = asciitable.read(secats[1]) # MDR 2022/05/17
@@ -5020,7 +5039,7 @@ def inspect_object(
     s = np.argsort(ston_found)
     # reverse s/n order
 
-    #### FH updated 11/9/25
+    #### FH updated 7/13/26
     #### FH added 9/11/25:
     # Check if existing redshift catalogs exist or not:
     # existingredshifts = glob(path_to_data + "*_matched_redshifts.cat") 
@@ -5030,38 +5049,38 @@ def inspect_object(
 
         try:
             matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
-
+            ct = 0
             #Determine if there are existing redshifts for this POPPIES field:
             for i in range(len(matched_z_cats)):
                 matched_z_cat = matched_z_cats[i]
                 existing_field_name = str(existingredshifts[i]).split("anc_data/")[1].split("_matched_redshifts.cat")[0]
 
                 for j in range(len(matched_z_cat)):
-                    
+
                     if (matched_z_cat['FieldName'][j] == int(par)) and (int(matched_z_cat['POPPIES_ID'][j]) == int(obj)): ## if this object is in the matched list
-
-                        # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
-                        
-                        # print("FH test ", str(matched_z_cat['FieldName'][j]), int(par), int(matched_z_cat['POPPIES_ID'][j]), int(obj))
-
-                        z_spec, z_phot = float(matched_z_cat['Z_SPEC'][j]), float(matched_z_cat['Z_PHOT'][j])
+                        ct += 1
+                        z_phot =  float(matched_z_cat['Z_PHOT'][j])
 
                         print_prompt("\nThe object {} has existing redshifts in {} \n".format(int(obj), str(existing_field_name)))
 
                         if existing_field_name == "goodsn-candels":
+
+                            z_spec = float(matched_z_cat['Z_SPEC'][j])
                                 
                             if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
-                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
-                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),round(z_spec,4),str(existing_field_name)))
+                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
 
                             else:  ### else at least photo-z exists
-                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+                                print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
 
 
                         elif existing_field_name == "goodsn-jades":
+                            
+                            z_spec = float(matched_z_cat['Z_SPEC'][j])
                                 
                             if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
-                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),round(z_spec,4),str(existing_field_name)))
                                 
                                 z_spec_flag = matched_z_cat['Z_SPEC_FLAG'][j]
                                 
@@ -5080,16 +5099,25 @@ def inspect_object(
 
                                 print_prompt("The spec-z flag is: {} -- {} \n".format(str(z_spec_flag),str(flag_desc)))
 
-                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),round(z_phot,4),str(existing_field_name)))
 
                             else:  ### else at least photo-z exists
-                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+                                print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),round(z_phot,4),str(existing_field_name)))
 
+                        elif existing_field_name == "ceers":
+                                
+                            print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
+
+                
+            if ct==0:
+                print_prompt("No existing redshifts found for this object")
 
         except Exception as e:
             print('Error reading existing matched redshift catalogs: ', e )
             pass
 
+    else:
+        print('No existing redshift catalogs found!')
 
     ston_found = ston_found[s[::-1]]
     lamlines_found = lamlines_found[s[::-1]]
@@ -6487,43 +6515,43 @@ def inspect_object(
         #### #### 
         ## FH updated 11/9/25
         elif option.strip().lower() == "ex":
-                        
+
             if len(existingredshifts) > 0:
 
                 try:
                     matched_z_cats = utilities.read_matched_catalogs(existingredshifts)
-
+                    ct = 0
                     #Determine if there are existing redshifts for this POPPIES field:
                     for i in range(len(matched_z_cats)):
                         matched_z_cat = matched_z_cats[i]
                         existing_field_name = str(existingredshifts[i]).split("anc_data/")[1].split("_matched_redshifts.cat")[0]
 
                         for j in range(len(matched_z_cat)):
-                            
+
                             if (matched_z_cat['FieldName'][j] == int(par)) and (int(matched_z_cat['POPPIES_ID'][j]) == int(obj)): ## if this object is in the matched list
-
-                                # print("\nThe object {} has existing redshifts \n".format(int(obj)) + setcolors["working"])
-                                
-                                # print("FH test ", str(matched_z_cat['FieldName'][j]), int(par), int(matched_z_cat['POPPIES_ID'][j]), int(obj))
-
-                                z_spec, z_phot = float(matched_z_cat['Z_SPEC'][j]), float(matched_z_cat['Z_PHOT'][j])
+                                ct += 1
+                                z_phot =  float(matched_z_cat['Z_PHOT'][j])
 
                                 print_prompt("\nThe object {} has existing redshifts in {} \n".format(int(obj), str(existing_field_name)))
 
                                 if existing_field_name == "goodsn-candels":
+
+                                    z_spec = float(matched_z_cat['Z_SPEC'][j])
                                         
                                     if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
-                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
-                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),round(z_spec,4),str(existing_field_name)))
+                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
 
                                     else:  ### else at least photo-z exists
-                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),z_phot,float(matched_z_cat['Z_PHOT_L68'][j]),float(matched_z_cat['Z_PHOT_U68'][j]),str(existing_field_name)))
+                                        print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
 
 
                                 elif existing_field_name == "goodsn-jades":
+                                    
+                                    z_spec = float(matched_z_cat['Z_SPEC'][j])
                                         
                                     if float(matched_z_cat['Z_SPEC'][j]) >= 0:   ### if z_spec exists
-                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),z_spec,str(existing_field_name)))
+                                        print_prompt("The object {} has spec-z: {} (from {}) \n".format(int(obj),round(z_spec,4),str(existing_field_name)))
                                         
                                         z_spec_flag = matched_z_cat['Z_SPEC_FLAG'][j]
                                         
@@ -6542,11 +6570,18 @@ def inspect_object(
 
                                         print_prompt("The spec-z flag is: {} -- {} \n".format(str(z_spec_flag),str(flag_desc)))
 
-                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),round(z_phot,4),str(existing_field_name)))
 
                                     else:  ### else at least photo-z exists
-                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),z_phot,str(existing_field_name)))
+                                        print_prompt("The object {} has photo-z: {} (from {}) \n ".format(int(obj),round(z_phot,4),str(existing_field_name)))
 
+                                elif existing_field_name == "ceers":
+                                        
+                                    print_prompt("The object {} has photo-z: {}, with lower limit {} and upper limit {} (from {}) \n ".format(int(obj),round(z_phot,4),round(float(matched_z_cat['Z_PHOT_L68'][j]),4),round(float(matched_z_cat['Z_PHOT_U68'][j]),4),str(existing_field_name)))
+
+                     
+                    if ct==0:
+                        print_prompt("No existing redshifts found for this object")
 
                 except Exception as e:
                     print('Error reading existing matched redshift catalogs: ', e )
@@ -7043,8 +7078,9 @@ def measure_z_interactive(
 
     jmag = np.ones(ra.shape, dtype=float) * 99.0
     jerr = np.ones(ra.shape, dtype=float) * 99.0
-    hmag = cat["MAG_AUTO"]  # hmag = cat['col13'] - M.D.R. - 10/08/2020
-    herr = cat["MAGERR_AUTO"]  # herr = cat['col14'] - M.D.R. - 10/08/2020
+    ## FH updated 7/13/26
+    hmag = cat["MAG_AUTO_{}".format(filters[-1])]  # hmag = cat['col13'] - M.D.R. - 10/08/2020
+    herr = cat["MAGERR_AUTO_{}".format(filters[-1])]  # herr = cat['col14'] - M.D.R. - 10/08/2020
     # read in second file if there are two
     # if len(secats) == 2: # MDR 2022/05/17
     #     cat2 = asciitable.read(secats[1]) # MDR 2022/05/17
