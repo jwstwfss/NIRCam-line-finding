@@ -254,7 +254,9 @@ def trim_spec(tbdata_blue,  tbdata_green, tbdata_red, config_pars, filters, mask
     masked_regions = np.zeros(lam_spec.shape, dtype=int)
     ### removed masked regions
     for k,v in config_pars.items():
-        if 'mask_region' in k:
+        ### FH updated 7/13/26
+        if ('mask_region' in k) and ('mask_region_' not in k):
+            # print("FH debugging ", k,v)
             bluecut = v[0]
             redcut = v[1]
             mask = np.logical_and(lam_spec > bluecut, lam_spec < redcut)
@@ -284,208 +286,208 @@ def trim_spec(tbdata_blue,  tbdata_green, tbdata_red, config_pars, filters, mask
 
 
 
-### PASSAGE versions:
+# ### PASSAGE versions:
 
-def trim_spec_orig(tbdata_blue, tbdata_red, config_pars, mask_zeros=False, return_masks=False):
-    """Create one array of spectra, etc. from multiple grism 1d files
+# def trim_spec_orig(tbdata_blue, tbdata_red, config_pars, mask_zeros=False, return_masks=False):
+#     """Create one array of spectra, etc. from multiple grism 1d files
     
-    If masking: 
-        don't need to mask wavelenght or zeroth orders, keep these for 
-        writing out file
+#     If masking: 
+#         don't need to mask wavelenght or zeroth orders, keep these for 
+#         writing out file
 
-    create an array keeping track of the masked regions
+#     create an array keeping track of the masked regions
 
-    Args:
-        tbdata_blue ():
-        tbdata_red ():
-        config_pars ():
-        return_masks (Optional[bool]):
+#     Args:
+#         tbdata_blue ():
+#         tbdata_red ():
+#         config_pars ():
+#         return_masks (Optional[bool]):
 
-    Returns:
-    """
-    ### check each grism separately
-    if tbdata_blue is not None:
-        bluecut = config_pars['lambda_min']
-        redcut = config_pars['transition_wave']
-        specdata = initialize_arrays(tbdata_blue, bluecut, redcut)
-        lam_spec_blue = specdata[0] 
-        flux_spec_blue = specdata[1]
-        error_spec_blue = specdata[2]
-        contam_spec_blue = specdata[3]
-        zero_spec_blue = specdata[4]
+#     Returns:
+#     """
+#     ### check each grism separately
+#     if tbdata_blue is not None:
+#         bluecut = config_pars['lambda_min']
+#         redcut = config_pars['transition_wave']
+#         specdata = initialize_arrays(tbdata_blue, bluecut, redcut)
+#         lam_spec_blue = specdata[0] 
+#         flux_spec_blue = specdata[1]
+#         error_spec_blue = specdata[2]
+#         contam_spec_blue = specdata[3]
+#         zero_spec_blue = specdata[4]
 
-        ### only fit finite data
-        flux_spec_blue = np.ma.masked_where(np.logical_or(~(np.isfinite(flux_spec_blue)),~(np.isfinite(error_spec_blue))), flux_spec_blue)
-        error_spec_blue = newmask(error_spec_blue, flux_spec_blue)
-        contam_spec_blue = newmask(contam_spec_blue, flux_spec_blue)
+#         ### only fit finite data
+#         flux_spec_blue = np.ma.masked_where(np.logical_or(~(np.isfinite(flux_spec_blue)),~(np.isfinite(error_spec_blue))), flux_spec_blue)
+#         error_spec_blue = newmask(error_spec_blue, flux_spec_blue)
+#         contam_spec_blue = newmask(contam_spec_blue, flux_spec_blue)
 
-    if tbdata_red is not None: 
-        bluecut = config_pars['transition_wave']
-        redcut = config_pars['lambda_max']
-        specdata = initialize_arrays(tbdata_red, bluecut, redcut)
-        lam_spec_red = specdata[0]
-        flux_spec_red = specdata[1]
-        error_spec_red = specdata[2]
-        contam_spec_red = specdata[3]
-        zero_spec_red = specdata[4]
+#     if tbdata_red is not None: 
+#         bluecut = config_pars['transition_wave']
+#         redcut = config_pars['lambda_max']
+#         specdata = initialize_arrays(tbdata_red, bluecut, redcut)
+#         lam_spec_red = specdata[0]
+#         flux_spec_red = specdata[1]
+#         error_spec_red = specdata[2]
+#         contam_spec_red = specdata[3]
+#         zero_spec_red = specdata[4]
 
-        ### only fit finite data
-        flux_spec_red = np.ma.masked_where(np.logical_or(~(np.isfinite(flux_spec_red)),~(np.isfinite(error_spec_red))), flux_spec_red)
-        error_spec_red = newmask(error_spec_red, flux_spec_red)
-        contam_spec_red = newmask(contam_spec_red, flux_spec_red)
+#         ### only fit finite data
+#         flux_spec_red = np.ma.masked_where(np.logical_or(~(np.isfinite(flux_spec_red)),~(np.isfinite(error_spec_red))), flux_spec_red)
+#         error_spec_red = newmask(error_spec_red, flux_spec_red)
+#         contam_spec_red = newmask(contam_spec_red, flux_spec_red)
 
-        ### mask edges in wavelength where stuff gets crazy (i.e. low throughput)  
+#         ### mask edges in wavelength where stuff gets crazy (i.e. low throughput)  
      
-    ### concatenate.
-    if tbdata_blue is None: 
-        lam_spec = lam_spec_red 
-        flux_spec = flux_spec_red
-        error_spec = error_spec_red
-        contam_spec = contam_spec_red 
-        zero_spec = zero_spec_red
-    if tbdata_red is None: 
-        lam_spec = lam_spec_blue
-        flux_spec = flux_spec_blue 
-        error_spec = error_spec_blue 
-        contam_spec = contam_spec_blue 
-        zero_spec = zero_spec_blue
+#     ### concatenate.
+#     if tbdata_blue is None: 
+#         lam_spec = lam_spec_red 
+#         flux_spec = flux_spec_red
+#         error_spec = error_spec_red
+#         contam_spec = contam_spec_red 
+#         zero_spec = zero_spec_red
+#     if tbdata_red is None: 
+#         lam_spec = lam_spec_blue
+#         flux_spec = flux_spec_blue 
+#         error_spec = error_spec_blue 
+#         contam_spec = contam_spec_blue 
+#         zero_spec = zero_spec_blue
     
-    if (tbdata_red is not None) & (tbdata_blue is not None): 
-        lam_spec = np.append(lam_spec_blue, lam_spec_red) 
-        flux_spec = np.ma.append(flux_spec_blue, flux_spec_red) 
-        error_spec = np.ma.append(error_spec_blue, error_spec_red) 
-        contam_spec = np.ma.append(contam_spec_blue, contam_spec_red) 
-        zero_spec = np.append(zero_spec_blue, zero_spec_red) 
+#     if (tbdata_red is not None) & (tbdata_blue is not None): 
+#         lam_spec = np.append(lam_spec_blue, lam_spec_red) 
+#         flux_spec = np.ma.append(flux_spec_blue, flux_spec_red) 
+#         error_spec = np.ma.append(error_spec_blue, error_spec_red) 
+#         contam_spec = np.ma.append(contam_spec_blue, contam_spec_red) 
+#         zero_spec = np.append(zero_spec_blue, zero_spec_red) 
 
-    if mask_zeros:
-        ### remove bad 0th orders 
-        flux_spec = np.ma.masked_where(zero_spec == 3, flux_spec)
-        error_spec = newmask(error_spec, flux_spec)
-        contam_spec = newmask(contam_spec, flux_spec)
+#     if mask_zeros:
+#         ### remove bad 0th orders 
+#         flux_spec = np.ma.masked_where(zero_spec == 3, flux_spec)
+#         error_spec = newmask(error_spec, flux_spec)
+#         contam_spec = newmask(contam_spec, flux_spec)
 
-    ### create an array of flags for masked regions
-    masked_regions = np.zeros(lam_spec.shape, dtype=int)
-    ### removed masked regions
-    for k,v in config_pars.items():
-        if 'mask_region' in k:
-            bluecut = v[0]
-            redcut = v[1]
-            mask = np.logical_and(lam_spec > bluecut, lam_spec < redcut)
-            flux_spec = np.ma.masked_where(mask, flux_spec)
-            error_spec = newmask(error_spec, flux_spec)
-            contam_spec = newmask(contam_spec, flux_spec)
-            masked_regions[mask] = 1
+#     ### create an array of flags for masked regions
+#     masked_regions = np.zeros(lam_spec.shape, dtype=int)
+#     ### removed masked regions
+#     for k,v in config_pars.items():
+#         if 'mask_region' in k:
+#             bluecut = v[0]
+#             redcut = v[1]
+#             mask = np.logical_and(lam_spec > bluecut, lam_spec < redcut)
+#             flux_spec = np.ma.masked_where(mask, flux_spec)
+#             error_spec = newmask(error_spec, flux_spec)
+#             contam_spec = newmask(contam_spec, flux_spec)
+#             masked_regions[mask] = 1
     
-    if return_masks:
-        # wavelength and zeroth orders are not masked, 
-        # this is fine for measure_z_interactive
-        return [lam_spec, flux_spec, error_spec, contam_spec, zero_spec, masked_regions] 
-    else:
-        # need to apply mask to wavelength and zeroth orders so all the 
-        # arrays have the same shape
-        # this is necessary for the cwt code
-        lam_spec = newmask(lam_spec, flux_spec)
-        zero_spec = newmask(zero_spec, flux_spec)
-        # compress the arrays 
-        outlam = np.ma.compressed(lam_spec)
-        outflux = np.ma.compressed(flux_spec)
-        outerror = np.ma.compressed(error_spec)
-        outcontam = np.ma.compressed(contam_spec)
-        outzero = np.ma.compressed(zero_spec)
-        return outlam,outflux,outerror,outcontam,outzero
+#     if return_masks:
+#         # wavelength and zeroth orders are not masked, 
+#         # this is fine for measure_z_interactive
+#         return [lam_spec, flux_spec, error_spec, contam_spec, zero_spec, masked_regions] 
+#     else:
+#         # need to apply mask to wavelength and zeroth orders so all the 
+#         # arrays have the same shape
+#         # this is necessary for the cwt code
+#         lam_spec = newmask(lam_spec, flux_spec)
+#         zero_spec = newmask(zero_spec, flux_spec)
+#         # compress the arrays 
+#         outlam = np.ma.compressed(lam_spec)
+#         outflux = np.ma.compressed(flux_spec)
+#         outerror = np.ma.compressed(error_spec)
+#         outcontam = np.ma.compressed(contam_spec)
+#         outzero = np.ma.compressed(zero_spec)
+#         return outlam,outflux,outerror,outcontam,outzero
 
 
-def trim_spec_OLD(tbdata_blue, tbdata_green, tbdata_red, config_pars, mask_zeros=False, return_masks=False):
-    """KVN version -- Create one array of spectra, etc. from multiple grism 1d files
+# def trim_spec_OLD(tbdata_blue, tbdata_green, tbdata_red, config_pars, mask_zeros=False, return_masks=False):
+#     """KVN version -- Create one array of spectra, etc. from multiple grism 1d files
     
-    If masking: 
-        don't need to mask wavelenght or zeroth orders, keep these for 
-        writing out file
+#     If masking: 
+#         don't need to mask wavelenght or zeroth orders, keep these for 
+#         writing out file
 
-    create an array keeping track of the masked regions
+#     create an array keeping track of the masked regions
 
-    Args:
-        tbdata_blue ():  blue filter
-        tbdata_red ():   red filter
-        tbdata_green (): green/middle filter
-        config_pars ():
-        return_masks (Optional[bool]):
+#     Args:
+#         tbdata_blue ():  blue filter
+#         tbdata_red ():   red filter
+#         tbdata_green (): green/middle filter
+#         config_pars ():
+#         return_masks (Optional[bool]):
 
-    Returns:
-    """
-    ### check each grism separately
-    ### only fit finite data
-    lam_spec_blue, flux_spec_blue, error_spec_blue, contam_spec_blue, zero_spec_blue = check_grism(tbdata_blue, config_pars['lambda_min'], config_pars['transition_wave1'])
-    lam_spec_green, flux_spec_green, error_spec_green, contam_spec_green, zero_spec_green = check_grism(tbdata_green, config_pars['transition_wave1'], config_pars['transition_wave2'])
-    lam_spec_red, flux_spec_red, error_spec_red, contam_spec_red, zero_spec_red = check_grism(tbdata_red, config_pars['transition_wave2'], config_pars['lambda_max'])
+#     Returns:
+#     """
+#     ### check each grism separately
+#     ### only fit finite data
+#     lam_spec_blue, flux_spec_blue, error_spec_blue, contam_spec_blue, zero_spec_blue = check_grism(tbdata_blue, config_pars['lambda_min'], config_pars['transition_wave1'])
+#     lam_spec_green, flux_spec_green, error_spec_green, contam_spec_green, zero_spec_green = check_grism(tbdata_green, config_pars['transition_wave1'], config_pars['transition_wave2'])
+#     lam_spec_red, flux_spec_red, error_spec_red, contam_spec_red, zero_spec_red = check_grism(tbdata_red, config_pars['transition_wave2'], config_pars['lambda_max'])
 
-    # If one filter doesn't exist, then arrays are already empty. Just add them. 
-    lam_spec = np.array(list(lam_spec_blue) + list(lam_spec_green) + list(lam_spec_red))
-    flux_spec = np.array(list(flux_spec_blue) + list(flux_spec_green) + list(flux_spec_red))
-    error_spec = np.array(list(error_spec_blue) + list(error_spec_green) + list(error_spec_red))
-    contam_spec = np.array(list(contam_spec_blue) + list(contam_spec_green) + list(contam_spec_red))
-    zero_spec = np.array(list(zero_spec_blue) + list(zero_spec_green) + list(zero_spec_red))
-    # The above does what the code below does. I didn't want to go through
-    # all possible combinations of which filter might be none the way the
-    # code originally did. 
+#     # If one filter doesn't exist, then arrays are already empty. Just add them. 
+#     lam_spec = np.array(list(lam_spec_blue) + list(lam_spec_green) + list(lam_spec_red))
+#     flux_spec = np.array(list(flux_spec_blue) + list(flux_spec_green) + list(flux_spec_red))
+#     error_spec = np.array(list(error_spec_blue) + list(error_spec_green) + list(error_spec_red))
+#     contam_spec = np.array(list(contam_spec_blue) + list(contam_spec_green) + list(contam_spec_red))
+#     zero_spec = np.array(list(zero_spec_blue) + list(zero_spec_green) + list(zero_spec_red))
+#     # The above does what the code below does. I didn't want to go through
+#     # all possible combinations of which filter might be none the way the
+#     # code originally did. 
     
-    # ### concatenate.
-    # if tbdata_blue is None: 
-    #     lam_spec = lam_spec_red 
-    #     flux_spec = flux_spec_red
-    #     error_spec = error_spec_red
-    #     contam_spec = contam_spec_red 
-    #     zero_spec = zero_spec_red
-    # if tbdata_red is None: 
-    #     lam_spec = lam_spec_blue
-    #     flux_spec = flux_spec_blue 
-    #     error_spec = error_spec_blue 
-    #     contam_spec = contam_spec_blue 
-    #     zero_spec = zero_spec_blue
+#     # ### concatenate.
+#     # if tbdata_blue is None: 
+#     #     lam_spec = lam_spec_red 
+#     #     flux_spec = flux_spec_red
+#     #     error_spec = error_spec_red
+#     #     contam_spec = contam_spec_red 
+#     #     zero_spec = zero_spec_red
+#     # if tbdata_red is None: 
+#     #     lam_spec = lam_spec_blue
+#     #     flux_spec = flux_spec_blue 
+#     #     error_spec = error_spec_blue 
+#     #     contam_spec = contam_spec_blue 
+#     #     zero_spec = zero_spec_blue
     
-    # if (tbdata_red is not None) & (tbdata_blue is not None): 
-    #     lam_spec = np.append(lam_spec_blue, lam_spec_red) 
-    #     flux_spec = np.ma.append(flux_spec_blue, flux_spec_red) 
-    #     error_spec = np.ma.append(error_spec_blue, error_spec_red) 
-    #     contam_spec = np.ma.append(contam_spec_blue, contam_spec_red) 
-    #     zero_spec = np.append(zero_spec_blue, zero_spec_red) 
+#     # if (tbdata_red is not None) & (tbdata_blue is not None): 
+#     #     lam_spec = np.append(lam_spec_blue, lam_spec_red) 
+#     #     flux_spec = np.ma.append(flux_spec_blue, flux_spec_red) 
+#     #     error_spec = np.ma.append(error_spec_blue, error_spec_red) 
+#     #     contam_spec = np.ma.append(contam_spec_blue, contam_spec_red) 
+#     #     zero_spec = np.append(zero_spec_blue, zero_spec_red) 
 
 
-    if mask_zeros:
-        ### remove bad 0th orders 
-        flux_spec = np.ma.masked_where(zero_spec == 3, flux_spec)
-        error_spec = newmask(error_spec, flux_spec)
-        contam_spec = newmask(contam_spec, flux_spec)
+#     if mask_zeros:
+#         ### remove bad 0th orders 
+#         flux_spec = np.ma.masked_where(zero_spec == 3, flux_spec)
+#         error_spec = newmask(error_spec, flux_spec)
+#         contam_spec = newmask(contam_spec, flux_spec)
 
-    ### create an array of flags for masked regions
-    masked_regions = np.zeros(lam_spec.shape, dtype=int)
-    ### removed masked regions
-    for k,v in config_pars.items():
-        if 'mask_region' in k:
-            bluecut = v[0]
-            redcut = v[1]
-            mask = np.logical_and(lam_spec > bluecut, lam_spec < redcut)
-            flux_spec = np.ma.masked_where(mask, flux_spec)
-            error_spec = newmask(error_spec, flux_spec)
-            contam_spec = newmask(contam_spec, flux_spec)
-            masked_regions[mask] = 1
+#     ### create an array of flags for masked regions
+#     masked_regions = np.zeros(lam_spec.shape, dtype=int)
+#     ### removed masked regions
+#     for k,v in config_pars.items():
+#         if 'mask_region' in k:
+#             bluecut = v[0]
+#             redcut = v[1]
+#             mask = np.logical_and(lam_spec > bluecut, lam_spec < redcut)
+#             flux_spec = np.ma.masked_where(mask, flux_spec)
+#             error_spec = newmask(error_spec, flux_spec)
+#             contam_spec = newmask(contam_spec, flux_spec)
+#             masked_regions[mask] = 1
     
-    if return_masks:
-        # wavelength and zeroth orders are not masked, 
-        # this is fine for measure_z_interactive
-        return [lam_spec, flux_spec, error_spec, contam_spec, zero_spec, masked_regions] 
-    else:
-        # need to apply mask to wavelength and zeroth orders so all the 
-        # arrays have the same shape
-        # this is necessary for the cwt code
-        lam_spec = newmask(lam_spec, flux_spec)
-        zero_spec = newmask(zero_spec, flux_spec)
-        # compress the arrays 
-        outlam = np.ma.compressed(lam_spec)
-        outflux = np.ma.compressed(flux_spec)
-        outerror = np.ma.compressed(error_spec)
-        outcontam = np.ma.compressed(contam_spec)
-        outzero = np.ma.compressed(zero_spec)
-        return outlam,outflux,outerror,outcontam,outzero
+#     if return_masks:
+#         # wavelength and zeroth orders are not masked, 
+#         # this is fine for measure_z_interactive
+#         return [lam_spec, flux_spec, error_spec, contam_spec, zero_spec, masked_regions] 
+#     else:
+#         # need to apply mask to wavelength and zeroth orders so all the 
+#         # arrays have the same shape
+#         # this is necessary for the cwt code
+#         lam_spec = newmask(lam_spec, flux_spec)
+#         zero_spec = newmask(zero_spec, flux_spec)
+#         # compress the arrays 
+#         outlam = np.ma.compressed(lam_spec)
+#         outflux = np.ma.compressed(flux_spec)
+#         outerror = np.ma.compressed(error_spec)
+#         outcontam = np.ma.compressed(contam_spec)
+#         outzero = np.ma.compressed(zero_spec)
+#         return outlam,outflux,outerror,outcontam,outzero
 
 

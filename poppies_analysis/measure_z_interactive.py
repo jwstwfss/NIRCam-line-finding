@@ -694,6 +694,7 @@ def plot_chooseSpec(spdata1, spdata2, config_pars, plottitle, outdir, zset=None,
     # save the figure for everything
     # previous figures are overwritten
     """
+
     # define the filename that will be used for figures.
     plotfilename = os.path.join(outdir, "figs", "%s_fit_spectra.png" % (plottitle))
 
@@ -787,7 +788,7 @@ def plot_chooseSpec(spdata1, spdata2, config_pars, plottitle, outdir, zset=None,
                     maskedlabel = "masked regions"
                 ax.fill_between(config_pars[mr], 0, 1, color="grey", alpha=0.3, transform=trans, label=maskedlabel)
     
-    handles, labels = ax.get_legend_handles_labels()
+    handles, labels = ax1.get_legend_handles_labels()
     if len(labels) > 0:
         ax1.legend(bbox_to_anchor=[1.0, 1.08], loc="upper right")
 
@@ -1017,9 +1018,10 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
                 else:
                     maskedlabel = "masked regions"
                 ax.fill_between(config_pars[mr], 0, 1, color="grey", alpha=0.3, transform=trans, label=maskedlabel)
-    handles, labels = ax.get_legend_handles_labels()
+    handles, labels = ax1.get_legend_handles_labels()
+
     if len(labels) > 0:
-        ax1.legend(bbox_to_anchor=[1.04, 1.12], ncol=2, loc="upper right", framealpha=0.75)
+        ax1.legend(bbox_to_anchor=[1.02, 1.12], loc="upper right", ncol=2, columnspacing=0.5,  framealpha=0.75)
 
     # find values of spec_lam nearest to the nodes
     nodelam = config_pars["node_wave"]
@@ -1164,10 +1166,9 @@ def plot_object_comb(zguess, zfit, specdata, specdata2, config_pars, snr_meas_ar
                 else:
                     maskedlabel = "masked regions"
                 ax.fill_between(config_pars[mr], 0, 1, color="grey", alpha=0.3, transform=trans, label=maskedlabel)
-    handles, labels = ax.get_legend_handles_labels()
+    # handles, labels = ax1.get_legend_handles_labels()
     # if len(labels) > 0:
     #     ax3.legend(bbox_to_anchor=[1.0, 1.08], ncol=2, loc="upper right", framealpha=0.5)
-
     # find values of spec_lam nearest to the nodes
     nodelam = config_pars["node_wave"]
     nl_arr = []
@@ -1519,7 +1520,7 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
 
     ax1.plot(spec_lam, full_fitmodel, color="r", lw=lw_fits, label='Emission line model')
     ax1.plot(spec_lam, full_contmodel, color="b", linestyle="--", lw=lw_fits, label='Continuum model')
-    ax1.plot(spec_lam, broad_fitmodel, color="r", linestyle="-", lw=0.5)  #, label='Continuum model'
+    ax1.plot(spec_lam, broad_fitmodel, color="r", linestyle="-", lw=0.5, label='Broad line model') 
 
     # plot 0th orders
     w = np.where(spec_zer == 3)
@@ -1550,7 +1551,7 @@ def plot_object(zguess, zfit, specdata, config_pars, snr_meas_array, snr_tot_oth
                 else:
                     maskedlabel = "masked regions"
                 ax.fill_between(config_pars[mr], 0, 1, color="grey", alpha=0.3, transform=trans, label=maskedlabel)
-    handles, labels = ax.get_legend_handles_labels()
+    handles, labels = ax1.get_legend_handles_labels()
     if len(labels) > 0:
         ax1.legend(bbox_to_anchor=[1.04, 1.12], ncol=2, loc="upper right", framealpha=0.75)
 
@@ -6209,8 +6210,8 @@ def inspect_object(
         # SHIFT INDIVIDUAL nodes used for the continuum spline by some wavelength
         elif option.strip().lower() == "shiftnodes":
             strnw = ",".join(str(nw) for nw in config_pars["node_wave"])
-            upper_wav_bound = config_pars["lambda_max"]
-            lower_wav_bound = config_pars["lambda_min"]
+            upper_wav_bound = config_pars["lambda_max_{}".format(filter)]
+            lower_wav_bound = config_pars["lambda_min_{}".format(filter)]
             print_prompt("Enter wavelength(s) of node(s) you would like to shift: w1, w2, w3...")
             print_prompt("current node wavelengths are: %s" % strnw)
             nodestr = input("> ")
@@ -6272,7 +6273,7 @@ def inspect_object(
             print_prompt(
                 "Reset configuration parameters, fwhm guess, and zguess to default values"
             )
-            config_pars = read_config(path_to_code+"/default.config", availgrism=filter)
+            config_pars = read_config(path_to_code+"/default.config", availgrism=filters)
             fwhm_guess = 2.35 * a_image * config_pars["dispersion_red"]
             # reset strongest line, too
             index_of_strongest_line = 0

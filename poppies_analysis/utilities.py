@@ -23,11 +23,25 @@ def is_number(s):
         return False
 
 
-# FH updated 4/2/26
+# FH updated 7/13/26
 def read_config(config, availgrism): 
     ''' availgrism is the filter(s) '''
+    # print("In read_config fn - debugging...\n")
+
     configfile = open(config, 'r')  
     config_pars = {} 
+    mask_filter_gap_labels = []
+
+    ## for filter gaps
+    if len(availgrism) > 0:
+
+        for f in range(len(availgrism)-1):
+            filter, filter_2 = availgrism[f], availgrism[f+1]
+            mask_filter_gap_label = f'mask_region_{filter}_{filter_2}'
+            mask_filter_gap_labels.append(mask_filter_gap_label)
+
+    # print("MASK FILTER GAP LABELS ", mask_filter_gap_labels)
+
     for line in configfile:
         if ( (line[0] != '#') & (len(line)>1)): 
             name = line.split()[0] 
@@ -44,43 +58,24 @@ def read_config(config, availgrism):
 
                     for l in nodelams_filt:  
                         nodelams.append(l)
-                    
-                # if availgrism == 'F277W':
-                #     nodelam = [x for x in tmpnode if x <= config_pars['transition_wave']]
-                # elif availgrism.lower() == 'g141':
-                #     nodelam = [x for x in tmpnode if x > config_pars['transition_wave']]
-                # else:
-                #     nodelam = tmpnode
-    
-                # if len(availgrism) >= 2:
-                #     nodelams_1 = [x for x in tmpnode if 
-                #     ((x >= config_pars['lambda_min_{}'.format(availgrism[1])]) and 
-                #     (x <= config_pars['lambda_max_{}'.format(availgrism[1])]))]
-                
-                # elif len(availgrism) == 3:
-                #     nodelams_2 = [x for x in tmpnode if 
-                #     ((x >= config_pars['lambda_min_{}'.format(availgrism[2])]) and 
-                #     (x <= config_pars['lambda_max_{}'.format(availgrism[2])]))]
-                                
-
-                # else:
-                #     nodelams = nodelams_0
 
                 config_pars.setdefault('node_wave', []) 
                 for l in nodelams:  
                     config_pars['node_wave'].append(l)
 
-            elif name == 'mask_region1':
+            elif name in mask_filter_gap_labels:
+                if name == mask_filter_gap_labels[0]:
+                    masklam = [float(s) for s in line.split()[1::]]
+                    config_pars.setdefault('mask_region1', []) 
+                    config_pars['mask_region1'].append(masklam[0]) 
+                    config_pars['mask_region1'].append(masklam[1])      
+                
+                elif name == mask_filter_gap_labels[1]:
+                    masklam = [float(s) for s in line.split()[1::]]
+                    config_pars.setdefault('mask_region2', []) 
+                    config_pars['mask_region2'].append(masklam[0]) 
+                    config_pars['mask_region2'].append(masklam[1])    
 
-                masklam = [float(s) for s in line.split()[1::]]
-                config_pars.setdefault('mask_region1', []) 
-                config_pars['mask_region1'].append(masklam[0]) 
-                config_pars['mask_region1'].append(masklam[1]) 
-            elif name == 'mask_region2': 
-                masklam = [float(s) for s in line.split()[1::]]
-                config_pars.setdefault('mask_region2', []) 
-                config_pars['mask_region2'].append(masklam[0]) 
-                config_pars['mask_region2'].append(masklam[1])
             elif name == 'mask_region3': 
                 masklam = [float(s) for s in line.split()[1::]]
                 config_pars.setdefault('mask_region3', []) 
@@ -117,8 +112,120 @@ def read_config(config, availgrism):
                 if val == 'True': val = True
                 if val == 'False': val = False 
                 config_pars[line.split()[0]] = val 
+
+            
+            if len(mask_filter_gap_labels) == 0:
+                config_pars['mask_region1'] = [0.0,0.0]
+                config_pars['mask_region2'] = [0.0,0.0]
+            
     configfile.close()
-    return config_pars    
+
+    # print("CONFIG FILE: {}\n".format(config_pars))
+    
+    return config_pars  
+
+
+# # FH updated 4/2/26
+# def read_config(config, availgrism): 
+#     ''' availgrism is the filter(s) '''
+#     print("In read_config fn - debugging...\n")
+
+#     configfile = open(config, 'r')  
+#     config_pars = {} 
+#     for line in configfile:
+#         if ( (line[0] != '#') & (len(line)>1)): 
+#             name = line.split()[0] 
+            
+#             if name == 'node_wave': 
+#                 tmpnode = [float(s) for s in line.split()[1::]]
+
+#                 nodelams = []
+
+#                 for filt in availgrism:
+#                     nodelams_filt = [x for x in tmpnode if 
+#                     ((x >= config_pars['lambda_min_{}'.format(filt)]) and 
+#                     (x <= config_pars['lambda_max_{}'.format(filt)]))]
+
+#                     for l in nodelams_filt:  
+#                         nodelams.append(l)
+                    
+#                 # if availgrism == 'F277W':
+#                 #     nodelam = [x for x in tmpnode if x <= config_pars['transition_wave']]
+#                 # elif availgrism.lower() == 'g141':
+#                 #     nodelam = [x for x in tmpnode if x > config_pars['transition_wave']]
+#                 # else:
+#                 #     nodelam = tmpnode
+    
+#                 # if len(availgrism) >= 2:
+#                 #     nodelams_1 = [x for x in tmpnode if 
+#                 #     ((x >= config_pars['lambda_min_{}'.format(availgrism[1])]) and 
+#                 #     (x <= config_pars['lambda_max_{}'.format(availgrism[1])]))]
+                
+#                 # elif len(availgrism) == 3:
+#                 #     nodelams_2 = [x for x in tmpnode if 
+#                 #     ((x >= config_pars['lambda_min_{}'.format(availgrism[2])]) and 
+#                 #     (x <= config_pars['lambda_max_{}'.format(availgrism[2])]))]
+                                
+
+#                 # else:
+#                 #     nodelams = nodelams_0
+
+#                 config_pars.setdefault('node_wave', []) 
+#                 for l in nodelams:  
+#                     config_pars['node_wave'].append(l)
+
+#             elif name == 'mask_region1':
+
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region1', []) 
+#                 config_pars['mask_region1'].append(masklam[0]) 
+#                 config_pars['mask_region1'].append(masklam[1]) 
+#             elif name == 'mask_region2': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region2', []) 
+#                 config_pars['mask_region2'].append(masklam[0]) 
+#                 config_pars['mask_region2'].append(masklam[1])
+#             elif name == 'mask_region3': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region3', []) 
+#                 config_pars['mask_region3'].append(masklam[0]) 
+#                 config_pars['mask_region3'].append(masklam[1])  
+#             elif name == 'mask_region4': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region4', []) 
+#                 config_pars['mask_region4'].append(masklam[0]) 
+#                 config_pars['mask_region4'].append(masklam[1])  
+#             elif name == 'mask_region5': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region5', []) 
+#                 config_pars['mask_region5'].append(masklam[0]) 
+#                 config_pars['mask_region5'].append(masklam[1])  
+#             elif name == 'mask_region6': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region6', []) 
+#                 config_pars['mask_region6'].append(masklam[0]) 
+#                 config_pars['mask_region6'].append(masklam[1])  
+#             elif name == 'mask_region7': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region7', []) 
+#                 config_pars['mask_region7'].append(masklam[0]) 
+#                 config_pars['mask_region7'].append(masklam[1])  
+#             elif name == 'mask_region8': 
+#                 masklam = [float(s) for s in line.split()[1::]]
+#                 config_pars.setdefault('mask_region8', []) 
+#                 config_pars['mask_region8'].append(masklam[0]) 
+#                 config_pars['mask_region8'].append(masklam[1])  
+#             else:  
+#                 val  = line.split()[1] 
+#                 if is_number(val) == True:  val = float(val)
+#                 if val == 'True': val = True
+#                 if val == 'False': val = False 
+#                 config_pars[line.split()[0]] = val 
+#     configfile.close()
+
+#     # print("NODE WAVES: {}\n".format(config_pars['node_wave']))
+   
+#     return config_pars    
 
 
 # def read_config_OLD(config, availgrism='F444W'): 
@@ -247,7 +354,6 @@ def create_regions(parno, path_to_data, path_to_out, filters):
         for i in range(len(cat)):
             f.write("WCS;circle("+str(cat['ALPHA_J2000'][i])+','+str(cat['DELTA_J2000'][i])+',0.5") # color=green text={'+str(int(cat['NUMBER'][i]))+'} font="times 10 bold italic" textangle=30\n')
         f.close()
-
 
     #This and subsequent are for the first order beams. Offsets taken from the config files
     # KVN :  Adding code to first check if the paths exist. Only create region file if filter/orientation is available 
@@ -670,52 +776,4 @@ def quick_flux_max(wave,flux,err,wavemin,wavemax):
         wave_maxind, sn_maxind = 0, 0
 
     return wave_maxind, sn_maxind
-
-
-# # NOTE - The x & y offset values are specific for NIRISS. 
-# #        These will need to be updated for NIRCam data!
-# def create_regions_OLD(parno, path_to_data):
-
-#     spec_cat = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/DIRECT_GRISM/Par*spec*.fits")
-#     hdul = fits.open(spec_cat[0])
-#     cat=hdul[1].data
-
-#     # Direct image region files
-#     f = open(path_to_data + "/POPPIES" + str(parno) + "/DATA/" + "POPPIES" + str(parno) + 'regions_phot.reg','a')
-#     for i in range(len(cat)):
-#         f.write("WCS;circle("+str(cat['ra'][i])+','+str(cat['dec'][i])+',0.5") # color=green text={'+str(cat['id'][i])+' z='+str(round(cat['redshift'][i],3))+'} font="times 10 bold italic" textangle=30\n')
-#     f.close()
-
-#     #This and subsequent are for the first order beams. Offsets taken from the config files
-#     # KVN :  Adding code to first check if the paths exist. Only create region file if filter/orientation is available 
-#     f115grism_R = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f115w*gr150r_drz_sci.fits")
-#     if len(f115grism_R) != 0:
-#         write_obj_region(parno, path_to_data, cat, "F115r_grism.reg", 0.6548681566074263, 33.73739138173772, w = WCS(f115grism_R[0]), 
-#                         b_width = 10.0, b_length = 93.54)
-    
-#     f115grism_C = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f115w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
-#     if len(f115grism_C) != 0:
-#         write_obj_region(parno, path_to_data, cat, "F115c_grism.reg", 31.91107156101387, 1.3922939626209256, w = WCS(f115grism_C[0]), 
-#                         b_width = 97.28751330105166, b_length = 10.0)
-
-#     f150grism_R = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f150w*gr150r_drz_sci.fits") # Added KVN 19-Aug-2024
-#     if len(f150grism_R) != 0:
-#         write_obj_region(parno, path_to_data, cat, "F150r_grism.reg", 0.6548681566074263, 106.79254657227568, w = WCS(f150grism_R[0]), 
-#                         b_width = 10.0, b_length = 93.54)
-    
-#     f150grism_C = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f150w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
-#     if len(f150grism_C) != 0:
-#         write_obj_region(parno, path_to_data, cat, "F150c_grism.reg", 96.44444, 0.6548681566074263, w = WCS(f150grism_C[0]), 
-#                         b_width = 93.54, b_length = 10.0)
-    
-#     f200grism_R = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f200w*gr150r_drz_sci.fits") # Added KVN 19-Aug-2024
-#     if len(f200grism_R) != 0:    
-#         write_obj_region(parno, path_to_data, cat, "F200r_grism.reg", 0.6548681566074263, 204.8370874255101, w = WCS(f200grism_R[0]), 
-#                         b_width = 10.0, b_length = 131.78)        
-    
-#     f200grism_C = glob.glob(path_to_data + "/POPPIES" + str(parno) + "/DATA/*f200w*gr150c_drz_sci.fits") # Added KVN 19-Aug-2024
-#     if len(f200grism_C) != 0:
-#         write_obj_region(parno, path_to_data, cat, "F200c_grism.reg", 200.9228, 0.6548681566074263, w = WCS(f200grism_C[0]), 
-#                         b_width = 127.806, b_length = 10.0)        
-    
 
