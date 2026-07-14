@@ -2,7 +2,7 @@
 
 Farhan Hasan, created 2/13/2025 ([fhasan@stsci.edu](mailto:fhasan@stsci.edu))
 
-Last updated 6/13/26 (multi-filter branch)
+Last updated 7/13/26 (multi-filter branch)
 
 This software is used to identify line-emitting objects and measure emission line properties in JWST NIRCam WFSS Grism spectra, based on the pure-parallel survey POPPIES (PID#5398).
 
